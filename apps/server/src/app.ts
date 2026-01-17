@@ -3,15 +3,29 @@ import { cors } from "hono/cors";
 import { logger as loggerMiddleware } from "hono/logger";
 import { config } from "config";
 import { logger } from "lib/logger";
+import { routes } from "routes";
+import { InputError, NotFoundError } from "lib/errors";
 
 const app = new Hono();
 
 app.use("*", cors());
 app.use("*", loggerMiddleware());
 
-app.get("/", (c) => c.json({ name: "Floyd Server", time: new Date() }));
+app.route("/", routes);
 
 app.onError((err, c) => {
+  if (err instanceof InputError) {
+    return c.json({ error: err.message }, 422);
+  }
+
+  if (err instanceof NotFoundError) {
+    return c.json({ error: err.message }, 404);
+  }
+
+  if (err.name === "SyntaxError") {
+    return c.json({ error: "Invalid JSON" }, 400);
+  }
+
   if (config.NODE_ENV === "production") {
     return c.json({ message: "Internal server error" }, 500);
   } else {

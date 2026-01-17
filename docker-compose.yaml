@@ -1,7 +1,7 @@
 services:
   postgres:
     container_name: floyd_postgres
-    image: postgres:16.11-alpine
+    image: postgres:16.2
     volumes:
       - postgres_data:/var/lib/postgresql/data:delegated
     ports:
@@ -11,7 +11,21 @@ services:
       POSTGRES_HOST_AUTH_METHOD: trust
     logging:
       driver: none
+  postgres_test:
+    container_name: floyd_postgres_test
+    image: postgres:16.2
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data:delegated
+    ports:
+      - 5433:5432
+    environment:
+      POSTGRES_DB: floyd_test
+      POSTGRES_HOST_AUTH_METHOD: trust
+    logging:
+      driver: none
 
 volumes:
   postgres_data:
+    driver: local
+  postgres_data_test:
     driver: local

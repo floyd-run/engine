@@ -1,4 +1,4 @@
-import type { Generated, Selectable } from "kysely";
+import type { Generated, Insertable, Selectable } from "kysely";
 
 export interface Database {
   resources: ResourcesTable;
@@ -9,8 +9,8 @@ export interface ResourcesTable {
   name: string;
   timezone: string;
   metadata: Record<string, unknown>;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
 }
 
-export type Resource = Selectable<ResourcesTable>;
+export type ResourceRow = Selectable<ResourcesTable>;

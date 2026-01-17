@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server';
 import { config } from 'config';
+import { logger } from 'lib/logger';
 
 async function main() {
   const { default: app } = await import('./app');
@@ -10,9 +11,9 @@ async function main() {
       port: config.PORT
     },
     (info) => {
-      console.log(`Server started at ${info.port}`);
+      logger.info(`Server started at ${info.port}`);
     }
   );
 }
 
-main().catch(console.error);
+main().catch(logger.error);

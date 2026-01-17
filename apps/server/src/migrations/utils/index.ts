@@ -1,4 +1,5 @@
-import { Kysely, sql } from 'kysely';
+import type { Kysely } from 'kysely';
+import { sql } from 'kysely';
 import type { Database } from 'database/schema';
 
 export async function addUpdatedAtTrigger(db: Kysely<Database>, table: string) {

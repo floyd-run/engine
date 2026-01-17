@@ -1,11 +1,12 @@
 import fs from 'fs';
+import { logger } from 'lib/logger';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const migrationName = process.argv[2];
 
 if (!migrationName) {
-  console.error('Please provide a migration name. Usage: pnpm migrate:create my_migration');
+  logger.error('Please provide a migration name. Usage: pnpm migrate:create my_migration');
   process.exit(1);
 }
 
@@ -31,4 +32,4 @@ const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../mig
 
 fs.writeFileSync(filePath, content);
 
-console.log(`✅ Created migration: migrations/${fileName}`);
+logger.info(`✅ Created migration: migrations/${fileName}`);

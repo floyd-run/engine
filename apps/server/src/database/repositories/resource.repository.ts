@@ -1,4 +1,4 @@
-import { Kysely } from 'kysely';
+import type { Kysely } from 'kysely';
 import type { Database } from '../schema';
 
 export function createResourceRepository(db: Kysely<Database>) {

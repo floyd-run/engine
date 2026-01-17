@@ -1,5 +1,5 @@
 import pino from "pino";
-import { config } from "../config/index.js";
+import { config } from "config";
 
 export const logger =
   config.NODE_ENV === "development"

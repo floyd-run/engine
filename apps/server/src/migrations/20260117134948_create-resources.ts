@@ -23,9 +23,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .createTable('resources')
     .addColumn('id', 'uuid', (col) =>
       col
-      .primaryKey()
-      .notNull()
-      .defaultTo(sql`gen_random_uuid()`)
+        .primaryKey()
+        .notNull()
+        .defaultTo(sql`gen_random_uuid()`)
     )
     .addColumn('name', 'text', (col) => col.notNull())
     .addColumn('timezone', 'text', (col) => col.notNull())

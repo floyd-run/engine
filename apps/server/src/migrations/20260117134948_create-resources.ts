@@ -1,7 +1,7 @@
-import { sql } from 'kysely';
-import type { Kysely } from 'kysely';
-import type { Database } from 'database/schema';
-import { addUpdatedAtTrigger } from './utils';
+import { sql } from "kysely";
+import type { Kysely } from "kysely";
+import type { Database } from "database/schema";
+import { addUpdatedAtTrigger } from "./utils";
 
 export async function up(db: Kysely<Database>): Promise<void> {
   // Initial extensions
@@ -20,23 +20,23 @@ export async function up(db: Kysely<Database>): Promise<void> {
   `.execute(db);
 
   await db.schema
-    .createTable('resources')
-    .addColumn('id', 'uuid', (col) =>
+    .createTable("resources")
+    .addColumn("id", "uuid", (col) =>
       col
         .primaryKey()
         .notNull()
-        .defaultTo(sql`gen_random_uuid()`)
+        .defaultTo(sql`gen_random_uuid()`),
     )
-    .addColumn('name', 'text', (col) => col.notNull())
-    .addColumn('timezone', 'text', (col) => col.notNull())
-    .addColumn('metadata', 'jsonb', (col) => col.notNull().defaultTo(sql`'{}'::jsonb`))
-    .addColumn('created_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
-    .addColumn('updated_at', 'timestamptz', (col) => col.notNull().defaultTo(sql`now()`))
+    .addColumn("name", "text", (col) => col.notNull())
+    .addColumn("timezone", "text", (col) => col.notNull())
+    .addColumn("metadata", "jsonb", (col) => col.notNull().defaultTo(sql`'{}'::jsonb`))
+    .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
+    .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .execute();
 
-  await addUpdatedAtTrigger(db, 'resources');
+  await addUpdatedAtTrigger(db, "resources");
 }
 
 export async function down(db: Kysely<Database>): Promise<void> {
-  await db.schema.dropTable('resources').execute();
+  await db.schema.dropTable("resources").execute();
 }

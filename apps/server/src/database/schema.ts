@@ -1,4 +1,4 @@
-import type { Generated, Selectable } from 'kysely';
+import type { Generated, Selectable } from "kysely";
 
 export interface Database {
   resources: ResourcesTable;

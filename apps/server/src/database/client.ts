@@ -1,7 +1,7 @@
-import { CamelCasePlugin, Kysely, PostgresDialect } from 'kysely';
-import type { Database } from './schema';
-import { Pool } from 'pg';
-import { config } from 'config';
+import { CamelCasePlugin, Kysely, PostgresDialect } from "kysely";
+import type { Database } from "./schema";
+import { Pool } from "pg";
+import { config } from "config";
 
 const pool = new Pool({ connectionString: config.DATABASE_URL });
 const dialect = new PostgresDialect({ pool });

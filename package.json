@@ -1,7 +1,8 @@
 {
   "private": true,
   "scripts": {
-    "dev": "turbo dev"
+    "dev": "turbo dev",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "prettier": "^3.8.0",

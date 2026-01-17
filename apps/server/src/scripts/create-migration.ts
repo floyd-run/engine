@@ -1,18 +1,18 @@
-import fs from 'fs';
-import { logger } from 'lib/logger';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import { logger } from "lib/logger";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const migrationName = process.argv[2];
 
 if (!migrationName) {
-  logger.error('Please provide a migration name. Usage: pnpm migrate:create my_migration');
+  logger.error("Please provide a migration name. Usage: pnpm migrate:create my_migration");
   process.exit(1);
 }
 
 const timestamp = new Date()
   .toISOString()
-  .replace(/[-T:.Z]/g, '')
+  .replace(/[-T:.Z]/g, "")
   .slice(0, 14);
 const fileName = `${timestamp}_${migrationName}.ts`;
 
@@ -28,7 +28,7 @@ export async function down(db: Kysely<Database>): Promise<void> {
 }
 `;
 
-const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), '../migrations', fileName);
+const filePath = path.join(path.dirname(fileURLToPath(import.meta.url)), "../migrations", fileName);
 
 fs.writeFileSync(filePath, content);
 

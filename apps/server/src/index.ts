@@ -1,5 +1,18 @@
+import { serve } from '@hono/node-server';
+import { config } from 'config';
+
 async function main() {
-  console.log("Hello, world!");
+  const { default: app } = await import('./app');
+
+  serve(
+    {
+      fetch: app.fetch,
+      port: config.PORT
+    },
+    (info) => {
+      console.log(`Server started at ${info.port}`);
+    }
+  );
 }
 
-main();
+main().catch(console.error);

@@ -1,6 +1,12 @@
 {
   "extends": "@floyd/typescript/app.json",
   "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "config": ["config/index.ts"],
+      "database": ["database/index.ts"],
+      "database/*": ["database/*"]
+    },
     "outDir": "dist",
     "rootDir": "src"
   },

@@ -1,0 +1,13 @@
+{
+  "name": "@floyd/typescript",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./base.json": "./base.json",
+    "./library.json": "./library.json",
+    "./app.json": "./app.json"
+  },
+  "files": [
+    "*.json"
+  ]
+}

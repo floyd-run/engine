@@ -1,0 +1,14 @@
+{
+  "name": "@floyd/server",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  },
+  "devDependencies": {
+    "@floyd/typescript": "workspace:*",
+    "@types/node": "^25.0.9",
+    "tsx": "^4.21.0"
+  }
+}

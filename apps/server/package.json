@@ -9,7 +9,7 @@
     "migrate": "tsx -r dotenv/config src/scripts/migrate.ts",
     "migrate:down": "tsx -r dotenv/config src/scripts/migrate.ts down",
     "migrate:redo": "tsx -r dotenv/config src/scripts/migrate.ts redo",
-    "migrate:create": "tsx src/scripts/create-migration.ts",
+    "migrate:create": "tsx -r dotenv/config src/scripts/create-migration.ts",
     "lint": "eslint"
   },
   "dependencies": {

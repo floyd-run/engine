@@ -6,8 +6,9 @@ import { serializeResource } from "./serializers";
 // Nested under /v1/workspaces/:workspaceId/resources
 export const resources = new Hono()
   .get("/", async (c) => {
-    const workspaceId = c.req.param("workspaceId");
-    const { resources } = await services.resource.list({ workspaceId });
+    const { resources } = await services.resource.list({
+      workspaceId: c.req.param("workspaceId")!,
+    });
     return c.json({ data: resources.map(serializeResource) });
   })
 
@@ -18,9 +19,11 @@ export const resources = new Hono()
   })
 
   .post("/", async (c) => {
-    const workspaceId = c.req.param("workspaceId");
     const body = await c.req.json();
-    const { resource } = await services.resource.create({ ...body, workspaceId });
+    const { resource } = await services.resource.create({
+      ...body,
+      workspaceId: c.req.param("workspaceId"),
+    });
     return c.json({ data: serializeResource(resource) }, 201);
   })
 

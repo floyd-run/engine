@@ -16,7 +16,6 @@ export const workspaces = new Hono()
   })
 
   .post("/", async (c) => {
-    const body = await c.req.json();
-    const { workspace } = await services.workspace.create(body);
+    const { workspace } = await services.workspace.create();
     return c.json({ data: serializeWorkspace(workspace) }, 201);
   });

@@ -12,7 +12,6 @@ export async function createAllocation(overrides?: {
   endAt?: Date;
   expiresAt?: Date | null;
   version?: number;
-  groupRef?: string | null;
   metadata?: Record<string, unknown> | null;
 }) {
   let workspaceId = overrides?.workspaceId;
@@ -47,7 +46,6 @@ export async function createAllocation(overrides?: {
       endAt,
       expiresAt: overrides?.expiresAt ?? null,
       version: overrides?.version ?? 1,
-      groupRef: overrides?.groupRef ?? null,
       metadata: overrides?.metadata ?? null,
     })
     .returningAll()

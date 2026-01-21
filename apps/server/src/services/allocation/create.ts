@@ -19,7 +19,6 @@ export default createService({
     endAt: z.coerce.date(),
     expiresAt: z.coerce.date().nullable().optional(),
     version: z.number().int().min(1).default(1),
-    groupRef: z.string().nullable().optional(),
     metadata: z.record(z.string(), z.unknown()).nullable().optional(),
   }),
   execute: async (input) => {
@@ -34,7 +33,6 @@ export default createService({
         endAt: input.endAt,
         expiresAt: input.expiresAt ?? null,
         version: input.version,
-        groupRef: input.groupRef ?? null,
         metadata: input.metadata ?? null,
       })
       .returningAll()

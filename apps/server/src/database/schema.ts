@@ -26,7 +26,6 @@ export interface AllocationsTable {
   endAt: Date;
   expiresAt: Date | null;
   version: number;
-  groupRef: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;

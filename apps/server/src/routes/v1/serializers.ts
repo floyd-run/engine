@@ -29,7 +29,6 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
     endAt: allocation.endAt.toISOString(),
     expiresAt: allocation.expiresAt?.toISOString() ?? null,
     version: Number(allocation.version),
-    groupRef: allocation.groupRef,
     metadata: allocation.metadata,
     createdAt: allocation.createdAt.toISOString(),
     updatedAt: allocation.updatedAt.toISOString(),

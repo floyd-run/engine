@@ -66,23 +66,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
     expect(data.metadata).toEqual(metadata);
   });
 
-  it("returns 201 with groupRef for linked bookings", async () => {
-    const { resource, workspaceId } = await createResource();
-    const groupRef = "group_abc123";
-
-    const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
-      resourceId: resource.id,
-      status: "CONFIRMED",
-      startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-      endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-      groupRef,
-    });
-
-    expect(response.status).toBe(201);
-    const { data } = (await response.json()) as { data: Allocation };
-    expect(data.groupRef).toBe(groupRef);
-  });
-
   it("returns 422 for invalid status", async () => {
     const { resource, workspaceId } = await createResource();
 

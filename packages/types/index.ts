@@ -23,7 +23,6 @@ export interface Allocation {
   endAt: string;
   expiresAt: string | null;
   version: number;
-  groupRef: string | null;
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;

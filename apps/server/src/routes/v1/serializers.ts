@@ -14,7 +14,7 @@ export function serializeResource(resource: ResourceRow): Resource {
 
 export function serializeWorkspace(workspace: WorkspaceRow): Workspace {
   return {
-    workspaceId: workspace.workspaceId,
+    id: workspace.id,
     description: workspace.description,
     createdAt: workspace.createdAt.toISOString(),
     updatedAt: workspace.updatedAt.toISOString(),

@@ -6,7 +6,7 @@ import { addUpdatedAtTrigger } from "./utils";
 export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema
     .createTable("workspaces")
-    .addColumn("workspace_id", "varchar(255)", (col) => col.primaryKey())
+    .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
     .addColumn("description", "text")
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))

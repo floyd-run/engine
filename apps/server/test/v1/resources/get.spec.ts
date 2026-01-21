@@ -26,7 +26,7 @@ describe("GET /v1/resources/:id", () => {
   });
 
   it("returns 404 for non-existent resource", async () => {
-    const response = await client.get(`/v1/resources/${faker.string.uuid()}`);
+    const response = await client.get("/v1/resources/res_00000000000000000000000000");
     expect(response.status).toBe(404);
   });
 });

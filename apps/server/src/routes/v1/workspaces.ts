@@ -9,8 +9,8 @@ export const workspaces = new Hono()
     return c.json({ data: workspaces.map(serializeWorkspace) });
   })
 
-  .get("/:workspaceId", async (c) => {
-    const { workspace } = await services.workspace.get({ workspaceId: c.req.param("workspaceId") });
+  .get("/:id", async (c) => {
+    const { workspace } = await services.workspace.get({ id: c.req.param("id") });
     if (!workspace) throw new NotFoundError("Workspace not found");
     return c.json({ data: serializeWorkspace(workspace) });
   })

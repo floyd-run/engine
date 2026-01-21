@@ -6,7 +6,7 @@ export interface Database {
 }
 
 export interface ResourcesTable {
-  id: Generated<string>;
+  id: string;
   name: string;
   timezone: string;
   metadata: Record<string, unknown>;
@@ -15,9 +15,10 @@ export interface ResourcesTable {
 }
 
 export type ResourceRow = Selectable<ResourcesTable>;
+export type NewResource = Insertable<ResourcesTable>;
 
 export interface WorkspacesTable {
-  workspaceId: string;
+  id: string;
   description: string | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;

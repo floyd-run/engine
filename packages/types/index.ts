@@ -8,7 +8,7 @@ export interface Resource {
 }
 
 export interface Workspace {
-  workspaceId: string;
+  id: string;
   description: string | null;
   createdAt: string;
   updatedAt: string;

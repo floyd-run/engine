@@ -1,6 +1,7 @@
 import { db } from "database";
 import z from "zod";
 import { createService } from "lib/service";
+import { generateId } from "lib/id";
 
 export default createService({
   input: z.object({
@@ -12,6 +13,7 @@ export default createService({
     const resource = await db
       .insertInto("resources")
       .values({
+        id: generateId("res"),
         name: input.name,
         timezone: input.timezone,
         metadata: input.metadata,

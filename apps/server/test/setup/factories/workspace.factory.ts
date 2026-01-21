@@ -1,11 +1,12 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
+import { generateId } from "lib/id";
 
-export async function createWorkspace(overrides?: { workspaceId?: string; description?: string | null }) {
+export async function createWorkspace(overrides?: { description?: string | null }) {
   const workspace = await db
     .insertInto("workspaces")
     .values({
-      workspaceId: overrides?.workspaceId ?? faker.string.alphanumeric(10),
+      id: generateId("ws"),
       description: overrides?.description ?? faker.lorem.sentence(),
     })
     .returningAll()

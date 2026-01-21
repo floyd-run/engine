@@ -21,12 +21,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
 
   await db.schema
     .createTable("resources")
-    .addColumn("id", "uuid", (col) =>
-      col
-        .primaryKey()
-        .notNull()
-        .defaultTo(sql`gen_random_uuid()`),
-    )
+    .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
     .addColumn("name", "text", (col) => col.notNull())
     .addColumn("timezone", "text", (col) => col.notNull())
     .addColumn("metadata", "jsonb", (col) => col.notNull().defaultTo(sql`'{}'::jsonb`))

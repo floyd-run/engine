@@ -4,10 +4,19 @@ import type { Database } from "database/schema";
 import { addUpdatedAtTrigger } from "./utils";
 
 export async function up(db: Kysely<Database>): Promise<void> {
+  await sql`
+    CREATE OR REPLACE FUNCTION update_modified_column()
+    RETURNS TRIGGER AS $$
+    BEGIN
+      NEW.updated_at = now();
+      RETURN NEW;
+    END;
+    $$ language 'plpgsql';
+  `.execute(db);
+
   await db.schema
     .createTable("workspaces")
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
-    .addColumn("description", "text")
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .execute();

@@ -5,21 +5,16 @@ export interface Database {
   workspaces: WorkspacesTable;
 }
 
-export interface ResourcesTable {
+export interface WorkspacesTable {
   id: string;
-  name: string;
-  timezone: string;
-  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
 
-export type ResourceRow = Selectable<ResourcesTable>;
-export type NewResource = Insertable<ResourcesTable>;
-
-export interface WorkspacesTable {
+export interface ResourcesTable {
   id: string;
-  description: string | null;
+  workspaceId: string;
+  timezone: string;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -27,3 +22,7 @@ export interface WorkspacesTable {
 export type WorkspaceRow = Selectable<WorkspacesTable>;
 export type NewWorkspace = Insertable<WorkspacesTable>;
 export type WorkspaceUpdate = Updateable<WorkspacesTable>;
+
+export type ResourceRow = Selectable<ResourcesTable>;
+export type NewResource = Insertable<ResourcesTable>;
+export type ResourceUpdate = Updateable<ResourcesTable>;

@@ -1,22 +1,22 @@
 import { db } from "database";
 import z from "zod";
 import { createService } from "lib/service";
-import { generateId } from "lib/id";
+import { generateId, isValidId } from "lib/id";
 
 export default createService({
   input: z.object({
-    name: z.string(),
-    timezone: z.string(),
-    metadata: z.record(z.string(), z.any()),
+    workspaceId: z
+      .string()
+      .refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
+    timezone: z.string().default("UTC"),
   }),
   execute: async (input) => {
     const resource = await db
       .insertInto("resources")
       .values({
         id: generateId("res"),
-        name: input.name,
+        workspaceId: input.workspaceId,
         timezone: input.timezone,
-        metadata: input.metadata,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

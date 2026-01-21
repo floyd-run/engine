@@ -12,8 +12,8 @@ export default createService({
       .selectFrom("resources")
       .where("id", "=", input.id)
       .selectAll()
-      .execute();
+      .executeTakeFirst();
 
-    return { resource: resource[0] };
+    return { resource };
   },
 });

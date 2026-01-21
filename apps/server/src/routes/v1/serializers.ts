@@ -1,5 +1,5 @@
-import { ResourceRow, WorkspaceRow } from "database/schema";
-import { Resource, Workspace } from "@floyd-run/types";
+import { AllocationRow, ResourceRow, WorkspaceRow } from "database/schema";
+import { Allocation, Resource, Workspace } from "@floyd-run/types";
 
 export function serializeResource(resource: ResourceRow): Resource {
   return {
@@ -16,5 +16,22 @@ export function serializeWorkspace(workspace: WorkspaceRow): Workspace {
     id: workspace.id,
     createdAt: workspace.createdAt.toISOString(),
     updatedAt: workspace.updatedAt.toISOString(),
+  };
+}
+
+export function serializeAllocation(allocation: AllocationRow): Allocation {
+  return {
+    id: allocation.id,
+    workspaceId: allocation.workspaceId,
+    resourceId: allocation.resourceId,
+    status: allocation.status,
+    startAt: allocation.startAt.toISOString(),
+    endAt: allocation.endAt.toISOString(),
+    expiresAt: allocation.expiresAt?.toISOString() ?? null,
+    version: Number(allocation.version),
+    groupRef: allocation.groupRef,
+    metadata: allocation.metadata,
+    createdAt: allocation.createdAt.toISOString(),
+    updatedAt: allocation.updatedAt.toISOString(),
   };
 }

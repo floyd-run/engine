@@ -11,3 +11,20 @@ export interface Workspace {
   createdAt: string;
   updatedAt: string;
 }
+
+export type AllocationStatus = "HOLD" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
+
+export interface Allocation {
+  id: string;
+  workspaceId: string;
+  resourceId: string;
+  status: AllocationStatus;
+  startAt: string;
+  endAt: string;
+  expiresAt: string | null;
+  version: number;
+  groupRef: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  updatedAt: string;
+}

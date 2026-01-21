@@ -6,3 +6,10 @@ export interface Resource {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface Workspace {
+  workspaceId: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

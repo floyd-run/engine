@@ -6,12 +6,8 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema
     .createTable("allocations")
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
-    .addColumn("workspace_id", "varchar(32)", (col) =>
-      col.notNull().references("workspaces.id"),
-    )
-    .addColumn("resource_id", "varchar(32)", (col) =>
-      col.notNull().references("resources.id"),
-    )
+    .addColumn("workspace_id", "varchar(32)", (col) => col.notNull().references("workspaces.id"))
+    .addColumn("resource_id", "varchar(32)", (col) => col.notNull().references("resources.id"))
     .addColumn("status", "varchar(50)", (col) =>
       col.notNull().check(sql`status IN ('hold', 'confirmed', 'cancelled', 'expired')`),
     )

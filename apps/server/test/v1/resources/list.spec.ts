@@ -1,7 +1,7 @@
 import { createResource, createWorkspace } from "../../setup/factories";
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { Resource } from "@floyd-run/types";
+import type { Resource } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:workspaceId/resources", () => {
   it("returns 200 with empty array when no resources", async () => {
@@ -40,6 +40,6 @@ describe("GET /v1/workspaces/:workspaceId/resources", () => {
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as { data: Array<Resource> };
     expect(data.length).toBe(1);
-    expect(data[0].id).toBe(resource.id);
+    expect(data[0]!.id).toBe(resource.id);
   });
 });

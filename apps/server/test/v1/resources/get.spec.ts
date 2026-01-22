@@ -1,7 +1,7 @@
 import { createResource, createWorkspace } from "../../setup/factories";
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { Resource } from "@floyd-run/types";
+import type { Resource } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:workspaceId/resources/:id", () => {
   it("returns 422 for invalid resource id", async () => {

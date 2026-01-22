@@ -2,12 +2,16 @@ import { describe, expect, it, vi, beforeAll } from "vitest";
 import { createClient } from "../setup/client";
 import type { Client } from "../setup/client";
 
+interface ApiErrorResponse {
+  error: { code: string };
+}
+
 describe("Authentication", () => {
   describe("when FLOYD_API_KEY is set", () => {
     let client: Client;
 
     beforeAll(async () => {
-      process.env.FLOYD_API_KEY = "test_secret_key";
+      process.env["FLOYD_API_KEY"] = "test_secret_key";
       vi.resetModules();
       client = await createClient();
     });
@@ -16,7 +20,7 @@ describe("Authentication", () => {
       const response = await client.get("/v1/workspaces");
 
       expect(response.status).toBe(401);
-      const body = await response.json();
+      const body = (await response.json()) as ApiErrorResponse;
       expect(body.error.code).toBe("missing_authorization");
     });
 
@@ -26,7 +30,7 @@ describe("Authentication", () => {
       });
 
       expect(response.status).toBe(401);
-      const body = await response.json();
+      const body = (await response.json()) as ApiErrorResponse;
       expect(body.error.code).toBe("invalid_authorization_format");
     });
 
@@ -36,7 +40,7 @@ describe("Authentication", () => {
       });
 
       expect(response.status).toBe(401);
-      const body = await response.json();
+      const body = (await response.json()) as ApiErrorResponse;
       expect(body.error.code).toBe("invalid_api_key");
     });
 
@@ -53,7 +57,7 @@ describe("Authentication", () => {
     let client: Client;
 
     beforeAll(async () => {
-      delete process.env.FLOYD_API_KEY;
+      delete process.env["FLOYD_API_KEY"];
       vi.resetModules();
       client = await createClient();
     });

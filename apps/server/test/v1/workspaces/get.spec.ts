@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createWorkspace } from "../../setup/factories";
-import { Workspace } from "@floyd-run/types";
+import type { Workspace } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:id", () => {
   it("returns 422 for invalid workspace id", async () => {

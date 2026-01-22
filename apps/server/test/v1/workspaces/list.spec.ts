@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createWorkspace } from "../../setup/factories";
+import type { Workspace } from "@floyd-run/schema/types";
+
+interface ApiListResponse {
+  data: Workspace[];
+}
 
 describe("GET /v1/workspaces", () => {
   it("returns 200 with empty array when no workspaces", async () => {
     const response = await client.get("/v1/workspaces");
     expect(response.status).toBe(200);
 
-    const body = await response.json();
+    const body = (await response.json()) as ApiListResponse;
     expect(body.data).toBeInstanceOf(Array);
   });
 
@@ -18,11 +23,11 @@ describe("GET /v1/workspaces", () => {
     const response = await client.get("/v1/workspaces");
     expect(response.status).toBe(200);
 
-    const body = await response.json();
+    const body = (await response.json()) as ApiListResponse;
     expect(body.data).toBeInstanceOf(Array);
     expect(body.data.length).toBeGreaterThanOrEqual(2);
 
-    const ids = body.data.map((w: { id: string }) => w.id);
+    const ids = body.data.map((w) => w.id);
     expect(ids).toContain(ws1.id);
     expect(ids).toContain(ws2.id);
   });

@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
-import { AllocationStatus } from "database/schema";
+import { AllocationStatus } from "@floyd-run/schema/types";
 import { generateId } from "@floyd-run/utils";
 import { createResource } from "./resource.factory";
 
@@ -13,16 +13,17 @@ export async function createAllocation(overrides?: {
   expiresAt?: Date | null;
   metadata?: Record<string, unknown> | null;
 }) {
-  let workspaceId = overrides?.workspaceId;
+  const workspaceIdParam = overrides?.workspaceId;
+  let workspaceId: string;
   let resourceId = overrides?.resourceId;
 
   if (!resourceId) {
-    const result = await createResource({ workspaceId });
+    const result = await createResource(workspaceIdParam ? { workspaceId: workspaceIdParam } : {});
     resourceId = result.resource.id;
     workspaceId = result.workspaceId;
-  }
-
-  if (!workspaceId) {
+  } else if (workspaceIdParam) {
+    workspaceId = workspaceIdParam;
+  } else {
     const resource = await db
       .selectFrom("resources")
       .where("id", "=", resourceId)

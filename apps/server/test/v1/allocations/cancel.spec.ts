@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createResource } from "../../setup/factories";
-import { Allocation } from "@floyd-run/types";
+import type { Allocation } from "@floyd-run/schema/types";
+
+interface ApiResponse {
+  data: Allocation;
+  meta?: { serverTime: string };
+  error?: { code: string };
+}
 
 describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   it("cancels a hold allocation", async () => {
@@ -16,7 +22,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
       expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
     });
     expect(createResponse.status).toBe(201);
-    const { data: hold } = (await createResponse.json()) as { data: Allocation };
+    const { data: hold } = (await createResponse.json()) as ApiResponse;
 
     // Cancel it
     const response = await client.post(
@@ -24,9 +30,9 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse;
     expect(body.data.status).toBe("cancelled");
-    expect(body.meta.serverTime).toBeDefined();
+    expect(body.meta?.serverTime).toBeDefined();
   });
 
   it("cancels a confirmed allocation", async () => {
@@ -37,7 +43,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse;
     expect(body.data.status).toBe("cancelled");
   });
 
@@ -49,7 +55,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse;
     expect(body.data.status).toBe("cancelled");
   });
 
@@ -61,8 +67,8 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = await response.json();
-    expect(body.error.code).toBe("invalid_state_transition");
+    const body = (await response.json()) as ApiResponse;
+    expect(body.error?.code).toBe("invalid_state_transition");
   });
 
   it("frees up the time slot after cancellation", async () => {
@@ -78,7 +84,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
       endAt: endAt.toISOString(),
     });
     expect(createResponse.status).toBe(201);
-    const { data: first } = (await createResponse.json()) as { data: Allocation };
+    const { data: first } = (await createResponse.json()) as ApiResponse;
 
     // Cancel it
     const cancelResponse = await client.post(

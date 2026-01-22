@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { Workspace } from "@floyd-run/types";
+import type { Workspace } from "@floyd-run/schema/types";
 
 describe("POST /v1/workspaces", () => {
   it("returns 201 for valid input", async () => {

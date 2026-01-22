@@ -25,9 +25,9 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   .post("/", idempotent({ significantFields: ALLOCATION_SIGNIFICANT_FIELDS }), async (c) => {
     const body = c.get("parsedBody") || (await c.req.json());
     const { allocation, serverTime } = await services.allocation.create({
-      ...body,
-      workspaceId: c.req.param("workspaceId"),
-    });
+      ...(body as object),
+      workspaceId: c.req.param("workspaceId")!,
+    } as Parameters<typeof services.allocation.create>[0]);
     const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 201);
     return c.json(responseBody, 201);

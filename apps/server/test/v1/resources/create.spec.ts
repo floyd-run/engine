@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createWorkspace } from "../../setup/factories";
-import { Resource } from "@floyd-run/types";
+import type { Resource } from "@floyd-run/schema/types";
 
 describe("POST /v1/workspaces/:workspaceId/resources", () => {
   it("returns 201 with default timezone", async () => {

@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createResource } from "../../setup/factories";
-import { Allocation } from "@floyd-run/types";
+import type { Allocation } from "@floyd-run/schema/types";
+
+interface ApiResponse {
+  data: Allocation;
+  meta?: { serverTime: string };
+  error?: { code: string };
+}
 
 describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   it("confirms a hold allocation", async () => {
@@ -17,7 +23,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
       expiresAt: expiresAt.toISOString(),
     });
     expect(createResponse.status).toBe(201);
-    const { data: hold } = (await createResponse.json()) as { data: Allocation };
+    const { data: hold } = (await createResponse.json()) as ApiResponse;
 
     // Confirm it
     const response = await client.post(
@@ -25,9 +31,9 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse;
     expect(body.data.status).toBe("confirmed");
-    expect(body.meta.serverTime).toBeDefined();
+    expect(body.meta?.serverTime).toBeDefined();
   });
 
   it("is idempotent - confirming already confirmed allocation succeeds", async () => {
@@ -38,7 +44,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = await response.json();
+    const body = (await response.json()) as ApiResponse;
     expect(body.data.status).toBe("confirmed");
   });
 
@@ -50,8 +56,8 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = await response.json();
-    expect(body.error.code).toBe("invalid_state_transition");
+    const body = (await response.json()) as ApiResponse;
+    expect(body.error?.code).toBe("invalid_state_transition");
   });
 
   it("returns 409 when confirming expired allocation", async () => {
@@ -62,8 +68,8 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = await response.json();
-    expect(body.error.code).toBe("invalid_state_transition");
+    const body = (await response.json()) as ApiResponse;
+    expect(body.error?.code).toBe("invalid_state_transition");
   });
 
   it("returns 409 when confirming hold that has expired (TTL)", async () => {
@@ -77,8 +83,8 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = await response.json();
-    expect(body.error.code).toBe("hold_expired");
+    const body = (await response.json()) as ApiResponse;
+    expect(body.error?.code).toBe("hold_expired");
   });
 
   it("returns 404 for non-existent allocation", async () => {

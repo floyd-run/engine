@@ -43,7 +43,6 @@ export default createService({
         .updateTable("allocations")
         .set({
           status: "cancelled",
-          version: sql`version + 1`,
           updatedAt: serverTime,
         })
         .where("id", "=", input.id)

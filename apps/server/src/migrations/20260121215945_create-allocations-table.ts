@@ -15,7 +15,6 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("end_at", "timestamptz", (col) => col.notNull())
     .addCheckConstraint("allocations_time_order", sql`start_at < end_at`)
     .addColumn("expires_at", "timestamptz")
-    .addColumn("version", "bigint", (col) => col.notNull().defaultTo(1))
     .addColumn("metadata", "jsonb")
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))

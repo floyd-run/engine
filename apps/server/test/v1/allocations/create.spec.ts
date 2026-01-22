@@ -24,7 +24,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
     expect(data.status).toBe("confirmed");
     expect(data.startAt).toBe(startAt.toISOString());
     expect(data.endAt).toBe(endAt.toISOString());
-    expect(data.version).toBe(1);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });

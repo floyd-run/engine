@@ -27,7 +27,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data.status).toBe("confirmed");
-    expect(body.data.version).toBe(2);
     expect(body.meta.serverTime).toBeDefined();
   });
 
@@ -41,7 +40,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data.status).toBe("confirmed");
-    expect(body.data.version).toBe(1); // Version unchanged for idempotent call
   });
 
   it("returns 409 when confirming cancelled allocation", async () => {

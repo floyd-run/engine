@@ -25,7 +25,6 @@ export interface Allocation {
   startAt: string;
   endAt: string;
   expiresAt: string | null;
-  version: number;
   metadata: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;

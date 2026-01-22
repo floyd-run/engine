@@ -26,7 +26,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data.status).toBe("cancelled");
-    expect(body.data.version).toBe(2);
     expect(body.meta.serverTime).toBeDefined();
   });
 
@@ -40,7 +39,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data.status).toBe("cancelled");
-    expect(body.data.version).toBe(2);
   });
 
   it("is idempotent - cancelling already cancelled allocation succeeds", async () => {
@@ -53,7 +51,6 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.data.status).toBe("cancelled");
-    expect(body.data.version).toBe(1); // Version unchanged for idempotent call
   });
 
   it("returns 409 when cancelling expired allocation", async () => {

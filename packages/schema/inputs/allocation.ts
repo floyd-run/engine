@@ -11,7 +11,6 @@ export const createSchema = z.object({
   startAt: z.coerce.date(),
   endAt: z.coerce.date(),
   expiresAt: z.coerce.date().nullable().optional(),
-  version: z.number().int().min(1).default(1),
   metadata: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 

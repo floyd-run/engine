@@ -1,5 +1,5 @@
-import { sql } from "kysely";
 import { db } from "database";
+import { sql } from "kysely";
 import { createService } from "lib/service";
 import { allocation } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
@@ -61,7 +61,6 @@ export default createService({
         .updateTable("allocations")
         .set({
           status: "confirmed",
-          version: sql`version + 1`,
           updatedAt: serverTime,
         })
         .where("id", "=", input.id)

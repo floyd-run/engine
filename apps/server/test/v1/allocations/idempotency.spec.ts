@@ -185,7 +185,7 @@ describe("Idempotency", () => {
 
       // Should return same response (cached)
       expect(result2.data.id).toBe(result1.data.id);
-      expect(result2.data.version).toBe(result1.data.version);
+      expect(result2.data.status).toBe(result1.data.status);
     });
   });
 
@@ -223,7 +223,7 @@ describe("Idempotency", () => {
 
       // Should return same response (cached)
       expect(result2.data.id).toBe(result1.data.id);
-      expect(result2.data.version).toBe(result1.data.version);
+      expect(result2.data.status).toBe(result1.data.status);
     });
   });
 });

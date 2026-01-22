@@ -59,7 +59,6 @@ export default createService({
           startAt: input.startAt,
           endAt: input.endAt,
           expiresAt: input.expiresAt ?? null,
-          version: input.version,
           metadata: input.metadata ?? null,
         })
         .returningAll()

@@ -3,7 +3,7 @@ import { config } from "config";
 import { logger } from "infra/logger";
 
 async function main() {
-const { default: app } = await import("./app");
+  const { default: app } = await import("./app");
 
   serve(
     {
@@ -16,4 +16,4 @@ const { default: app } = await import("./app");
   );
 }
 
-main().catch(logger.error);
+main().catch((err) => logger.error(err));

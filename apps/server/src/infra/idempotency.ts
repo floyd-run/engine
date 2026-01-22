@@ -41,7 +41,10 @@ interface IdempotencyOptions {
 /**
  * Computes a SHA-256 hash of the significant payload fields
  */
-function computePayloadHash(payload: Record<string, unknown>, significantFields?: string[]): string {
+function computePayloadHash(
+  payload: Record<string, unknown>,
+  significantFields?: string[],
+): string {
   let dataToHash: Record<string, unknown>;
 
   if (significantFields && significantFields.length > 0) {

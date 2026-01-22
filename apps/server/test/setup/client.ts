@@ -30,14 +30,16 @@ export const createClient = async (): Promise<Client> => {
     const request = new Request(`http://localhost${path}`, {
       method,
       headers: requestHeaders,
-      body: body !== undefined ? JSON.stringify(body) : (undefined as unknown as RequestInit["body"]),
+      body:
+        body !== undefined ? JSON.stringify(body) : (undefined as unknown as RequestInit["body"]),
     } as RequestInit);
 
     return (app as Hono).request(request as Request);
   };
 
   return {
-    get: (path: string, options?: RequestOptions) => makeRequest("GET", path, options?.headers ?? {}),
+    get: (path: string, options?: RequestOptions) =>
+      makeRequest("GET", path, options?.headers ?? {}),
     post: (path: string, body?: unknown, options?: RequestOptions) =>
       makeRequest("POST", path, options?.headers ?? {}, body),
     patch: (path: string, body?: unknown, options?: RequestOptions) =>

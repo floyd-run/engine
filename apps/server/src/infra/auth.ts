@@ -31,7 +31,11 @@ export function auth() {
     }
 
     if (!authHeader.startsWith("Bearer ")) {
-      throw new AuthError("Invalid Authorization header format", 401, "invalid_authorization_format");
+      throw new AuthError(
+        "Invalid Authorization header format",
+        401,
+        "invalid_authorization_format",
+      );
     }
 
     const token = authHeader.slice(7); // Remove "Bearer " prefix

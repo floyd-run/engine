@@ -22,12 +22,19 @@ const makeRequest = async (
   return app.request(request as Request);
 };
 
+interface RequestOptions {
+  headers?: Record<string, string>;
+}
+
 const createClient = () => {
   return {
-    get: (path: string) => makeRequest("GET", path, {}),
-    post: (path: string, body?: unknown) => makeRequest("POST", path, {}, body),
-    patch: (path: string, body?: unknown) => makeRequest("PATCH", path, {}, body),
-    delete: (path: string, body?: unknown) => makeRequest("DELETE", path, {}, body),
+    get: (path: string, options?: RequestOptions) => makeRequest("GET", path, options?.headers ?? {}),
+    post: (path: string, body?: unknown, options?: RequestOptions) =>
+      makeRequest("POST", path, options?.headers ?? {}, body),
+    patch: (path: string, body?: unknown, options?: RequestOptions) =>
+      makeRequest("PATCH", path, options?.headers ?? {}, body),
+    delete: (path: string, body?: unknown, options?: RequestOptions) =>
+      makeRequest("DELETE", path, options?.headers ?? {}, body),
   };
 };
 export const client = createClient();

@@ -5,6 +5,7 @@ import { config } from "config";
 import { logger } from "lib/logger";
 import { routes } from "routes";
 import { ConflictError, InputError, NotFoundError } from "lib/errors";
+import { IdempotencyError } from "lib/idempotency";
 
 const app = new Hono();
 
@@ -24,6 +25,10 @@ app.onError((err, c) => {
 
   if (err instanceof ConflictError) {
     return c.json({ error: { code: err.reasonCode, details: err.details } }, 409);
+  }
+
+  if (err instanceof IdempotencyError) {
+    return c.json({ error: { code: err.code, message: err.message } }, err.statusCode);
   }
 
   if (err.name === "SyntaxError") {

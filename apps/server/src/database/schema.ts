@@ -29,8 +29,22 @@ export interface AllocationsTable {
   updatedAt: Generated<Date>;
 }
 
+export interface IdempotencyKeysTable {
+  id: string;
+  workspaceId: string;
+  key: string;
+  path: string;
+  method: string;
+  payloadHash: string;
+  responseStatus: number;
+  responseBody: Record<string, unknown>;
+  expiresAt: Date;
+  createdAt: Generated<Date>;
+}
+
 export interface Database {
   allocations: AllocationsTable;
+  idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
   workspaces: WorkspacesTable;
 }
@@ -46,3 +60,6 @@ export type ResourceUpdate = Updateable<ResourcesTable>;
 export type AllocationRow = Selectable<AllocationsTable>;
 export type NewAllocation = Insertable<AllocationsTable>;
 export type AllocationUpdate = Updateable<AllocationsTable>;
+
+export type IdempotencyKeyRow = Selectable<IdempotencyKeysTable>;
+export type NewIdempotencyKey = Insertable<IdempotencyKeysTable>;

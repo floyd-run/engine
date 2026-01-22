@@ -1,10 +1,14 @@
 import { Hono } from "hono";
 import { services } from "../../services/index.js";
 import { NotFoundError } from "lib/errors";
+import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "lib/idempotency";
 import { serializeAllocation } from "./serializers";
 
+// Significant fields for allocation create idempotency hash
+const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startAt", "endAt", "status", "expiresAt"];
+
 // Nested under /v1/workspaces/:workspaceId/allocations
-export const allocations = new Hono()
+export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   .get("/", async (c) => {
     const { allocations } = await services.allocation.list({
       workspaceId: c.req.param("workspaceId")!,
@@ -18,25 +22,31 @@ export const allocations = new Hono()
     return c.json({ data: serializeAllocation(allocation) });
   })
 
-  .post("/", async (c) => {
-    const body = await c.req.json();
+  .post("/", idempotent({ significantFields: ALLOCATION_SIGNIFICANT_FIELDS }), async (c) => {
+    const body = c.get("parsedBody") || (await c.req.json());
     const { allocation, serverTime } = await services.allocation.create({
       ...body,
       workspaceId: c.req.param("workspaceId"),
     });
-    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } }, 201);
+    const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
+    await storeIdempotencyResponse(c, responseBody, 201);
+    return c.json(responseBody, 201);
   })
 
-  .post("/:id/confirm", async (c) => {
+  .post("/:id/confirm", idempotent(), async (c) => {
     const { allocation, serverTime } = await services.allocation.confirm({
       id: c.req.param("id"),
     });
-    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } });
+    const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
+    await storeIdempotencyResponse(c, responseBody, 200);
+    return c.json(responseBody);
   })
 
-  .post("/:id/cancel", async (c) => {
+  .post("/:id/cancel", idempotent(), async (c) => {
     const { allocation, serverTime } = await services.allocation.cancel({
       id: c.req.param("id"),
     });
-    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } });
+    const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
+    await storeIdempotencyResponse(c, responseBody, 200);
+    return c.json(responseBody);
   });

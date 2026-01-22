@@ -3,7 +3,7 @@ import { config } from "config";
 import { logger } from "infra/logger";
 
 async function main() {
-  const { default: app } = await import("./app");
+const { default: app } = await import("./app");
 
   serve(
     {

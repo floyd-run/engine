@@ -6,11 +6,13 @@ import { logger } from "infra/logger";
 import { routes } from "routes";
 import { ConflictError, InputError, NotFoundError } from "lib/errors";
 import { IdempotencyError } from "infra/idempotency";
+import { auth, AuthError } from "infra/auth";
 
 const app = new Hono();
 
 app.use("*", cors());
 app.use("*", loggerMiddleware());
+app.use("/v1/*", auth());
 
 app.route("/", routes);
 
@@ -28,7 +30,11 @@ app.onError((err, c) => {
   }
 
   if (err instanceof IdempotencyError) {
-    return c.json({ error: { code: err.code, message: err.message } }, err.statusCode);
+    return c.json({ error: { code: err.code, message: err.message } }, err.statusCode as 400 | 422);
+  }
+
+  if (err instanceof AuthError) {
+    return c.json({ error: { code: err.code, message: err.message } }, 401);
   }
 
   if (err.name === "SyntaxError") {

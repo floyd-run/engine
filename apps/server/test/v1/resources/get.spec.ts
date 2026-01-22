@@ -1,7 +1,7 @@
 import { createResource, createWorkspace } from "../../setup/factories";
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import type { Resource } from "@floyd-run/schema/types";
+import type { ResourceResponse } from "../../setup/types";
 
 describe("GET /v1/workspaces/:workspaceId/resources/:id", () => {
   it("returns 422 for invalid resource id", async () => {
@@ -16,7 +16,7 @@ describe("GET /v1/workspaces/:workspaceId/resources/:id", () => {
     const response = await client.get(`/v1/workspaces/${workspaceId}/resources/${resource.id}`);
 
     expect(response.status).toBe(200);
-    const { data } = (await response.json()) as { data: Resource };
+    const { data } = (await response.json()) as ResourceResponse;
     expect(data.id).toBe(resource.id);
     expect(data.workspaceId).toBe(workspaceId);
     expect(data.timezone).toBe(resource.timezone);

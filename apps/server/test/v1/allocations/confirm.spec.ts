@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createResource } from "../../setup/factories";
-import type { Allocation } from "@floyd-run/schema/types";
-
-interface ApiResponse {
-  data: Allocation;
-  meta?: { serverTime: string };
-  error?: { code: string };
-}
+import type { AllocationResponse } from "../../setup/types";
 
 describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   it("confirms a hold allocation", async () => {
@@ -23,7 +17,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
       expiresAt: expiresAt.toISOString(),
     });
     expect(createResponse.status).toBe(201);
-    const { data: hold } = (await createResponse.json()) as ApiResponse;
+    const { data: hold } = (await createResponse.json()) as AllocationResponse;
 
     // Confirm it
     const response = await client.post(
@@ -31,7 +25,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as ApiResponse;
+    const body = (await response.json()) as AllocationResponse;
     expect(body.data.status).toBe("confirmed");
     expect(body.meta?.serverTime).toBeDefined();
   });
@@ -44,7 +38,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as ApiResponse;
+    const body = (await response.json()) as AllocationResponse;
     expect(body.data.status).toBe("confirmed");
   });
 
@@ -56,7 +50,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = (await response.json()) as ApiResponse;
+    const body = (await response.json()) as AllocationResponse;
     expect(body.error?.code).toBe("invalid_state_transition");
   });
 
@@ -68,7 +62,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = (await response.json()) as ApiResponse;
+    const body = (await response.json()) as AllocationResponse;
     expect(body.error?.code).toBe("invalid_state_transition");
   });
 
@@ -83,7 +77,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
     );
 
     expect(response.status).toBe(409);
-    const body = (await response.json()) as ApiResponse;
+    const body = (await response.json()) as AllocationResponse;
     expect(body.error?.code).toBe("hold_expired");
   });
 

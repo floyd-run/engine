@@ -1,13 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createResource } from "../../setup/factories";
-import type { Allocation } from "@floyd-run/schema/types";
-
-interface ApiResponse {
-  data: Allocation;
-  meta?: { serverTime: string };
-  error?: { code: string };
-}
+import type { AllocationResponse } from "../../setup/types";
 
 describe("Idempotency", () => {
   describe("POST /v1/workspaces/:workspaceId/allocations", () => {
@@ -27,14 +21,14 @@ describe("Idempotency", () => {
         headers: { "Idempotency-Key": idempotencyKey },
       });
       expect(response1.status).toBe(201);
-      const result1 = (await response1.json()) as ApiResponse;
+      const result1 = (await response1.json()) as AllocationResponse;
 
       // Second request with same key
       const response2 = await client.post(`/v1/workspaces/${workspaceId}/allocations`, body, {
         headers: { "Idempotency-Key": idempotencyKey },
       });
       expect(response2.status).toBe(201);
-      const result2 = (await response2.json()) as ApiResponse;
+      const result2 = (await response2.json()) as AllocationResponse;
 
       // Should return same allocation
       expect(result2.data.id).toBe(result1.data.id);
@@ -70,7 +64,7 @@ describe("Idempotency", () => {
       );
 
       expect(response2.status).toBe(422);
-      const errorBody = (await response2.json()) as ApiResponse;
+      const errorBody = (await response2.json()) as AllocationResponse;
       expect(errorBody.error?.code).toBe("idempotency_payload_mismatch");
     });
 
@@ -89,7 +83,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": `key1-${Date.now()}` } },
       );
       expect(response1.status).toBe(201);
-      const result1 = (await response1.json()) as ApiResponse;
+      const result1 = (await response1.json()) as AllocationResponse;
 
       // Second request with key2 (different time slot to avoid conflict)
       const response2 = await client.post(
@@ -103,7 +97,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": `key2-${Date.now()}` } },
       );
       expect(response2.status).toBe(201);
-      const result2 = (await response2.json()) as ApiResponse;
+      const result2 = (await response2.json()) as AllocationResponse;
 
       // Should create different allocations
       expect(result2.data.id).not.toBe(result1.data.id);
@@ -127,7 +121,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response1.status).toBe(201);
-      const result1 = (await response1.json()) as ApiResponse;
+      const result1 = (await response1.json()) as AllocationResponse;
 
       // Second request with metadata (not a significant field)
       const response2 = await client.post(
@@ -136,7 +130,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response2.status).toBe(201);
-      const result2 = (await response2.json()) as ApiResponse;
+      const result2 = (await response2.json()) as AllocationResponse;
 
       // Should return same allocation (metadata ignored in hash)
       expect(result2.data.id).toBe(result1.data.id);
@@ -169,7 +163,7 @@ describe("Idempotency", () => {
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
       });
-      const { data: hold } = (await createResponse.json()) as ApiResponse;
+      const { data: hold } = (await createResponse.json()) as AllocationResponse;
 
       // First confirm
       const response1 = await client.post(
@@ -178,7 +172,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response1.status).toBe(200);
-      const result1 = (await response1.json()) as ApiResponse;
+      const result1 = (await response1.json()) as AllocationResponse;
 
       // Second confirm with same key
       const response2 = await client.post(
@@ -187,7 +181,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response2.status).toBe(200);
-      const result2 = (await response2.json()) as ApiResponse;
+      const result2 = (await response2.json()) as AllocationResponse;
 
       // Should return same response (cached)
       expect(result2.data.id).toBe(result1.data.id);
@@ -207,7 +201,7 @@ describe("Idempotency", () => {
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
-      const { data: allocation } = (await createResponse.json()) as ApiResponse;
+      const { data: allocation } = (await createResponse.json()) as AllocationResponse;
 
       // First cancel
       const response1 = await client.post(
@@ -216,7 +210,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response1.status).toBe(200);
-      const result1 = (await response1.json()) as ApiResponse;
+      const result1 = (await response1.json()) as AllocationResponse;
 
       // Second cancel with same key
       const response2 = await client.post(
@@ -225,7 +219,7 @@ describe("Idempotency", () => {
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
       expect(response2.status).toBe(200);
-      const result2 = (await response2.json()) as ApiResponse;
+      const result2 = (await response2.json()) as AllocationResponse;
 
       // Should return same response (cached)
       expect(result2.data.id).toBe(result1.data.id);

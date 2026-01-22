@@ -1,6 +1,7 @@
 import { createResource, createWorkspace } from "../../setup/factories";
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
+import type { ListResponse } from "../../setup/types";
 import type { Resource } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:workspaceId/resources", () => {
@@ -9,7 +10,7 @@ describe("GET /v1/workspaces/:workspaceId/resources", () => {
     const response = await client.get(`/v1/workspaces/${workspace.id}/resources`);
 
     expect(response.status).toBe(200);
-    const { data } = (await response.json()) as { data: Array<Resource> };
+    const { data } = (await response.json()) as ListResponse<Resource>;
     expect(data).toEqual([]);
   });
 
@@ -21,7 +22,7 @@ describe("GET /v1/workspaces/:workspaceId/resources", () => {
     const response = await client.get(`/v1/workspaces/${workspace.id}/resources`);
 
     expect(response.status).toBe(200);
-    const { data } = (await response.json()) as { data: Array<Resource> };
+    const { data } = (await response.json()) as ListResponse<Resource>;
     expect(data.length).toBe(2);
 
     const ids = data.map((r) => r.id);
@@ -38,7 +39,7 @@ describe("GET /v1/workspaces/:workspaceId/resources", () => {
     const response = await client.get(`/v1/workspaces/${ws1.id}/resources`);
 
     expect(response.status).toBe(200);
-    const { data } = (await response.json()) as { data: Array<Resource> };
+    const { data } = (await response.json()) as ListResponse<Resource>;
     expect(data.length).toBe(1);
     expect(data[0]!.id).toBe(resource.id);
   });

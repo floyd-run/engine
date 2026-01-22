@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createWorkspace } from "../../setup/factories";
-import type { Workspace } from "@floyd-run/schema/types";
+import type { WorkspaceResponse } from "../../setup/types";
 
 describe("GET /v1/workspaces/:id", () => {
   it("returns 422 for invalid workspace id", async () => {
@@ -20,7 +20,7 @@ describe("GET /v1/workspaces/:id", () => {
     const response = await client.get(`/v1/workspaces/${workspace.id}`);
     expect(response.status).toBe(200);
 
-    const { data } = (await response.json()) as { data: Workspace };
+    const { data } = (await response.json()) as WorkspaceResponse;
     expect(data.id).toBe(workspace.id);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createWorkspace } from "../../setup/factories";
-import type { Resource } from "@floyd-run/schema/types";
+import type { ResourceResponse } from "../../setup/types";
 
 describe("POST /v1/workspaces/:workspaceId/resources", () => {
   it("returns 201 with default timezone", async () => {
@@ -9,7 +9,7 @@ describe("POST /v1/workspaces/:workspaceId/resources", () => {
     const response = await client.post(`/v1/workspaces/${workspace.id}/resources`, {});
 
     expect(response.status).toBe(201);
-    const { data } = (await response.json()) as { data: Resource };
+    const { data } = (await response.json()) as ResourceResponse;
     expect(data.id).toMatch(/^res_/);
     expect(data.workspaceId).toBe(workspace.id);
     expect(data.timezone).toBe("UTC");
@@ -22,7 +22,7 @@ describe("POST /v1/workspaces/:workspaceId/resources", () => {
     });
 
     expect(response.status).toBe(201);
-    const { data } = (await response.json()) as { data: Resource };
+    const { data } = (await response.json()) as ResourceResponse;
     expect(data.timezone).toBe("America/New_York");
   });
 });

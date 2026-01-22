@@ -1,5 +1,5 @@
 import { db } from "database";
-import { generateId } from "lib/id";
+import { generateId } from "@floyd-run/utils";
 
 export async function createWorkspace() {
   const workspace = await db

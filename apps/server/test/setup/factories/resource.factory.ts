@@ -1,6 +1,6 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
-import { generateId } from "lib/id";
+import { generateId } from "@floyd-run/utils";
 import { createWorkspace } from "./workspace.factory";
 
 export async function createResource(overrides?: { workspaceId?: string; timezone?: string }) {

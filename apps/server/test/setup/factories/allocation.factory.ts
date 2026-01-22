@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
 import { AllocationStatus } from "database/schema";
-import { generateId } from "lib/id";
+import { generateId } from "@floyd-run/utils";
 import { createResource } from "./resource.factory";
 
 export async function createAllocation(overrides?: {
@@ -41,7 +41,7 @@ export async function createAllocation(overrides?: {
       id: generateId("alloc"),
       workspaceId,
       resourceId,
-      status: overrides?.status ?? "CONFIRMED",
+      status: overrides?.status ?? "confirmed",
       startAt,
       endAt,
       expiresAt: overrides?.expiresAt ?? null,

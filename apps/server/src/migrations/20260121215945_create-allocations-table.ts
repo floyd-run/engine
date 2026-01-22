@@ -13,7 +13,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
       col.notNull().references("resources.id"),
     )
     .addColumn("status", "varchar(50)", (col) =>
-      col.notNull().check(sql`status IN ('HOLD', 'CONFIRMED', 'CANCELLED', 'EXPIRED')`),
+      col.notNull().check(sql`status IN ('hold', 'confirmed', 'cancelled', 'expired')`),
     )
     .addColumn("start_at", "timestamptz", (col) => col.notNull())
     .addColumn("end_at", "timestamptz", (col) => col.notNull())

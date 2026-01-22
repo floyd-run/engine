@@ -4,14 +4,14 @@ import { createResource } from "../../setup/factories";
 import { Allocation } from "@floyd-run/types";
 
 describe("POST /v1/workspaces/:workspaceId/allocations", () => {
-  it("returns 201 for valid CONFIRMED allocation", async () => {
+  it("returns 201 for valid confirmed allocation", async () => {
     const { resource, workspaceId } = await createResource();
     const startAt = new Date("2026-02-01T10:00:00Z");
     const endAt = new Date("2026-02-01T11:00:00Z");
 
     const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
       resourceId: resource.id,
-      status: "CONFIRMED",
+      status: "confirmed",
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
     });
@@ -21,7 +21,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
     expect(data.id).toMatch(/^alloc_/);
     expect(data.workspaceId).toBe(workspaceId);
     expect(data.resourceId).toBe(resource.id);
-    expect(data.status).toBe("CONFIRMED");
+    expect(data.status).toBe("confirmed");
     expect(data.startAt).toBe(startAt.toISOString());
     expect(data.endAt).toBe(endAt.toISOString());
     expect(data.version).toBe(1);
@@ -29,7 +29,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
     expect(data.updatedAt).toBeDefined();
   });
 
-  it("returns 201 for HOLD allocation with expiry", async () => {
+  it("returns 201 for hold allocation with expiry", async () => {
     const { resource, workspaceId } = await createResource();
     const startAt = new Date("2026-02-01T10:00:00Z");
     const endAt = new Date("2026-02-01T11:00:00Z");
@@ -37,7 +37,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
 
     const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
       resourceId: resource.id,
-      status: "HOLD",
+      status: "hold",
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
@@ -45,7 +45,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
 
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Allocation };
-    expect(data.status).toBe("HOLD");
+    expect(data.status).toBe("hold");
     expect(data.expiresAt).toBe(expiresAt.toISOString());
   });
 
@@ -55,7 +55,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
 
     const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
       resourceId: resource.id,
-      status: "CONFIRMED",
+      status: "confirmed",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
       endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       metadata,
@@ -71,7 +71,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
 
     const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
       resourceId: resource.id,
-      status: "INVALID",
+      status: "invalid",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
       endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
     });
@@ -83,7 +83,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations", () => {
     const { workspaceId } = await createResource();
 
     const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
-      status: "CONFIRMED",
+      status: "confirmed",
     });
 
     expect(response.status).toBe(422);

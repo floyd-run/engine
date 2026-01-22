@@ -9,7 +9,7 @@ export function generateId(prefix: IdPrefix): string {
 export function parseId(id: string): { prefix: IdPrefix; ulid: string } | null {
   const match = id.match(/^(ws|res|alloc|evt|dec|whs|dlv)_([a-z0-9]{26})$/);
   if (!match) return null;
-  return { prefix: match[1] as IdPrefix, ulid: match[2] };
+  return { prefix: match[1] as IdPrefix, ulid: match[2]! };
 }
 
 export function isValidId(id: string, expectedPrefix?: IdPrefix): boolean {

@@ -1,7 +1,5 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
-
-// Allocation statuses
-export type AllocationStatus = "HOLD" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
+import { AllocationStatus } from "@floyd-run/schema/types";
 
 export interface WorkspacesTable {
   id: string;

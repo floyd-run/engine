@@ -1,0 +1,3 @@
+{
+  "extends": "@floyd/typescript/library.json"
+}

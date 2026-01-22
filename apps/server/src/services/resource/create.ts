@@ -1,15 +1,10 @@
 import { db } from "database";
-import z from "zod";
 import { createService } from "lib/service";
-import { generateId, isValidId } from "lib/id";
+import { generateId } from "@floyd-run/utils";
+import { resource } from "@floyd-run/schema/inputs";
 
 export default createService({
-  input: z.object({
-    workspaceId: z
-      .string()
-      .refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
-    timezone: z.string().default("UTC"),
-  }),
+  input: resource.createSchema,
   execute: async (input) => {
     const resource = await db
       .insertInto("resources")

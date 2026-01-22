@@ -1,3 +1,8 @@
+import { AllocationStatus } from "../constants";
+import { ConstantType } from "./utils";
+
+export type AllocationStatus = ConstantType<typeof AllocationStatus>;
+
 export interface Resource {
   id: string;
   workspaceId: string;
@@ -11,8 +16,6 @@ export interface Workspace {
   createdAt: string;
   updatedAt: string;
 }
-
-export type AllocationStatus = "HOLD" | "CONFIRMED" | "CANCELLED" | "EXPIRED";
 
 export interface Allocation {
   id: string;

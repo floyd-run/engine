@@ -1,26 +1,10 @@
 import { db } from "database";
-import z from "zod";
 import { createService } from "lib/service";
-import { generateId, isValidId } from "lib/id";
-import { AllocationStatus } from "database/schema";
-
-const allocationStatuses: AllocationStatus[] = ["HOLD", "CONFIRMED", "CANCELLED", "EXPIRED"];
+import { generateId } from "@floyd-run/utils";
+import { allocation } from "@floyd-run/schema/inputs";
 
 export default createService({
-  input: z.object({
-    workspaceId: z
-      .string()
-      .refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
-    resourceId: z
-      .string()
-      .refine((id) => isValidId(id, "res"), { message: "Invalid resource ID" }),
-    status: z.enum(allocationStatuses as [AllocationStatus, ...AllocationStatus[]]),
-    startAt: z.coerce.date(),
-    endAt: z.coerce.date(),
-    expiresAt: z.coerce.date().nullable().optional(),
-    version: z.number().int().min(1).default(1),
-    metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-  }),
+  input: allocation.createSchema,
   execute: async (input) => {
     const allocation = await db
       .insertInto("allocations")

@@ -1,12 +1,9 @@
 import { db } from "database";
 import { createService } from "lib/service";
-import { isValidId } from "lib/id";
-import z from "zod";
+import { resource } from "@floyd-run/schema/inputs";
 
 export default createService({
-  input: z.object({
-    id: z.string().refine((id) => isValidId(id, "res"), { message: "Invalid resource ID" }),
-  }),
+  input: resource.getSchema,
   execute: async (input) => {
     const resource = await db
       .selectFrom("resources")

@@ -1,12 +1,9 @@
 import { db } from "database";
 import { createService } from "lib/service";
-import { isValidId } from "lib/id";
-import z from "zod";
+import { allocation } from "@floyd-run/schema/inputs";
 
 export default createService({
-  input: z.object({
-    id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
-  }),
+  input: allocation.getSchema,
   execute: async (input) => {
     const allocation = await db
       .selectFrom("allocations")

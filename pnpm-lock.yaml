@@ -17,6 +17,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@floyd-run/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
       '@floyd-run/utils':
         specifier: workspace:*
         version: link:../../packages/utils
@@ -42,9 +45,6 @@ importers:
       '@faker-js/faker':
         specifier: ^10.2.0
         version: 10.2.0
-      '@floyd-run/schema':
-        specifier: workspace:*
-        version: link:../../packages/schema
       '@floyd/eslint':
         specifier: workspace:*
         version: link:../../tooling/eslint

@@ -2,10 +2,10 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger as loggerMiddleware } from "hono/logger";
 import { config } from "config";
-import { logger } from "lib/logger";
+import { logger } from "infra/logger";
 import { routes } from "routes";
 import { ConflictError, InputError, NotFoundError } from "lib/errors";
-import { IdempotencyError } from "lib/idempotency";
+import { IdempotencyError } from "infra/idempotency";
 
 const app = new Hono();
 

@@ -12,6 +12,7 @@ export default defineConfig({
     alias: {
       config: path.resolve(__dirname, "./src/config"),
       database: path.resolve(__dirname, "./src/database"),
+      infra: path.resolve(__dirname, "./src/infra"),
       lib: path.resolve(__dirname, "./src/lib"),
       middleware: path.resolve(__dirname, "./src/middleware"),
       migrations: path.resolve(__dirname, "./src/migrations"),

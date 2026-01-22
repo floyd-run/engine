@@ -13,6 +13,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@floyd-run/schema": "workspace:*",
     "@floyd-run/utils": "workspace:*",
     "@hono/node-server": "^1.19.9",
     "hono": "^4.11.4",
@@ -23,7 +24,6 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.2.0",
-    "@floyd-run/schema": "workspace:*",
     "@floyd/eslint": "workspace:*",
     "@floyd/typescript": "workspace:*",
     "@types/node": "^25.0.9",

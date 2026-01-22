@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { services } from "../../services/index.js";
 import { NotFoundError } from "lib/errors";
-import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "lib/idempotency";
+import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infra/idempotency";
 import { serializeAllocation } from "./serializers";
 
 // Significant fields for allocation create idempotency hash

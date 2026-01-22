@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { config } from "config";
-import { logger } from "lib/logger";
+import { logger } from "infra/logger";
 
 async function main() {
   const { default: app } = await import("./app");

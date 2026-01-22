@@ -1,5 +1,5 @@
 import fs from "fs";
-import { logger } from "lib/logger";
+import { logger } from "infra/logger";
 import path from "path";
 import { fileURLToPath } from "url";
 

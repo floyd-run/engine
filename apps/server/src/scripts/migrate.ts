@@ -4,7 +4,7 @@ import { FileMigrationProvider, Migrator } from "kysely";
 import { promises as fs } from "fs";
 import { config } from "config";
 import { db } from "database/client";
-import { logger } from "lib/logger";
+import { logger } from "infra/logger";
 
 async function migrate() {
   const url = config.DATABASE_URL;

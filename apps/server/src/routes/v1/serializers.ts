@@ -1,5 +1,5 @@
 import { AllocationRow, ResourceRow, WorkspaceRow } from "database/schema";
-import { Allocation, Resource, Workspace } from "@floyd-run/types";
+import { Allocation, Resource, Workspace } from "@floyd-run/schema/types";
 
 export function serializeResource(resource: ResourceRow): Resource {
   return {

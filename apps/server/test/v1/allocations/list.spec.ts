@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createWorkspace } from "../../setup/factories";
-import { Allocation } from "@floyd-run/types";
+import { Allocation } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:workspaceId/allocations", () => {
   it("returns 200 with empty array when no allocations", async () => {
@@ -25,8 +25,8 @@ describe("GET /v1/workspaces/:workspaceId/allocations", () => {
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as { data: Allocation[] };
     expect(data.length).toBe(2);
-    expect(data[0].workspaceId).toBe(workspace.id);
-    expect(data[1].workspaceId).toBe(workspace.id);
+    expect(data[0]?.workspaceId).toBe(workspace.id);
+    expect(data[1]?.workspaceId).toBe(workspace.id);
   });
 
   it("does not return allocations from other workspaces", async () => {
@@ -43,6 +43,6 @@ describe("GET /v1/workspaces/:workspaceId/allocations", () => {
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as { data: Allocation[] };
     expect(data.length).toBe(1);
-    expect(data[0].workspaceId).toBe(workspace1.id);
+    expect(data[0]!.workspaceId).toBe(workspace1.id);
   });
 });

@@ -22,3 +22,12 @@ export class InputError extends AppError {
     super("Invalid input", 422, "INVALID_INPUT");
   }
 }
+
+export class ConflictError extends AppError {
+  constructor(
+    public reasonCode: string,
+    public details?: Record<string, unknown>,
+  ) {
+    super("Conflict", 409, reasonCode);
+  }
+}

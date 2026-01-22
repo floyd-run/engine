@@ -5,7 +5,9 @@ import { AllocationStatus } from "../constants";
 export const createSchema = z.object({
   workspaceId: z.string().refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
   resourceId: z.string().refine((id) => isValidId(id, "res"), { message: "Invalid resource ID" }),
-  status: z.enum(AllocationStatus),
+  status: z
+    .enum([AllocationStatus.HOLD, AllocationStatus.CONFIRMED])
+    .default(AllocationStatus.HOLD),
   startAt: z.coerce.date(),
   endAt: z.coerce.date(),
   expiresAt: z.coerce.date().nullable().optional(),
@@ -22,5 +24,13 @@ export const listSchema = z.object({
 });
 
 export const removeSchema = z.object({
+  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+});
+
+export const confirmSchema = z.object({
+  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+});
+
+export const cancelSchema = z.object({
   id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
 });

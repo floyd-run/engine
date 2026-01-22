@@ -20,9 +20,23 @@ export const allocations = new Hono()
 
   .post("/", async (c) => {
     const body = await c.req.json();
-    const { allocation } = await services.allocation.create({
+    const { allocation, serverTime } = await services.allocation.create({
       ...body,
       workspaceId: c.req.param("workspaceId"),
     });
-    return c.json({ data: serializeAllocation(allocation) }, 201);
+    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } }, 201);
+  })
+
+  .post("/:id/confirm", async (c) => {
+    const { allocation, serverTime } = await services.allocation.confirm({
+      id: c.req.param("id"),
+    });
+    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } });
+  })
+
+  .post("/:id/cancel", async (c) => {
+    const { allocation, serverTime } = await services.allocation.cancel({
+      id: c.req.param("id"),
+    });
+    return c.json({ data: serializeAllocation(allocation), meta: { serverTime } });
   });

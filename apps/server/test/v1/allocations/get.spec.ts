@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createWorkspace } from "../../setup/factories";
-import { Allocation } from "@floyd-run/types";
+import { Allocation } from "@floyd-run/schema/types";
 
 describe("GET /v1/workspaces/:workspaceId/allocations/:id", () => {
   it("returns 422 for invalid allocation id", async () => {

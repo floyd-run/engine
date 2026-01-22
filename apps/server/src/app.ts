@@ -4,7 +4,7 @@ import { logger as loggerMiddleware } from "hono/logger";
 import { config } from "config";
 import { logger } from "lib/logger";
 import { routes } from "routes";
-import { InputError, NotFoundError } from "lib/errors";
+import { ConflictError, InputError, NotFoundError } from "lib/errors";
 
 const app = new Hono();
 
@@ -20,6 +20,10 @@ app.onError((err, c) => {
 
   if (err instanceof NotFoundError) {
     return c.json({ error: err.message }, 404);
+  }
+
+  if (err instanceof ConflictError) {
+    return c.json({ error: { code: err.reasonCode, details: err.details } }, 409);
   }
 
   if (err.name === "SyntaxError") {

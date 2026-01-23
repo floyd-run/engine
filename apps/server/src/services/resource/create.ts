@@ -9,8 +9,8 @@ export default createService({
     const resource = await db
       .insertInto("resources")
       .values({
-        id: generateId("res"),
-        workspaceId: input.workspaceId,
+        id: generateId("rsc"),
+        ledgerId: input.ledgerId,
         timezone: input.timezone,
       })
       .returningAll()

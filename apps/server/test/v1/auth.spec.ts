@@ -14,7 +14,7 @@ describe("Authentication", () => {
     });
 
     it("returns 401 when Authorization header is missing", async () => {
-      const response = await client.get("/v1/workspaces");
+      const response = await client.get("/v1/ledgers");
 
       expect(response.status).toBe(401);
       const body = (await response.json()) as ApiResponse;
@@ -22,7 +22,7 @@ describe("Authentication", () => {
     });
 
     it("returns 401 when Authorization header has invalid format", async () => {
-      const response = await client.get("/v1/workspaces", {
+      const response = await client.get("/v1/ledgers", {
         headers: { Authorization: "InvalidFormat token" },
       });
 
@@ -32,7 +32,7 @@ describe("Authentication", () => {
     });
 
     it("returns 401 when API key is invalid", async () => {
-      const response = await client.get("/v1/workspaces", {
+      const response = await client.get("/v1/ledgers", {
         headers: { Authorization: "Bearer wrong_key" },
       });
 
@@ -42,7 +42,7 @@ describe("Authentication", () => {
     });
 
     it("returns 200 when API key is valid", async () => {
-      const response = await client.get("/v1/workspaces", {
+      const response = await client.get("/v1/ledgers", {
         headers: { Authorization: "Bearer test_secret_key" },
       });
 
@@ -60,7 +60,7 @@ describe("Authentication", () => {
     });
 
     it("skips auth and returns 200", async () => {
-      const response = await client.get("/v1/workspaces");
+      const response = await client.get("/v1/ledgers");
 
       expect(response.status).toBe(200);
     });

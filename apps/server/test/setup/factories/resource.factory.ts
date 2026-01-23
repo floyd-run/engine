@@ -1,24 +1,24 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
-import { createWorkspace } from "./workspace.factory";
+import { createLedger } from "./ledger.factory";
 
-export async function createResource(overrides?: { workspaceId?: string; timezone?: string }) {
-  let workspaceId = overrides?.workspaceId;
-  if (!workspaceId) {
-    const { workspace } = await createWorkspace();
-    workspaceId = workspace.id;
+export async function createResource(overrides?: { ledgerId?: string; timezone?: string }) {
+  let ledgerId = overrides?.ledgerId;
+  if (!ledgerId) {
+    const { ledger } = await createLedger();
+    ledgerId = ledger.id;
   }
 
   const resource = await db
     .insertInto("resources")
     .values({
-      id: generateId("res"),
-      workspaceId,
+      id: generateId("rsc"),
+      ledgerId,
       timezone: overrides?.timezone ?? faker.location.timeZone(),
     })
     .returningAll()
     .executeTakeFirst();
 
-  return { resource: resource!, workspaceId };
+  return { resource: resource!, ledgerId };
 }

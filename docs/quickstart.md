@@ -7,7 +7,7 @@ This gets you from "API key" to "hold → confirm → cancel".
 Before creating allocations, you'll need:
 
 - An API key
-- A workspace ID
+- A ledger ID
 - A resource (represents a bookable entity like a room, person, or service)
 
 ## Base URL
@@ -19,12 +19,12 @@ Use your Floyd Engine API base URL:
 
 All endpoints below assume `/v1`.
 
-## 0) Create a workspace (if needed)
+## 0) Create a ledger (if needed)
 
-Workspaces are containers for your resources and allocations.
+Ledgers are containers for your resources and allocations.
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers" \
   -H "Content-Type: application/json"
 ```
 
@@ -45,7 +45,7 @@ Response:
 Resources represent bookable entities (rooms, people, services, etc.). You need at least one resource before creating allocations.
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/resources" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/resources" \
   -H "Content-Type: application/json" \
   -d '{
     "timezone": "America/New_York"
@@ -58,7 +58,7 @@ Response:
 {
   "data": {
     "id": "res_01abc123def456ghi789jkl012",
-    "workspaceId": "ws_01abc123def456ghi789jkl012",
+    "ledgerId": "ws_01abc123def456ghi789jkl012",
     "timezone": "America/New_York",
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
@@ -69,7 +69,7 @@ Response:
 ## 2) Create a hold
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: demo-001" \
   -d '{
@@ -87,7 +87,7 @@ Response:
 {
   "data": {
     "id": "alloc_01abc123def456ghi789jkl012",
-    "workspaceId": "ws_01abc123def456ghi789jkl012",
+    "ledgerId": "ws_01abc123def456ghi789jkl012",
     "resourceId": "res_01abc123def456ghi789jkl012",
     "startAt": "2026-01-04T10:00:00.000Z",
     "endAt": "2026-01-04T10:30:00.000Z",
@@ -111,7 +111,7 @@ Error responses:
 ## 3) Confirm the hold
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations/$ALLOCATION_ID/confirm" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID/confirm" \
   -H "Content-Type: application/json"
 ```
 
@@ -124,7 +124,7 @@ Expected:
 ## 4) Cancel an allocation
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations/$ALLOCATION_ID/cancel" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID/cancel" \
   -H "Content-Type: application/json"
 ```
 
@@ -136,7 +136,7 @@ Expected:
 ## 5) Get an allocation
 
 ```bash
-curl "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations/$ALLOCATION_ID" \
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID" \
   -H "Content-Type: application/json"
 ```
 
@@ -148,7 +148,7 @@ Expected:
 ## 6) List allocations
 
 ```bash
-curl "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations" \
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Content-Type: application/json"
 ```
 
@@ -159,7 +159,7 @@ Response:
   "data": [
     {
       "id": "alloc_01abc123def456ghi789jkl012",
-      "workspaceId": "ws_01abc123def456ghi789jkl012",
+      "ledgerId": "ws_01abc123def456ghi789jkl012",
       "resourceId": "res_01abc123def456ghi789jkl012",
       "status": "confirmed",
       "startAt": "2026-01-04T10:00:00.000Z",

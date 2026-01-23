@@ -1,25 +1,25 @@
-import { createResource, createWorkspace } from "../../setup/factories";
+import { createResource, createLedger } from "../../setup/factories";
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import type { ListResponse } from "../../setup/types";
 import type { Resource } from "@floyd-run/schema/types";
 
-describe("GET /v1/workspaces/:workspaceId/resources", () => {
+describe("GET /v1/ledgers/:ledgerId/resources", () => {
   it("returns 200 with empty array when no resources", async () => {
-    const { workspace } = await createWorkspace();
-    const response = await client.get(`/v1/workspaces/${workspace.id}/resources`);
+    const { ledger } = await createLedger();
+    const response = await client.get(`/v1/ledgers/${ledger.id}/resources`);
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as ListResponse<Resource>;
     expect(data).toEqual([]);
   });
 
-  it("returns resources for the workspace", async () => {
-    const { workspace } = await createWorkspace();
-    const { resource: res1 } = await createResource({ workspaceId: workspace.id });
-    const { resource: res2 } = await createResource({ workspaceId: workspace.id });
+  it("returns resources for the ledger", async () => {
+    const { ledger } = await createLedger();
+    const { resource: res1 } = await createResource({ ledgerId: ledger.id });
+    const { resource: res2 } = await createResource({ ledgerId: ledger.id });
 
-    const response = await client.get(`/v1/workspaces/${workspace.id}/resources`);
+    const response = await client.get(`/v1/ledgers/${ledger.id}/resources`);
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as ListResponse<Resource>;
@@ -30,13 +30,13 @@ describe("GET /v1/workspaces/:workspaceId/resources", () => {
     expect(ids).toContain(res2.id);
   });
 
-  it("does not return resources from other workspaces", async () => {
-    const { workspace: ws1 } = await createWorkspace();
-    const { workspace: ws2 } = await createWorkspace();
-    const { resource } = await createResource({ workspaceId: ws1.id });
-    await createResource({ workspaceId: ws2.id });
+  it("does not return resources from other ledgers", async () => {
+    const { ledger: ws1 } = await createLedger();
+    const { ledger: ws2 } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ws1.id });
+    await createResource({ ledgerId: ws2.id });
 
-    const response = await client.get(`/v1/workspaces/${ws1.id}/resources`);
+    const response = await client.get(`/v1/ledgers/${ws1.id}/resources`);
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as ListResponse<Resource>;

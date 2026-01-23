@@ -7,4 +7,4 @@ export type AllocationStatus = ConstantType<typeof AllocationStatus>;
 
 export type Allocation = z.infer<typeof outputs.allocation.schema>;
 export type Resource = z.infer<typeof outputs.resource.schema>;
-export type Workspace = z.infer<typeof outputs.workspace.schema>;
+export type Ledger = z.infer<typeof outputs.ledger.schema>;

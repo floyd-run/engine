@@ -1,9 +1,9 @@
 import { allocation } from "./allocation";
 import { resource } from "./resource";
-import { workspace } from "./workspace";
+import { ledger } from "./ledger";
 
 export const services = {
   allocation,
   resource,
-  workspace,
+  ledger,
 };

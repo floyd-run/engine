@@ -1,4 +1,4 @@
 export * as allocation from "./allocation";
 export * as resource from "./resource";
-export * as workspace from "./workspace";
+export * as ledger from "./ledger";
 export * as error from "./error";

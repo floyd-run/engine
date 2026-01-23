@@ -1,33 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { createAllocation, createWorkspace } from "../../setup/factories";
+import { createAllocation, createLedger } from "../../setup/factories";
 import { Allocation } from "@floyd-run/schema/types";
 
-describe("GET /v1/workspaces/:workspaceId/allocations/:id", () => {
+describe("GET /v1/ledgers/:ledgerId/allocations/:id", () => {
   it("returns 422 for invalid allocation id", async () => {
-    const { workspace } = await createWorkspace();
-    const response = await client.get(`/v1/workspaces/${workspace.id}/allocations/invalid-id`);
+    const { ledger } = await createLedger();
+    const response = await client.get(`/v1/ledgers/${ledger.id}/allocations/invalid-id`);
 
     expect(response.status).toBe(422);
   });
 
   it("returns 404 for non-existent allocation", async () => {
-    const { workspace } = await createWorkspace();
+    const { ledger } = await createLedger();
     const response = await client.get(
-      `/v1/workspaces/${workspace.id}/allocations/alloc_00000000000000000000000000`,
+      `/v1/ledgers/${ledger.id}/allocations/alc_00000000000000000000000000`,
     );
 
     expect(response.status).toBe(404);
   });
 
   it("returns 200 with allocation data", async () => {
-    const { allocation, workspaceId, resourceId } = await createAllocation();
-    const response = await client.get(`/v1/workspaces/${workspaceId}/allocations/${allocation.id}`);
+    const { allocation, ledgerId, resourceId } = await createAllocation();
+    const response = await client.get(`/v1/ledgers/${ledgerId}/allocations/${allocation.id}`);
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as { data: Allocation };
     expect(data.id).toBe(allocation.id);
-    expect(data.workspaceId).toBe(workspaceId);
+    expect(data.ledgerId).toBe(ledgerId);
     expect(data.resourceId).toBe(resourceId);
     expect(data.status).toBe(allocation.status);
     expect(data.createdAt).toBeDefined();

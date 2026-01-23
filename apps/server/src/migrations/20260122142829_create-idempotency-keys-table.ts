@@ -4,8 +4,7 @@ import { Kysely, sql } from "kysely";
 export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema
     .createTable("idempotency_keys")
-    .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
-    .addColumn("workspace_id", "varchar(32)", (col) => col.notNull().references("workspaces.id"))
+    .addColumn("ledger_id", "varchar(32)", (col) => col.notNull().references("ledgers.id"))
     .addColumn("key", "varchar(255)", (col) => col.notNull())
     .addColumn("path", "varchar(255)", (col) => col.notNull())
     .addColumn("method", "varchar(10)", (col) => col.notNull())
@@ -16,12 +15,10 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
-  // Unique constraint on workspace + key
+  // Primary key on ledger + key
   await db.schema
-    .createIndex("idx_idempotency_keys_workspace_key")
-    .on("idempotency_keys")
-    .columns(["workspace_id", "key"])
-    .unique()
+    .alterTable("idempotency_keys")
+    .addPrimaryKeyConstraint("idempotency_keys_pkey", ["ledger_id", "key"])
     .execute();
 
   // Index for cleanup of expired keys

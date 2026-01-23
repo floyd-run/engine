@@ -3,12 +3,12 @@ import { client } from "../../setup/client";
 import { createAllocation, createResource } from "../../setup/factories";
 import type { AllocationResponse } from "../../setup/types";
 
-describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
+describe("POST /v1/ledgers/:ledgerId/allocations/:id/cancel", () => {
   it("cancels a hold allocation", async () => {
-    const { resource, workspaceId } = await createResource();
+    const { resource, ledgerId } = await createResource();
 
     // Create a hold
-    const createResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+    const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
       status: "hold",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
@@ -20,7 +20,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
 
     // Cancel it
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${hold.id}/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/${hold.id}/cancel`,
     );
 
     expect(response.status).toBe(200);
@@ -30,10 +30,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   });
 
   it("cancels a confirmed allocation", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "confirmed" });
+    const { allocation, ledgerId } = await createAllocation({ status: "confirmed" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
     );
 
     expect(response.status).toBe(200);
@@ -42,10 +42,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   });
 
   it("is idempotent - cancelling already cancelled allocation succeeds", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "cancelled" });
+    const { allocation, ledgerId } = await createAllocation({ status: "cancelled" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
     );
 
     expect(response.status).toBe(200);
@@ -54,10 +54,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   });
 
   it("returns 409 when cancelling expired allocation", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "expired" });
+    const { allocation, ledgerId } = await createAllocation({ status: "expired" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
     );
 
     expect(response.status).toBe(409);
@@ -66,12 +66,12 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   });
 
   it("frees up the time slot after cancellation", async () => {
-    const { resource, workspaceId } = await createResource();
+    const { resource, ledgerId } = await createResource();
     const startAt = new Date("2026-02-01T10:00:00Z");
     const endAt = new Date("2026-02-01T11:00:00Z");
 
     // Create and confirm an allocation
-    const createResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+    const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
       status: "confirmed",
       startAt: startAt.toISOString(),
@@ -82,12 +82,12 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
 
     // Cancel it
     const cancelResponse = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${first.id}/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/${first.id}/cancel`,
     );
     expect(cancelResponse.status).toBe(200);
 
     // Now we should be able to book the same time slot
-    const newResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+    const newResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
       status: "confirmed",
       startAt: startAt.toISOString(),
@@ -98,20 +98,20 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
   });
 
   it("returns 404 for non-existent allocation", async () => {
-    const { workspaceId } = await createResource();
+    const { ledgerId } = await createResource();
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/alloc_00000000000000000000000000/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/alc_00000000000000000000000000/cancel`,
     );
 
     expect(response.status).toBe(404);
   });
 
   it("returns 422 for invalid allocation ID", async () => {
-    const { workspaceId } = await createResource();
+    const { ledgerId } = await createResource();
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/invalid-id/cancel`,
+      `/v1/ledgers/${ledgerId}/allocations/invalid-id/cancel`,
     );
 
     expect(response.status).toBe(422);

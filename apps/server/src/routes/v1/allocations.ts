@@ -7,11 +7,11 @@ import { serializeAllocation } from "./serializers";
 // Significant fields for allocation create idempotency hash
 const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startAt", "endAt", "status", "expiresAt"];
 
-// Nested under /v1/workspaces/:workspaceId/allocations
+// Nested under /v1/ledgers/:ledgerId/allocations
 export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   .get("/", async (c) => {
     const { allocations } = await services.allocation.list({
-      workspaceId: c.req.param("workspaceId")!,
+      ledgerId: c.req.param("ledgerId")!,
     });
     return c.json({ data: allocations.map(serializeAllocation) });
   })
@@ -26,7 +26,7 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
     const body = c.get("parsedBody") || (await c.req.json());
     const { allocation, serverTime } = await services.allocation.create({
       ...(body as object),
-      workspaceId: c.req.param("workspaceId")!,
+      ledgerId: c.req.param("ledgerId")!,
     } as Parameters<typeof services.allocation.create>[0]);
     const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 201);

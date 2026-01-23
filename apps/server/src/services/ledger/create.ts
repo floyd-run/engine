@@ -4,14 +4,14 @@ import { generateId } from "@floyd-run/utils";
 
 export default createService({
   execute: async () => {
-    const workspace = await db
-      .insertInto("workspaces")
+    const ledger = await db
+      .insertInto("ledgers")
       .values({
-        id: generateId("ws"),
+        id: generateId("ldg"),
       })
       .returningAll()
       .executeTakeFirstOrThrow();
 
-    return { workspace };
+    return { ledger };
   },
 });

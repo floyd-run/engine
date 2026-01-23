@@ -15,15 +15,15 @@ export async function up(db: Kysely<Database>): Promise<void> {
   `.execute(db);
 
   await db.schema
-    .createTable("workspaces")
+    .createTable("ledgers")
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`now()`))
     .execute();
 
-  await addUpdatedAtTrigger(db, "workspaces");
+  await addUpdatedAtTrigger(db, "ledgers");
 }
 
 export async function down(db: Kysely<Database>): Promise<void> {
-  await db.schema.dropTable("workspaces").execute();
+  await db.schema.dropTable("ledgers").execute();
 }

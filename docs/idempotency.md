@@ -34,7 +34,7 @@ This prevents a retry from accidentally "turning into" a different allocation.
 ## Usage
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/workspaces/$WORKSPACE_ID/allocations" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: unique-request-id-123" \
   -d '{

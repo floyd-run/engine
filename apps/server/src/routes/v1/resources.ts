@@ -3,11 +3,11 @@ import { services } from "../../services/index.js";
 import { NotFoundError } from "lib/errors";
 import { serializeResource } from "./serializers";
 
-// Nested under /v1/workspaces/:workspaceId/resources
+// Nested under /v1/ledgers/:ledgerId/resources
 export const resources = new Hono()
   .get("/", async (c) => {
     const { resources } = await services.resource.list({
-      workspaceId: c.req.param("workspaceId")!,
+      ledgerId: c.req.param("ledgerId")!,
     });
     return c.json({ data: resources.map(serializeResource) });
   })
@@ -22,7 +22,7 @@ export const resources = new Hono()
     const body = await c.req.json();
     const { resource } = await services.resource.create({
       ...body,
-      workspaceId: c.req.param("workspaceId"),
+      ledgerId: c.req.param("ledgerId"),
     });
     return c.json({ data: serializeResource(resource) }, 201);
   })

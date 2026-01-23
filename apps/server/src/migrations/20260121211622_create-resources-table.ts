@@ -6,8 +6,8 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema
     .createTable("resources")
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
-    .addColumn("workspace_id", "varchar(32)", (col) =>
-      col.notNull().references("workspaces.id").onDelete("cascade"),
+    .addColumn("ledger_id", "varchar(32)", (col) =>
+      col.notNull().references("ledgers.id").onDelete("cascade"),
     )
     .addColumn("timezone", "varchar(100)", (col) => col.notNull().defaultTo("UTC"))
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
@@ -15,9 +15,9 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .execute();
 
   await db.schema
-    .createIndex("idx_resources_workspace")
+    .createIndex("idx_resources_ledger")
     .on("resources")
-    .column("workspace_id")
+    .column("ledger_id")
     .execute();
 
   await addUpdatedAtTrigger(db, "resources");

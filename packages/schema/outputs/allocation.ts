@@ -3,7 +3,7 @@ import { AllocationStatus } from "../constants";
 
 export const schema = z.object({
   id: z.string(),
-  workspaceId: z.string(),
+  ledgerId: z.string(),
   resourceId: z.string(),
   status: z.enum(AllocationStatus),
   startAt: z.string(),

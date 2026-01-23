@@ -19,7 +19,7 @@
   ],
   "components": {
     "schemas": {
-      "Workspace": {
+      "Ledger": {
         "type": "object",
         "properties": {
           "id": {
@@ -40,7 +40,7 @@
           "id": {
             "type": "string"
           },
-          "workspaceId": {
+          "ledgerId": {
             "type": "string"
           },
           "timezone": {
@@ -53,7 +53,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "workspaceId", "timezone", "createdAt", "updatedAt"]
+        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
       },
       "Allocation": {
         "type": "object",
@@ -61,7 +61,7 @@
           "id": {
             "type": "string"
           },
-          "workspaceId": {
+          "ledgerId": {
             "type": "string"
           },
           "resourceId": {
@@ -93,7 +93,7 @@
         },
         "required": [
           "id",
-          "workspaceId",
+          "ledgerId",
           "resourceId",
           "status",
           "startAt",
@@ -137,13 +137,13 @@
     "parameters": {}
   },
   "paths": {
-    "/v1/workspaces": {
+    "/v1/ledgers": {
       "get": {
-        "tags": ["Workspaces"],
-        "summary": "List all workspaces",
+        "tags": ["Ledgers"],
+        "summary": "List all ledgers",
         "responses": {
           "200": {
-            "description": "List of workspaces",
+            "description": "List of ledgers",
             "content": {
               "application/json": {
                 "schema": {
@@ -176,8 +176,8 @@
         }
       },
       "post": {
-        "tags": ["Workspaces"],
-        "summary": "Create a new workspace",
+        "tags": ["Ledgers"],
+        "summary": "Create a new ledger",
         "requestBody": {
           "content": {
             "application/json": {
@@ -190,7 +190,7 @@
         },
         "responses": {
           "201": {
-            "description": "Workspace created",
+            "description": "Ledger created",
             "content": {
               "application/json": {
                 "schema": {
@@ -220,25 +220,25 @@
         }
       }
     },
-    "/v1/workspaces/{id}": {
+    "/v1/ledgers/{id}": {
       "get": {
-        "tags": ["Workspaces"],
-        "summary": "Get a workspace by ID",
+        "tags": ["Ledgers"],
+        "summary": "Get a ledger by ID",
         "parameters": [
           {
             "schema": {
               "type": "string",
-              "description": "Workspace ID"
+              "description": "Ledger ID"
             },
             "required": true,
-            "description": "Workspace ID",
+            "description": "Ledger ID",
             "name": "id",
             "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Workspace details",
+            "description": "Ledger details",
             "content": {
               "application/json": {
                 "schema": {
@@ -266,7 +266,7 @@
             }
           },
           "404": {
-            "description": "Workspace not found",
+            "description": "Ledger not found",
             "content": {
               "application/json": {
                 "schema": {
@@ -304,17 +304,17 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/resources": {
+    "/v1/ledgers/{ledgerId}/resources": {
       "get": {
         "tags": ["Resources"],
-        "summary": "List all resources in a workspace",
+        "summary": "List all resources in a ledger",
         "parameters": [
           {
             "schema": {
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           }
         ],
@@ -334,7 +334,7 @@
                           "id": {
                             "type": "string"
                           },
-                          "workspaceId": {
+                          "ledgerId": {
                             "type": "string"
                           },
                           "timezone": {
@@ -347,7 +347,7 @@
                             "type": "string"
                           }
                         },
-                        "required": ["id", "workspaceId", "timezone", "createdAt", "updatedAt"]
+                        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                       }
                     }
                   },
@@ -367,7 +367,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           }
         ],
@@ -401,7 +401,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "timezone": {
@@ -414,7 +414,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "workspaceId", "timezone", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -425,7 +425,7 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/resources/{id}": {
+    "/v1/ledgers/{ledgerId}/resources/{id}": {
       "get": {
         "tags": ["Resources"],
         "summary": "Get a resource by ID",
@@ -435,7 +435,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           },
           {
@@ -461,7 +461,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "timezone": {
@@ -474,7 +474,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "workspaceId", "timezone", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -529,7 +529,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           },
           {
@@ -584,17 +584,17 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/allocations": {
+    "/v1/ledgers/{ledgerId}/allocations": {
       "get": {
         "tags": ["Allocations"],
-        "summary": "List all allocations in a workspace",
+        "summary": "List all allocations in a ledger",
         "parameters": [
           {
             "schema": {
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           }
         ],
@@ -614,7 +614,7 @@
                           "id": {
                             "type": "string"
                           },
-                          "workspaceId": {
+                          "ledgerId": {
                             "type": "string"
                           },
                           "resourceId": {
@@ -646,7 +646,7 @@
                         },
                         "required": [
                           "id",
-                          "workspaceId",
+                          "ledgerId",
                           "resourceId",
                           "status",
                           "startAt",
@@ -676,7 +676,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           }
         ],
@@ -731,7 +731,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "resourceId": {
@@ -763,7 +763,7 @@
                       },
                       "required": [
                         "id",
-                        "workspaceId",
+                        "ledgerId",
                         "resourceId",
                         "status",
                         "startAt",
@@ -828,7 +828,7 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/allocations/{id}": {
+    "/v1/ledgers/{ledgerId}/allocations/{id}": {
       "get": {
         "tags": ["Allocations"],
         "summary": "Get an allocation by ID",
@@ -838,7 +838,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           },
           {
@@ -864,7 +864,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "resourceId": {
@@ -896,7 +896,7 @@
                       },
                       "required": [
                         "id",
-                        "workspaceId",
+                        "ledgerId",
                         "resourceId",
                         "status",
                         "startAt",
@@ -961,7 +961,7 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/allocations/{id}/confirm": {
+    "/v1/ledgers/{ledgerId}/allocations/{id}/confirm": {
       "post": {
         "tags": ["Allocations"],
         "summary": "Confirm a held allocation",
@@ -972,7 +972,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           },
           {
@@ -998,7 +998,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "resourceId": {
@@ -1030,7 +1030,7 @@
                       },
                       "required": [
                         "id",
-                        "workspaceId",
+                        "ledgerId",
                         "resourceId",
                         "status",
                         "startAt",
@@ -1131,7 +1131,7 @@
         }
       }
     },
-    "/v1/workspaces/{workspaceId}/allocations/{id}/cancel": {
+    "/v1/ledgers/{ledgerId}/allocations/{id}/cancel": {
       "post": {
         "tags": ["Allocations"],
         "summary": "Cancel an allocation",
@@ -1142,7 +1142,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "workspaceId",
+            "name": "ledgerId",
             "in": "path"
           },
           {
@@ -1168,7 +1168,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "workspaceId": {
+                        "ledgerId": {
                           "type": "string"
                         },
                         "resourceId": {
@@ -1200,7 +1200,7 @@
                       },
                       "required": [
                         "id",
-                        "workspaceId",
+                        "ledgerId",
                         "resourceId",
                         "status",
                         "startAt",

@@ -5,7 +5,7 @@ import { generateId } from "@floyd-run/utils";
 import { createResource } from "./resource.factory";
 
 export async function createAllocation(overrides?: {
-  workspaceId?: string;
+  ledgerId?: string;
   resourceId?: string;
   status?: AllocationStatus;
   startAt?: Date;
@@ -13,23 +13,23 @@ export async function createAllocation(overrides?: {
   expiresAt?: Date | null;
   metadata?: Record<string, unknown> | null;
 }) {
-  const workspaceIdParam = overrides?.workspaceId;
-  let workspaceId: string;
+  const ledgerIdParam = overrides?.ledgerId;
+  let ledgerId: string;
   let resourceId = overrides?.resourceId;
 
   if (!resourceId) {
-    const result = await createResource(workspaceIdParam ? { workspaceId: workspaceIdParam } : {});
+    const result = await createResource(ledgerIdParam ? { ledgerId: ledgerIdParam } : {});
     resourceId = result.resource.id;
-    workspaceId = result.workspaceId;
-  } else if (workspaceIdParam) {
-    workspaceId = workspaceIdParam;
+    ledgerId = result.ledgerId;
+  } else if (ledgerIdParam) {
+    ledgerId = ledgerIdParam;
   } else {
     const resource = await db
       .selectFrom("resources")
       .where("id", "=", resourceId)
       .selectAll()
       .executeTakeFirstOrThrow();
-    workspaceId = resource.workspaceId;
+    ledgerId = resource.ledgerId;
   }
 
   const startAt = overrides?.startAt ?? faker.date.future();
@@ -38,8 +38,8 @@ export async function createAllocation(overrides?: {
   const allocation = await db
     .insertInto("allocations")
     .values({
-      id: generateId("alloc"),
-      workspaceId,
+      id: generateId("alc"),
+      ledgerId,
       resourceId,
       status: overrides?.status ?? "confirmed",
       startAt,
@@ -50,5 +50,5 @@ export async function createAllocation(overrides?: {
     .returningAll()
     .executeTakeFirst();
 
-  return { allocation: allocation!, workspaceId, resourceId };
+  return { allocation: allocation!, ledgerId, resourceId };
 }

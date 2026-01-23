@@ -1,16 +1,16 @@
 import { db } from "database";
 import { createService } from "lib/service";
-import { workspace } from "@floyd-run/schema/inputs";
+import { ledger } from "@floyd-run/schema/inputs";
 
 export default createService({
-  input: workspace.getSchema,
+  input: ledger.getSchema,
   execute: async (input) => {
-    const workspace = await db
-      .selectFrom("workspaces")
+    const ledger = await db
+      .selectFrom("ledgers")
       .where("id", "=", input.id)
       .selectAll()
       .executeTakeFirst();
 
-    return { workspace };
+    return { ledger };
   },
 });

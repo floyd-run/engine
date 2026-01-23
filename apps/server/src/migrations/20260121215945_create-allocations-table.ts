@@ -6,7 +6,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema
     .createTable("allocations")
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
-    .addColumn("workspace_id", "varchar(32)", (col) => col.notNull().references("workspaces.id"))
+    .addColumn("ledger_id", "varchar(32)", (col) => col.notNull().references("ledgers.id"))
     .addColumn("resource_id", "varchar(32)", (col) => col.notNull().references("resources.id"))
     .addColumn("status", "varchar(50)", (col) =>
       col.notNull().check(sql`status IN ('hold', 'confirmed', 'cancelled', 'expired')`),
@@ -22,15 +22,15 @@ export async function up(db: Kysely<Database>): Promise<void> {
 
   // Critical indexes for overlap queries
   await db.schema
-    .createIndex("idx_allocations_workspace")
+    .createIndex("idx_allocations_ledger")
     .on("allocations")
-    .column("workspace_id")
+    .column("ledger_id")
     .execute();
 
   await db.schema
     .createIndex("idx_allocations_resource")
     .on("allocations")
-    .columns(["workspace_id", "resource_id"])
+    .columns(["ledger_id", "resource_id"])
     .execute();
 
   await db.schema

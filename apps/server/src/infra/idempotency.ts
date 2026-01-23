@@ -1,14 +1,13 @@
 import { Context, Next } from "hono";
 import { createHash } from "crypto";
 import { db } from "database";
-import { generateId } from "@floyd-run/utils";
 
 const IDEMPOTENCY_KEY_HEADER = "Idempotency-Key";
 const DEFAULT_TTL_HOURS = 24;
 
 export interface IdempotencyContext {
   key: string;
-  workspaceId: string;
+  ledgerId: string;
   path: string;
   method: string;
   payloadHash: string;
@@ -82,12 +81,12 @@ export function idempotent(options: IdempotencyOptions = {}) {
       return next();
     }
 
-    const workspaceId = c.req.param("workspaceId");
-    if (!workspaceId) {
+    const ledgerId = c.req.param("ledgerId");
+    if (!ledgerId) {
       throw new IdempotencyError(
-        "Idempotency keys require a workspace context",
+        "Idempotency keys require a ledger context",
         400,
-        "idempotency_missing_workspace",
+        "idempotency_missing_ledger",
       );
     }
 
@@ -105,7 +104,7 @@ export function idempotent(options: IdempotencyOptions = {}) {
     const existing = await db
       .selectFrom("idempotencyKeys")
       .selectAll()
-      .where("workspaceId", "=", workspaceId)
+      .where("ledgerId", "=", ledgerId)
       .where("key", "=", idempotencyKey)
       .executeTakeFirst();
 
@@ -113,7 +112,11 @@ export function idempotent(options: IdempotencyOptions = {}) {
       // Check if expired
       if (existing.expiresAt < new Date()) {
         // Expired - delete and proceed as new request
-        await db.deleteFrom("idempotencyKeys").where("id", "=", existing.id).execute();
+        await db
+          .deleteFrom("idempotencyKeys")
+          .where("ledgerId", "=", ledgerId)
+          .where("key", "=", idempotencyKey)
+          .execute();
       } else {
         // Valid existing key - check payload match
         if (existing.payloadHash !== payloadHash) {
@@ -141,7 +144,7 @@ export function idempotent(options: IdempotencyOptions = {}) {
     // Store context for after handler
     c.set("idempotencyContext", {
       key: idempotencyKey,
-      workspaceId,
+      ledgerId,
       path,
       method,
       payloadHash,
@@ -164,7 +167,7 @@ export async function storeIdempotencyResponse(
   const ctx = c.get("idempotencyContext") as
     | {
         key: string;
-        workspaceId: string;
+        ledgerId: string;
         path: string;
         method: string;
         payloadHash: string;
@@ -182,8 +185,7 @@ export async function storeIdempotencyResponse(
   await db
     .insertInto("idempotencyKeys")
     .values({
-      id: generateId("idem"),
-      workspaceId: ctx.workspaceId,
+      ledgerId: ctx.ledgerId,
       key: ctx.key,
       path: ctx.path,
       method: ctx.method,
@@ -193,7 +195,7 @@ export async function storeIdempotencyResponse(
       expiresAt,
     })
     .onConflict((oc) =>
-      oc.columns(["workspaceId", "key"]).doUpdateSet({
+      oc.columns(["ledgerId", "key"]).doUpdateSet({
         responseStatus,
         responseBody,
         expiresAt,

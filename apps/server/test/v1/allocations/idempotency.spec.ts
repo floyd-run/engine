@@ -4,9 +4,9 @@ import { createResource } from "../../setup/factories";
 import type { AllocationResponse } from "../../setup/types";
 
 describe("Idempotency", () => {
-  describe("POST /v1/workspaces/:workspaceId/allocations", () => {
+  describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     it("returns same response for duplicate request with same idempotency key", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
       const idempotencyKey = `test-key-${Date.now()}`;
 
       const body = {
@@ -17,14 +17,14 @@ describe("Idempotency", () => {
       };
 
       // First request
-      const response1 = await client.post(`/v1/workspaces/${workspaceId}/allocations`, body, {
+      const response1 = await client.post(`/v1/ledgers/${ledgerId}/allocations`, body, {
         headers: { "Idempotency-Key": idempotencyKey },
       });
       expect(response1.status).toBe(201);
       const result1 = (await response1.json()) as AllocationResponse;
 
       // Second request with same key
-      const response2 = await client.post(`/v1/workspaces/${workspaceId}/allocations`, body, {
+      const response2 = await client.post(`/v1/ledgers/${ledgerId}/allocations`, body, {
         headers: { "Idempotency-Key": idempotencyKey },
       });
       expect(response2.status).toBe(201);
@@ -35,12 +35,12 @@ describe("Idempotency", () => {
     });
 
     it("returns 422 when same key used with different payload", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
       const idempotencyKey = `test-key-${Date.now()}`;
 
       // First request
       const response1 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
           status: "confirmed",
@@ -53,7 +53,7 @@ describe("Idempotency", () => {
 
       // Second request with same key but different payload
       const response2 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
           status: "confirmed",
@@ -69,11 +69,11 @@ describe("Idempotency", () => {
     });
 
     it("allows different keys for different requests", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
 
       // First request with key1
       const response1 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
           status: "confirmed",
@@ -87,7 +87,7 @@ describe("Idempotency", () => {
 
       // Second request with key2 (different time slot to avoid conflict)
       const response2 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
           status: "confirmed",
@@ -104,7 +104,7 @@ describe("Idempotency", () => {
     });
 
     it("ignores metadata changes for idempotency (significant fields only)", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
       const idempotencyKey = `test-key-${Date.now()}`;
 
       const basePayload = {
@@ -116,7 +116,7 @@ describe("Idempotency", () => {
 
       // First request without metadata
       const response1 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         basePayload,
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -125,7 +125,7 @@ describe("Idempotency", () => {
 
       // Second request with metadata (not a significant field)
       const response2 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations`,
+        `/v1/ledgers/${ledgerId}/allocations`,
         { ...basePayload, metadata: { note: "test" } },
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -137,9 +137,9 @@ describe("Idempotency", () => {
     });
 
     it("works normally without idempotency key", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
 
-      const response = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+      const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
         status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
@@ -150,13 +150,13 @@ describe("Idempotency", () => {
     });
   });
 
-  describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
+  describe("POST /v1/ledgers/:ledgerId/allocations/:id/confirm", () => {
     it("returns same response for duplicate confirm with same idempotency key", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
       const idempotencyKey = `confirm-key-${Date.now()}`;
 
       // Create a hold
-      const createResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+      const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
         status: "hold",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
@@ -167,7 +167,7 @@ describe("Idempotency", () => {
 
       // First confirm
       const response1 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations/${hold.id}/confirm`,
+        `/v1/ledgers/${ledgerId}/allocations/${hold.id}/confirm`,
         {},
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -176,7 +176,7 @@ describe("Idempotency", () => {
 
       // Second confirm with same key
       const response2 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations/${hold.id}/confirm`,
+        `/v1/ledgers/${ledgerId}/allocations/${hold.id}/confirm`,
         {},
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -189,13 +189,13 @@ describe("Idempotency", () => {
     });
   });
 
-  describe("POST /v1/workspaces/:workspaceId/allocations/:id/cancel", () => {
+  describe("POST /v1/ledgers/:ledgerId/allocations/:id/cancel", () => {
     it("returns same response for duplicate cancel with same idempotency key", async () => {
-      const { resource, workspaceId } = await createResource();
+      const { resource, ledgerId } = await createResource();
       const idempotencyKey = `cancel-key-${Date.now()}`;
 
       // Create a confirmed allocation
-      const createResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+      const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
         status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
@@ -205,7 +205,7 @@ describe("Idempotency", () => {
 
       // First cancel
       const response1 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/cancel`,
+        `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
         {},
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -214,7 +214,7 @@ describe("Idempotency", () => {
 
       // Second cancel with same key
       const response2 = await client.post(
-        `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/cancel`,
+        `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
         {},
         { headers: { "Idempotency-Key": idempotencyKey } },
       );

@@ -53,7 +53,7 @@ Floyd automatically marks expired holds as `expired` when you create a new alloc
 
 When the user says "yes", call:
 
-- `POST /v1/workspaces/:workspaceId/allocations/:id/confirm`
+- `POST /v1/ledgers/:ledgerId/allocations/:id/confirm`
 
 This:
 
@@ -68,7 +68,7 @@ Confirm is safe to retry:
 
 Cancel explicitly releases the slot:
 
-- `POST /v1/workspaces/:workspaceId/allocations/:id/cancel`
+- `POST /v1/ledgers/:ledgerId/allocations/:id/cancel`
 
 Cancel is safe to retry:
 

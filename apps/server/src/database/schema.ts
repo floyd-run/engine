@@ -1,7 +1,7 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
 import { AllocationStatus } from "@floyd-run/schema/types";
 
-export interface WorkspacesTable {
+export interface LedgersTable {
   id: string;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
@@ -9,7 +9,7 @@ export interface WorkspacesTable {
 
 export interface ResourcesTable {
   id: string;
-  workspaceId: string;
+  ledgerId: string;
   timezone: string;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
@@ -17,7 +17,7 @@ export interface ResourcesTable {
 
 export interface AllocationsTable {
   id: string;
-  workspaceId: string;
+  ledgerId: string;
   resourceId: string;
   status: AllocationStatus;
   startAt: Date;
@@ -29,8 +29,7 @@ export interface AllocationsTable {
 }
 
 export interface IdempotencyKeysTable {
-  id: string;
-  workspaceId: string;
+  ledgerId: string;
   key: string;
   path: string;
   method: string;
@@ -45,12 +44,12 @@ export interface Database {
   allocations: AllocationsTable;
   idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
-  workspaces: WorkspacesTable;
+  ledgers: LedgersTable;
 }
 
-export type WorkspaceRow = Selectable<WorkspacesTable>;
-export type NewWorkspace = Insertable<WorkspacesTable>;
-export type WorkspaceUpdate = Updateable<WorkspacesTable>;
+export type LedgerRow = Selectable<LedgersTable>;
+export type NewLedger = Insertable<LedgersTable>;
+export type LedgerUpdate = Updateable<LedgersTable>;
 
 export type ResourceRow = Selectable<ResourcesTable>;
 export type NewResource = Insertable<ResourcesTable>;

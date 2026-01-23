@@ -3,7 +3,7 @@ import { createService } from "lib/service";
 
 export default createService({
   execute: async () => {
-    const workspaces = await db.selectFrom("workspaces").selectAll().execute();
-    return { workspaces };
+    const ledgers = await db.selectFrom("ledgers").selectAll().execute();
+    return { ledgers };
   },
 });

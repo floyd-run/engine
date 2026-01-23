@@ -3,13 +3,13 @@ import { client } from "../../setup/client";
 import { createAllocation, createResource } from "../../setup/factories";
 import type { AllocationResponse } from "../../setup/types";
 
-describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
+describe("POST /v1/ledgers/:ledgerId/allocations/:id/confirm", () => {
   it("confirms a hold allocation", async () => {
-    const { resource, workspaceId } = await createResource();
+    const { resource, ledgerId } = await createResource();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
     // Create a hold
-    const createResponse = await client.post(`/v1/workspaces/${workspaceId}/allocations`, {
+    const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
       status: "hold",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
@@ -21,7 +21,7 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
 
     // Confirm it
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${hold.id}/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/${hold.id}/confirm`,
     );
 
     expect(response.status).toBe(200);
@@ -31,10 +31,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   });
 
   it("is idempotent - confirming already confirmed allocation succeeds", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "confirmed" });
+    const { allocation, ledgerId } = await createAllocation({ status: "confirmed" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/confirm`,
     );
 
     expect(response.status).toBe(200);
@@ -43,10 +43,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   });
 
   it("returns 409 when confirming cancelled allocation", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "cancelled" });
+    const { allocation, ledgerId } = await createAllocation({ status: "cancelled" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/confirm`,
     );
 
     expect(response.status).toBe(409);
@@ -55,10 +55,10 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   });
 
   it("returns 409 when confirming expired allocation", async () => {
-    const { allocation, workspaceId } = await createAllocation({ status: "expired" });
+    const { allocation, ledgerId } = await createAllocation({ status: "expired" });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/confirm`,
     );
 
     expect(response.status).toBe(409);
@@ -67,13 +67,13 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   });
 
   it("returns 409 when confirming hold that has expired (TTL)", async () => {
-    const { allocation, workspaceId } = await createAllocation({
+    const { allocation, ledgerId } = await createAllocation({
       status: "hold",
       expiresAt: new Date(Date.now() - 1000), // Expired 1 second ago
     });
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/${allocation.id}/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/confirm`,
     );
 
     expect(response.status).toBe(409);
@@ -82,20 +82,20 @@ describe("POST /v1/workspaces/:workspaceId/allocations/:id/confirm", () => {
   });
 
   it("returns 404 for non-existent allocation", async () => {
-    const { workspaceId } = await createResource();
+    const { ledgerId } = await createResource();
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/alloc_00000000000000000000000000/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/alc_00000000000000000000000000/confirm`,
     );
 
     expect(response.status).toBe(404);
   });
 
   it("returns 422 for invalid allocation ID", async () => {
-    const { workspaceId } = await createResource();
+    const { ledgerId } = await createResource();
 
     const response = await client.post(
-      `/v1/workspaces/${workspaceId}/allocations/invalid-id/confirm`,
+      `/v1/ledgers/${ledgerId}/allocations/invalid-id/confirm`,
     );
 
     expect(response.status).toBe(422);

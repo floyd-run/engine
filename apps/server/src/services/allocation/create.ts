@@ -52,8 +52,8 @@ export default createService({
       const alloc = await trx
         .insertInto("allocations")
         .values({
-          id: generateId("alloc"),
-          workspaceId: input.workspaceId,
+          id: generateId("alc"),
+          ledgerId: input.ledgerId,
           resourceId: input.resourceId,
           status: input.status,
           startAt: input.startAt,

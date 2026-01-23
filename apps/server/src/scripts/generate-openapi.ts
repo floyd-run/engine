@@ -2,47 +2,47 @@ import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-ope
 import { z } from "zod";
 import { writeFileSync } from "fs";
 import { join } from "path";
-import { allocation, resource, workspace, error } from "@floyd-run/schema/outputs";
+import { allocation, resource, ledger, error } from "@floyd-run/schema/outputs";
 
 const registry = new OpenAPIRegistry();
 
 // Register schemas
-registry.register("Workspace", workspace.schema);
+registry.register("Ledger", ledger.schema);
 registry.register("Resource", resource.schema);
 registry.register("Allocation", allocation.schema);
 registry.register("Error", error.schema);
 
-// Workspace routes
+// Ledger routes
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces",
-  tags: ["Workspaces"],
-  summary: "List all workspaces",
+  path: "/v1/ledgers",
+  tags: ["Ledgers"],
+  summary: "List all ledgers",
   responses: {
     200: {
-      description: "List of workspaces",
-      content: { "application/json": { schema: workspace.listSchema } },
+      description: "List of ledgers",
+      content: { "application/json": { schema: ledger.listSchema } },
     },
   },
 });
 
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces/{id}",
-  tags: ["Workspaces"],
-  summary: "Get a workspace by ID",
+  path: "/v1/ledgers/{id}",
+  tags: ["Ledgers"],
+  summary: "Get a ledger by ID",
   request: {
     params: z.object({
-      id: z.string().openapi({ description: "Workspace ID" }),
+      id: z.string().openapi({ description: "Ledger ID" }),
     }),
   },
   responses: {
     200: {
-      description: "Workspace details",
-      content: { "application/json": { schema: workspace.getSchema } },
+      description: "Ledger details",
+      content: { "application/json": { schema: ledger.getSchema } },
     },
     404: {
-      description: "Workspace not found",
+      description: "Ledger not found",
       content: { "application/json": { schema: error.schema } },
     },
   },
@@ -50,9 +50,9 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/workspaces",
-  tags: ["Workspaces"],
-  summary: "Create a new workspace",
+  path: "/v1/ledgers",
+  tags: ["Ledgers"],
+  summary: "Create a new ledger",
   request: {
     body: {
       content: { "application/json": { schema: z.object({}) } },
@@ -60,8 +60,8 @@ registry.registerPath({
   },
   responses: {
     201: {
-      description: "Workspace created",
-      content: { "application/json": { schema: workspace.getSchema } },
+      description: "Ledger created",
+      content: { "application/json": { schema: ledger.getSchema } },
     },
   },
 });
@@ -69,10 +69,10 @@ registry.registerPath({
 // Resource routes
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces/{workspaceId}/resources",
+  path: "/v1/ledgers/{ledgerId}/resources",
   tags: ["Resources"],
-  summary: "List all resources in a workspace",
-  request: { params: z.object({ workspaceId: z.string() }) },
+  summary: "List all resources in a ledger",
+  request: { params: z.object({ ledgerId: z.string() }) },
   responses: {
     200: {
       description: "List of resources",
@@ -83,11 +83,11 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces/{workspaceId}/resources/{id}",
+  path: "/v1/ledgers/{ledgerId}/resources/{id}",
   tags: ["Resources"],
   summary: "Get a resource by ID",
   request: {
-    params: z.object({ workspaceId: z.string(), id: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
@@ -103,11 +103,11 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/workspaces/{workspaceId}/resources",
+  path: "/v1/ledgers/{ledgerId}/resources",
   tags: ["Resources"],
   summary: "Create a new resource",
   request: {
-    params: z.object({ workspaceId: z.string() }),
+    params: z.object({ ledgerId: z.string() }),
     body: {
       content: {
         "application/json": {
@@ -128,11 +128,11 @@ registry.registerPath({
 
 registry.registerPath({
   method: "delete",
-  path: "/v1/workspaces/{workspaceId}/resources/{id}",
+  path: "/v1/ledgers/{ledgerId}/resources/{id}",
   tags: ["Resources"],
   summary: "Delete a resource",
   request: {
-    params: z.object({ workspaceId: z.string(), id: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     204: { description: "Resource deleted" },
@@ -146,10 +146,10 @@ registry.registerPath({
 // Allocation routes
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces/{workspaceId}/allocations",
+  path: "/v1/ledgers/{ledgerId}/allocations",
   tags: ["Allocations"],
-  summary: "List all allocations in a workspace",
-  request: { params: z.object({ workspaceId: z.string() }) },
+  summary: "List all allocations in a ledger",
+  request: { params: z.object({ ledgerId: z.string() }) },
   responses: {
     200: {
       description: "List of allocations",
@@ -160,11 +160,11 @@ registry.registerPath({
 
 registry.registerPath({
   method: "get",
-  path: "/v1/workspaces/{workspaceId}/allocations/{id}",
+  path: "/v1/ledgers/{ledgerId}/allocations/{id}",
   tags: ["Allocations"],
   summary: "Get an allocation by ID",
   request: {
-    params: z.object({ workspaceId: z.string(), id: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
@@ -180,13 +180,13 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/workspaces/{workspaceId}/allocations",
+  path: "/v1/ledgers/{ledgerId}/allocations",
   tags: ["Allocations"],
   summary: "Create a new allocation",
   description:
     "Creates a new allocation for a resource. Supports idempotency via the Idempotency-Key header.",
   request: {
-    params: z.object({ workspaceId: z.string() }),
+    params: z.object({ ledgerId: z.string() }),
     body: {
       content: {
         "application/json": {
@@ -216,12 +216,12 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/workspaces/{workspaceId}/allocations/{id}/confirm",
+  path: "/v1/ledgers/{ledgerId}/allocations/{id}/confirm",
   tags: ["Allocations"],
   summary: "Confirm a held allocation",
   description: "Confirms an allocation that is currently in HOLD status.",
   request: {
-    params: z.object({ workspaceId: z.string(), id: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
@@ -241,12 +241,12 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/workspaces/{workspaceId}/allocations/{id}/cancel",
+  path: "/v1/ledgers/{ledgerId}/allocations/{id}/cancel",
   tags: ["Allocations"],
   summary: "Cancel an allocation",
   description: "Cancels an allocation that is in HOLD or CONFIRMED status.",
   request: {
-    params: z.object({ workspaceId: z.string(), id: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {

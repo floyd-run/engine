@@ -3,8 +3,8 @@ import { isValidId } from "@floyd-run/utils";
 import { AllocationStatus } from "../constants";
 
 export const createSchema = z.object({
-  workspaceId: z.string().refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
-  resourceId: z.string().refine((id) => isValidId(id, "res"), { message: "Invalid resource ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+  resourceId: z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
   status: z
     .enum([AllocationStatus.HOLD, AllocationStatus.CONFIRMED])
     .default(AllocationStatus.HOLD),
@@ -15,21 +15,21 @@ export const createSchema = z.object({
 });
 
 export const getSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
 });
 
 export const listSchema = z.object({
-  workspaceId: z.string().refine((id) => isValidId(id, "ws"), { message: "Invalid workspace ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
 export const removeSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
 });
 
 export const confirmSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
 });
 
 export const cancelSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alloc"), { message: "Invalid allocation ID" }),
+  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
 });

@@ -7,7 +7,7 @@ export default createService({
   execute: async (input) => {
     const allocations = await db
       .selectFrom("allocations")
-      .where("workspaceId", "=", input.workspaceId)
+      .where("ledgerId", "=", input.ledgerId)
       .selectAll()
       .execute();
     return { allocations };

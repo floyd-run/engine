@@ -1,9 +1,9 @@
 import { Hono } from "hono";
 import { allocations } from "./allocations";
 import { resources } from "./resources";
-import { workspaces } from "./workspaces";
+import { ledgers } from "./ledgers";
 
 export const v1 = new Hono()
-  .route("/workspaces", workspaces)
-  .route("/workspaces/:workspaceId/resources", resources)
-  .route("/workspaces/:workspaceId/allocations", allocations);
+  .route("/ledgers", ledgers)
+  .route("/ledgers/:ledgerId/resources", resources)
+  .route("/ledgers/:ledgerId/allocations", allocations);

@@ -1,31 +1,10 @@
+import type { z } from "zod";
+import type * as outputs from "../outputs";
 import { AllocationStatus } from "../constants";
 import { ConstantType } from "./utils";
 
 export type AllocationStatus = ConstantType<typeof AllocationStatus>;
 
-export interface Resource {
-  id: string;
-  workspaceId: string;
-  timezone: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Workspace {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Allocation {
-  id: string;
-  workspaceId: string;
-  resourceId: string;
-  status: AllocationStatus;
-  startAt: string;
-  endAt: string;
-  expiresAt: string | null;
-  metadata: Record<string, unknown> | null;
-  createdAt: string;
-  updatedAt: string;
-}
+export type Allocation = z.infer<typeof outputs.allocation.schema>;
+export type Resource = z.infer<typeof outputs.resource.schema>;
+export type Workspace = z.infer<typeof outputs.workspace.schema>;

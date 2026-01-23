@@ -115,11 +115,9 @@ describe("Idempotency", () => {
       };
 
       // First request without metadata
-      const response1 = await client.post(
-        `/v1/ledgers/${ledgerId}/allocations`,
-        basePayload,
-        { headers: { "Idempotency-Key": idempotencyKey } },
-      );
+      const response1 = await client.post(`/v1/ledgers/${ledgerId}/allocations`, basePayload, {
+        headers: { "Idempotency-Key": idempotencyKey },
+      });
       expect(response1.status).toBe(201);
       const result1 = (await response1.json()) as AllocationResponse;
 

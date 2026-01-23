@@ -58,11 +58,12 @@ export default createService({
         }
       }
 
-      // 5. Update to confirmed
+      // 5. Update to confirmed (clear expires_at per database constraint)
       const allocation = await trx
         .updateTable("allocations")
         .set({
           status: "confirmed",
+          expiresAt: null,
           updatedAt: serverTime,
         })
         .where("id", "=", input.id)

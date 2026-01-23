@@ -41,10 +41,12 @@ export default createService({
       }
 
       // 4. Update to cancelled (valid from hold or confirmed)
+      // Clear expires_at per database constraint
       const allocation = await trx
         .updateTable("allocations")
         .set({
           status: "cancelled",
+          expiresAt: null,
           updatedAt: serverTime,
         })
         .where("id", "=", input.id)

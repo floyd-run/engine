@@ -15,6 +15,10 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("end_at", "timestamptz", (col) => col.notNull())
     .addCheckConstraint("allocations_time_order", sql`start_at < end_at`)
     .addColumn("expires_at", "timestamptz")
+    .addCheckConstraint(
+      "allocations_expires_at_consistency",
+      sql`(status = 'hold' AND expires_at IS NOT NULL) OR (status IN ('confirmed', 'cancelled', 'expired') AND expires_at IS NULL)`,
+    )
     .addColumn("metadata", "jsonb")
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))

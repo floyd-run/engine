@@ -14,11 +14,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();
 
-  await db.schema
-    .createIndex("idx_resources_ledger")
-    .on("resources")
-    .column("ledger_id")
-    .execute();
+  await db.schema.createIndex("idx_resources_ledger").on("resources").column("ledger_id").execute();
 
   await addUpdatedAtTrigger(db, "resources");
 }

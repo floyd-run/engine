@@ -19,9 +19,7 @@ describe("POST /v1/ledgers/:ledgerId/allocations/:id/cancel", () => {
     const { data: hold } = (await createResponse.json()) as AllocationResponse;
 
     // Cancel it
-    const response = await client.post(
-      `/v1/ledgers/${ledgerId}/allocations/${hold.id}/cancel`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations/${hold.id}/cancel`);
 
     expect(response.status).toBe(200);
     const body = (await response.json()) as AllocationResponse;
@@ -110,9 +108,7 @@ describe("POST /v1/ledgers/:ledgerId/allocations/:id/cancel", () => {
   it("returns 422 for invalid allocation ID", async () => {
     const { ledgerId } = await createResource();
 
-    const response = await client.post(
-      `/v1/ledgers/${ledgerId}/allocations/invalid-id/cancel`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations/invalid-id/cancel`);
 
     expect(response.status).toBe(422);
   });

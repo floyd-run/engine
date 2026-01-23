@@ -273,7 +273,18 @@ const doc = generator.generateDocument({
     version: "1.0.0",
     description: "Resource scheduling and allocation engine",
   },
-  servers: [{ url: "http://localhost:3000", description: "Local development" }],
+  servers: [
+    {
+      url: "{baseUrl}",
+      description: "API Server",
+      variables: {
+        baseUrl: {
+          default: "https://api.floyd.run",
+          description: "Base URL for the Floyd Engine API",
+        },
+      },
+    },
+  ],
 });
 
 // Write to file

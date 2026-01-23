@@ -22,7 +22,9 @@ export default createService({
       }
 
       // 2. Capture server time immediately after acquiring lock
-      const result = await sql<{ serverTime: Date }>`SELECT NOW() AS server_time`.execute(trx);
+      const result = await sql<{
+        serverTime: Date;
+      }>`SELECT clock_timestamp() AS server_time`.execute(trx);
       const serverTime = result.rows[0]!.serverTime;
 
       // 3. Check for overlapping allocations that would block this request

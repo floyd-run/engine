@@ -20,8 +20,10 @@ export default createService({
         throw new NotFoundError("Allocation not found");
       }
 
-      // 2. Capture server time
-      const result = await sql<{ serverTime: Date }>`SELECT NOW() AS server_time`.execute(trx);
+      // 2. Capture server time after acquiring lock
+      const result = await sql<{
+        serverTime: Date;
+      }>`SELECT clock_timestamp() AS server_time`.execute(trx);
       const serverTime = result.rows[0]!.serverTime;
 
       // 3. Validate state transition

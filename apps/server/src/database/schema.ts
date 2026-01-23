@@ -28,14 +28,17 @@ export interface AllocationsTable {
   updatedAt: Generated<Date>;
 }
 
+export type IdempotencyStatus = "in_progress" | "completed";
+
 export interface IdempotencyKeysTable {
   ledgerId: string;
   key: string;
   path: string;
   method: string;
   payloadHash: string;
-  responseStatus: number;
-  responseBody: Record<string, unknown>;
+  status: IdempotencyStatus;
+  responseStatus: number | null;
+  responseBody: Record<string, unknown> | null;
   expiresAt: Date;
   createdAt: Generated<Date>;
 }

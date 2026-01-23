@@ -65,6 +65,13 @@ function computePayloadHash(
 /**
  * Middleware factory for idempotent POST requests.
  *
+ * Uses insert-first pattern to handle concurrent requests safely:
+ * 1. Try to INSERT with status='in_progress' - the unique constraint serializes races
+ * 2. If insert succeeds, proceed with handler
+ * 3. If insert fails (conflict), check existing record:
+ *    - If 'completed': return cached response (or error if payload mismatch)
+ *    - If 'in_progress': return 425 Too Early
+ *
  * Usage:
  * ```ts
  * app.post("/allocations", idempotent({ significantFields: ["resourceId", "startAt", "endAt", "status"] }), handler)
@@ -100,63 +107,129 @@ export function idempotent(options: IdempotencyOptions = {}) {
     // Store body for later use by handler
     c.set("parsedBody", body);
 
-    // Check for existing key
-    const existing = await db
-      .selectFrom("idempotencyKeys")
-      .selectAll()
-      .where("ledgerId", "=", ledgerId)
-      .where("key", "=", idempotencyKey)
-      .executeTakeFirst();
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + ttlHours);
 
-    if (existing) {
+    // Try to insert with in_progress status first
+    // The unique constraint on (ledger_id, key) serializes concurrent requests
+    try {
+      await db
+        .insertInto("idempotencyKeys")
+        .values({
+          ledgerId,
+          key: idempotencyKey,
+          path,
+          method,
+          payloadHash,
+          status: "in_progress",
+          responseStatus: null,
+          responseBody: null,
+          expiresAt,
+        })
+        .execute();
+
+      // Insert succeeded - we own this key, proceed with handler
+      c.set("idempotencyContext", {
+        key: idempotencyKey,
+        ledgerId,
+        path,
+        method,
+        payloadHash,
+        ttlHours,
+      });
+
+      await next();
+    } catch (error: unknown) {
+      // Check if it's a unique constraint violation
+      const isConflict =
+        error instanceof Error &&
+        (error.message.includes("duplicate key") ||
+          error.message.includes("unique constraint") ||
+          error.message.includes("UNIQUE constraint"));
+
+      if (!isConflict) {
+        throw error;
+      }
+
+      // Conflict - another request has this key, check its status
+      const existing = await db
+        .selectFrom("idempotencyKeys")
+        .selectAll()
+        .where("ledgerId", "=", ledgerId)
+        .where("key", "=", idempotencyKey)
+        .executeTakeFirst();
+
+      if (!existing) {
+        // Race condition: key was deleted between our insert attempt and select
+        // This shouldn't happen in normal operation, retry would be appropriate
+        throw new IdempotencyError(
+          "Idempotency key conflict, please retry",
+          409,
+          "idempotency_conflict",
+        );
+      }
+
       // Check if expired
       if (existing.expiresAt < new Date()) {
-        // Expired - delete and proceed as new request
+        // Expired - delete and retry (caller should retry the request)
         await db
           .deleteFrom("idempotencyKeys")
           .where("ledgerId", "=", ledgerId)
           .where("key", "=", idempotencyKey)
           .execute();
-      } else {
-        // Valid existing key - check payload match
-        if (existing.payloadHash !== payloadHash) {
-          throw new IdempotencyError(
-            "Idempotency key already used with different payload",
-            422,
-            "idempotency_payload_mismatch",
-          );
-        }
 
-        // Path and method must also match
-        if (existing.path !== path || existing.method !== method) {
-          throw new IdempotencyError(
-            "Idempotency key already used with different request",
-            422,
-            "idempotency_request_mismatch",
-          );
-        }
+        throw new IdempotencyError(
+          "Idempotency key expired, please retry with the same key",
+          409,
+          "idempotency_expired",
+        );
+      }
 
-        // Return cached response
+      // Check payload match
+      if (existing.payloadHash !== payloadHash) {
+        throw new IdempotencyError(
+          "Idempotency key already used with different payload",
+          422,
+          "idempotency_payload_mismatch",
+        );
+      }
+
+      // Path and method must also match
+      if (existing.path !== path || existing.method !== method) {
+        throw new IdempotencyError(
+          "Idempotency key already used with different request",
+          422,
+          "idempotency_request_mismatch",
+        );
+      }
+
+      // Check status
+      if (existing.status === "in_progress") {
+        // Another request is still processing
+        throw new IdempotencyError(
+          "Request with this idempotency key is still being processed",
+          425,
+          "idempotency_in_progress",
+        );
+      }
+
+      // Status is 'completed' - return cached response
+      if (existing.responseStatus !== null && existing.responseBody !== null) {
         return c.json(existing.responseBody, existing.responseStatus as 200 | 201);
       }
+
+      // Completed but no response (shouldn't happen, but handle gracefully)
+      throw new IdempotencyError(
+        "Idempotency key in invalid state",
+        500,
+        "idempotency_invalid_state",
+      );
     }
-
-    // Store context for after handler
-    c.set("idempotencyContext", {
-      key: idempotencyKey,
-      ledgerId,
-      path,
-      method,
-      payloadHash,
-      ttlHours,
-    });
-
-    await next();
   };
 }
 
 /**
- * Call this after successful response to store the idempotency record.
+ * Call this after successful response to mark the idempotency record as completed.
  * Should be called from the route handler after computing the response.
  */
 export async function storeIdempotencyResponse(
@@ -164,16 +237,7 @@ export async function storeIdempotencyResponse(
   responseBody: Record<string, unknown>,
   responseStatus: number,
 ): Promise<void> {
-  const ctx = c.get("idempotencyContext") as
-    | {
-        key: string;
-        ledgerId: string;
-        path: string;
-        method: string;
-        payloadHash: string;
-        ttlHours: number;
-      }
-    | undefined;
+  const ctx = c.get("idempotencyContext") as IdempotencyContext | undefined;
 
   if (!ctx) {
     return; // No idempotency key was provided
@@ -182,24 +246,35 @@ export async function storeIdempotencyResponse(
   const expiresAt = new Date();
   expiresAt.setHours(expiresAt.getHours() + ctx.ttlHours);
 
+  // Update the in_progress record to completed with the response
   await db
-    .insertInto("idempotencyKeys")
-    .values({
-      ledgerId: ctx.ledgerId,
-      key: ctx.key,
-      path: ctx.path,
-      method: ctx.method,
-      payloadHash: ctx.payloadHash,
+    .updateTable("idempotencyKeys")
+    .set({
+      status: "completed",
       responseStatus,
       responseBody,
       expiresAt,
     })
-    .onConflict((oc) =>
-      oc.columns(["ledgerId", "key"]).doUpdateSet({
-        responseStatus,
-        responseBody,
-        expiresAt,
-      }),
-    )
+    .where("ledgerId", "=", ctx.ledgerId)
+    .where("key", "=", ctx.key)
+    .execute();
+}
+
+/**
+ * Call this if the handler fails to clean up the in_progress record.
+ * This allows the client to retry with the same idempotency key.
+ */
+export async function clearIdempotencyKey(c: Context): Promise<void> {
+  const ctx = c.get("idempotencyContext") as IdempotencyContext | undefined;
+
+  if (!ctx) {
+    return;
+  }
+
+  await db
+    .deleteFrom("idempotencyKeys")
+    .where("ledgerId", "=", ctx.ledgerId)
+    .where("key", "=", ctx.key)
+    .where("status", "=", "in_progress")
     .execute();
 }

@@ -9,8 +9,11 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("path", "varchar(255)", (col) => col.notNull())
     .addColumn("method", "varchar(10)", (col) => col.notNull())
     .addColumn("payload_hash", "varchar(64)", (col) => col.notNull())
-    .addColumn("response_status", "integer", (col) => col.notNull())
-    .addColumn("response_body", "jsonb", (col) => col.notNull())
+    .addColumn("status", "varchar(20)", (col) =>
+      col.notNull().check(sql`status IN ('in_progress', 'completed')`),
+    )
+    .addColumn("response_status", "integer")
+    .addColumn("response_body", "jsonb")
     .addColumn("expires_at", "timestamptz", (col) => col.notNull())
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();

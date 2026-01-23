@@ -1,5 +1,9 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
-import { AllocationStatus } from "@floyd-run/schema/types";
+import {
+  AllocationStatus,
+  IdempotencyStatus,
+  WebhookDeliveryStatus,
+} from "@floyd-run/schema/types";
 
 export interface LedgersTable {
   id: string;
@@ -28,8 +32,6 @@ export interface AllocationsTable {
   updatedAt: Generated<Date>;
 }
 
-export type IdempotencyStatus = "in_progress" | "completed";
-
 export interface IdempotencyKeysTable {
   ledgerId: string;
   key: string;
@@ -43,11 +45,38 @@ export interface IdempotencyKeysTable {
   createdAt: Generated<Date>;
 }
 
+export interface WebhookSubscriptionsTable {
+  id: string;
+  ledgerId: string;
+  url: string;
+  secret: string;
+  eventTypes: string[] | null; // NULL = all events
+  enabled: boolean;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
+export interface WebhookDeliveriesTable {
+  id: string;
+  subscriptionId: string;
+  eventType: string;
+  payload: Record<string, unknown>;
+  status: WebhookDeliveryStatus;
+  attempts: number;
+  maxAttempts: number;
+  nextAttemptAt: Date | null;
+  lastError: string | null;
+  lastStatusCode: number | null;
+  createdAt: Generated<Date>;
+}
+
 export interface Database {
   allocations: AllocationsTable;
   idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
   ledgers: LedgersTable;
+  webhookSubscriptions: WebhookSubscriptionsTable;
+  webhookDeliveries: WebhookDeliveriesTable;
 }
 
 export type LedgerRow = Selectable<LedgersTable>;
@@ -64,3 +93,10 @@ export type AllocationUpdate = Updateable<AllocationsTable>;
 
 export type IdempotencyKeyRow = Selectable<IdempotencyKeysTable>;
 export type NewIdempotencyKey = Insertable<IdempotencyKeysTable>;
+
+export type WebhookSubscriptionRow = Selectable<WebhookSubscriptionsTable>;
+export type NewWebhookSubscription = Insertable<WebhookSubscriptionsTable>;
+export type WebhookSubscriptionUpdate = Updateable<WebhookSubscriptionsTable>;
+
+export type WebhookDeliveryRow = Selectable<WebhookDeliveriesTable>;
+export type NewWebhookDelivery = Insertable<WebhookDeliveriesTable>;

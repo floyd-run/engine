@@ -1,4 +1,10 @@
-import { AllocationRow, ResourceRow, LedgerRow } from "database/schema";
+import {
+  AllocationRow,
+  ResourceRow,
+  LedgerRow,
+  WebhookSubscriptionRow,
+  WebhookDeliveryRow,
+} from "database/schema";
 import { Allocation, Resource, Ledger } from "@floyd-run/schema/types";
 
 export function serializeResource(resource: ResourceRow): Resource {
@@ -31,5 +37,55 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
     metadata: allocation.metadata,
     createdAt: allocation.createdAt.toISOString(),
     updatedAt: allocation.updatedAt.toISOString(),
+  };
+}
+
+export interface WebhookSubscription {
+  id: string;
+  ledgerId: string;
+  url: string;
+  eventTypes: string[] | null;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WebhookDelivery {
+  id: string;
+  subscriptionId: string;
+  eventType: string;
+  status: string;
+  attempts: number;
+  maxAttempts: number;
+  nextAttemptAt: string | null;
+  lastError: string | null;
+  lastStatusCode: number | null;
+  createdAt: string;
+}
+
+export function serializeWebhookSubscription(sub: WebhookSubscriptionRow): WebhookSubscription {
+  return {
+    id: sub.id,
+    ledgerId: sub.ledgerId,
+    url: sub.url,
+    eventTypes: sub.eventTypes,
+    enabled: sub.enabled,
+    createdAt: sub.createdAt.toISOString(),
+    updatedAt: sub.updatedAt.toISOString(),
+  };
+}
+
+export function serializeWebhookDelivery(delivery: WebhookDeliveryRow): WebhookDelivery {
+  return {
+    id: delivery.id,
+    subscriptionId: delivery.subscriptionId,
+    eventType: delivery.eventType,
+    status: delivery.status,
+    attempts: delivery.attempts,
+    maxAttempts: delivery.maxAttempts,
+    nextAttemptAt: delivery.nextAttemptAt?.toISOString() ?? null,
+    lastError: delivery.lastError,
+    lastStatusCode: delivery.lastStatusCode,
+    createdAt: delivery.createdAt.toISOString(),
   };
 }

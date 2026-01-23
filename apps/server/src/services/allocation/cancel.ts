@@ -3,6 +3,7 @@ import { db } from "database";
 import { createService } from "lib/service";
 import { allocation } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
+import { enqueueWebhookEvent } from "infra/webhooks";
 
 export default createService({
   input: allocation.cancelSchema,
@@ -52,6 +53,9 @@ export default createService({
         .where("id", "=", input.id)
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      // 5. Enqueue webhook event (in same transaction)
+      await enqueueWebhookEvent(trx, "allocation.cancelled", allocation.ledgerId, allocation);
 
       return { allocation, serverTime };
     });

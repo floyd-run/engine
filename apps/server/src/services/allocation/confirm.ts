@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import { createService } from "lib/service";
 import { allocation } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
+import { enqueueWebhookEvent } from "infra/webhooks";
 
 export default createService({
   input: allocation.confirmSchema,
@@ -69,6 +70,9 @@ export default createService({
         .where("id", "=", input.id)
         .returningAll()
         .executeTakeFirstOrThrow();
+
+      // 6. Enqueue webhook event (in same transaction)
+      await enqueueWebhookEvent(trx, "allocation.confirmed", allocation.ledgerId, allocation);
 
       return { allocation, serverTime };
     });

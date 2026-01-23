@@ -104,6 +104,84 @@
           "updatedAt"
         ]
       },
+      "WebhookSubscription": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ledgerId": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "eventTypes": {
+            "type": ["array", "null"],
+            "items": {
+              "type": "string"
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "ledgerId", "url", "eventTypes", "enabled", "createdAt", "updatedAt"]
+      },
+      "WebhookDelivery": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "subscriptionId": {
+            "type": "string"
+          },
+          "eventType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_flight", "succeeded", "failed", "exhausted"]
+          },
+          "attempts": {
+            "type": "number"
+          },
+          "maxAttempts": {
+            "type": "number"
+          },
+          "nextAttemptAt": {
+            "type": ["string", "null"]
+          },
+          "lastError": {
+            "type": ["string", "null"]
+          },
+          "lastStatusCode": {
+            "type": ["number", "null"]
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "subscriptionId",
+          "eventType",
+          "status",
+          "attempts",
+          "maxAttempts",
+          "nextAttemptAt",
+          "lastError",
+          "lastStatusCode",
+          "createdAt"
+        ]
+      },
       "Error": {
         "type": "object",
         "properties": {
@@ -1264,6 +1342,850 @@
           },
           "409": {
             "description": "Allocation cannot be cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "details": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": ["code"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/webhooks": {
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "List webhook subscriptions",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of webhook subscriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ledgerId": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "eventTypes": {
+                            "type": ["array", "null"],
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "enabled": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ledgerId",
+                          "url",
+                          "eventTypes",
+                          "enabled",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Create a webhook subscription",
+        "description": "Creates a new webhook subscription. The secret is only returned once at creation time.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "example": "https://example.com/webhook"
+                  },
+                  "eventTypes": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["allocation.created", "allocation.confirmed"]
+                  },
+                  "enabled": {
+                    "type": "boolean",
+                    "default": true
+                  }
+                },
+                "required": ["url"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Webhook subscription created (includes secret)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "eventTypes": {
+                          "type": ["array", "null"],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        },
+                        "secret": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "url",
+                        "eventTypes",
+                        "enabled",
+                        "createdAt",
+                        "updatedAt",
+                        "secret"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}": {
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "Get a webhook subscription",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook subscription details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "eventTypes": {
+                          "type": ["array", "null"],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "url",
+                        "eventTypes",
+                        "enabled",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Webhook subscription not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "details": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": ["code"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Webhooks"],
+        "summary": "Update a webhook subscription",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "eventTypes": {
+                    "type": ["array", "null"],
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook subscription updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "eventTypes": {
+                          "type": ["array", "null"],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "url",
+                        "eventTypes",
+                        "enabled",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Webhook subscription not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "details": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": ["code"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Webhooks"],
+        "summary": "Delete a webhook subscription",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Webhook subscription deleted"
+          },
+          "404": {
+            "description": "Webhook subscription not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "details": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": ["code"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/rotate-secret": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Rotate webhook secret",
+        "description": "Generates a new secret for the webhook subscription. The old secret is invalidated immediately.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New secret generated (includes secret)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "url": {
+                          "type": "string"
+                        },
+                        "eventTypes": {
+                          "type": ["array", "null"],
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        },
+                        "secret": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "url",
+                        "eventTypes",
+                        "enabled",
+                        "createdAt",
+                        "updatedAt",
+                        "secret"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Webhook subscription not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "message": {
+                              "type": "string"
+                            },
+                            "details": {
+                              "type": "object",
+                              "additionalProperties": {}
+                            }
+                          },
+                          "required": ["code"]
+                        }
+                      ]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/deliveries": {
+      "get": {
+        "tags": ["Webhooks"],
+        "summary": "List webhook deliveries",
+        "description": "Lists delivery attempts for a webhook subscription.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "example": "failed"
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of webhook deliveries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "subscriptionId": {
+                            "type": "string"
+                          },
+                          "eventType": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["pending", "in_flight", "succeeded", "failed", "exhausted"]
+                          },
+                          "attempts": {
+                            "type": "number"
+                          },
+                          "maxAttempts": {
+                            "type": "number"
+                          },
+                          "nextAttemptAt": {
+                            "type": ["string", "null"]
+                          },
+                          "lastError": {
+                            "type": ["string", "null"]
+                          },
+                          "lastStatusCode": {
+                            "type": ["number", "null"]
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "subscriptionId",
+                          "eventType",
+                          "status",
+                          "attempts",
+                          "maxAttempts",
+                          "nextAttemptAt",
+                          "lastError",
+                          "lastStatusCode",
+                          "createdAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/deliveries/{deliveryId}/retry": {
+      "post": {
+        "tags": ["Webhooks"],
+        "summary": "Retry a failed delivery",
+        "description": "Retries a webhook delivery that is in failed or exhausted status.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "subscriptionId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "deliveryId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delivery queued for retry",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "subscriptionId": {
+                          "type": "string"
+                        },
+                        "eventType": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["pending", "in_flight", "succeeded", "failed", "exhausted"]
+                        },
+                        "attempts": {
+                          "type": "number"
+                        },
+                        "maxAttempts": {
+                          "type": "number"
+                        },
+                        "nextAttemptAt": {
+                          "type": ["string", "null"]
+                        },
+                        "lastError": {
+                          "type": ["string", "null"]
+                        },
+                        "lastStatusCode": {
+                          "type": ["number", "null"]
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "subscriptionId",
+                        "eventType",
+                        "status",
+                        "attempts",
+                        "maxAttempts",
+                        "nextAttemptAt",
+                        "lastError",
+                        "lastStatusCode",
+                        "createdAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Delivery not found or not in retryable state",
             "content": {
               "application/json": {
                 "schema": {

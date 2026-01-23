@@ -4,7 +4,7 @@ import { InputError } from "./errors";
 export function createService<T extends z.ZodType, R>(config: {
   input: T;
   execute: (input: z.infer<T>) => Promise<R>;
-}): (input: z.infer<T>) => Promise<R>;
+}): (input: z.input<T>) => Promise<R>;
 
 export function createService<R>(config: {
   input?: undefined;

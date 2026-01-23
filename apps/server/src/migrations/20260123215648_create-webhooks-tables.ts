@@ -10,8 +10,6 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("ledger_id", "varchar(32)", (col) => col.notNull().references("ledgers.id"))
     .addColumn("url", "text", (col) => col.notNull())
     .addColumn("secret", "varchar(255)", (col) => col.notNull())
-    .addColumn("event_types", sql`text[]`) // NULL = all events
-    .addColumn("enabled", "boolean", (col) => col.notNull().defaultTo(true))
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .addColumn("updated_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
     .execute();

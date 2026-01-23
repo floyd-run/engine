@@ -9,8 +9,6 @@ export default createService({
       .updateTable("webhookSubscriptions")
       .set({
         ...(input.url !== undefined && { url: input.url }),
-        ...(input.eventTypes !== undefined && { eventTypes: input.eventTypes }),
-        ...(input.enabled !== undefined && { enabled: input.enabled }),
       })
       .where("id", "=", input.id)
       .returningAll()

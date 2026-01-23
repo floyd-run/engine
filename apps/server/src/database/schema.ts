@@ -50,8 +50,6 @@ export interface WebhookSubscriptionsTable {
   ledgerId: string;
   url: string;
   secret: string;
-  eventTypes: string[] | null; // NULL = all events
-  enabled: boolean;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }

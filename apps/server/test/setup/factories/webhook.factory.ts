@@ -12,8 +12,6 @@ export async function createWebhookSubscription(overrides?: {
   ledgerId?: string;
   url?: string;
   secret?: string;
-  eventTypes?: string[] | null;
-  enabled?: boolean;
 }) {
   let ledgerId = overrides?.ledgerId;
   if (!ledgerId) {
@@ -28,8 +26,6 @@ export async function createWebhookSubscription(overrides?: {
       ledgerId,
       url: overrides?.url ?? faker.internet.url(),
       secret: overrides?.secret ?? generateSecret(),
-      eventTypes: overrides?.eventTypes ?? null,
-      enabled: overrides?.enabled ?? true,
     })
     .returningAll()
     .executeTakeFirstOrThrow();

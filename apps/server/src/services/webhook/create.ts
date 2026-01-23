@@ -18,8 +18,6 @@ export default createService({
         ledgerId: input.ledgerId,
         url: input.url,
         secret: generateSecret(),
-        eventTypes: input.eventTypes ?? null,
-        enabled: input.enabled,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

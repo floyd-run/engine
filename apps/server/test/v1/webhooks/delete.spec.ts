@@ -11,9 +11,10 @@ describe("DELETE /v1/ledgers/:ledgerId/webhooks/:subscriptionId", () => {
 
     expect(response.status).toBe(204);
 
-    // Verify it's deleted
-    const getResponse = await client.get(`/v1/ledgers/${ledger.id}/webhooks/${subscription.id}`);
-    expect(getResponse.status).toBe(404);
+    // Verify it's deleted by listing
+    const listResponse = await client.get(`/v1/ledgers/${ledger.id}/webhooks`);
+    const { data } = (await listResponse.json()) as { data: { id: string }[] };
+    expect(data.find((w) => w.id === subscription.id)).toBeUndefined();
   });
 
   it("returns 404 for non-existent webhook", async () => {

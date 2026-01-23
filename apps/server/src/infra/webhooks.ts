@@ -33,29 +33,22 @@ export async function enqueueWebhookEvent(
   ledgerId: string,
   allocation: AllocationRow,
 ): Promise<void> {
-  // Find all enabled subscriptions for this ledger that want this event type
+  // Find all subscriptions for this ledger
   const subscriptions = await trx
     .selectFrom("webhookSubscriptions")
     .selectAll()
     .where("ledgerId", "=", ledgerId)
-    .where("enabled", "=", true)
     .execute();
 
-  // Filter subscriptions that want this event type
-  const matchingSubscriptions = subscriptions.filter((sub) => {
-    if (sub.eventTypes === null) return true; // NULL = all events
-    return sub.eventTypes.includes(eventType);
-  });
-
-  if (matchingSubscriptions.length === 0) {
+  if (subscriptions.length === 0) {
     return;
   }
 
   const now = new Date();
 
-  // Create a delivery record for each matching subscription
+  // Create a delivery record for each subscription
   // The delivery ID serves as the event ID in the payload
-  const deliveries = matchingSubscriptions.map((sub) => {
+  const deliveries = subscriptions.map((sub) => {
     const deliveryId = generateId("whd");
     const event: WebhookEvent = {
       id: deliveryId,
@@ -133,13 +126,13 @@ export async function processPendingDeliveries(batchSize = 10): Promise<number> 
         .where("id", "=", delivery.subscriptionId)
         .executeTakeFirst();
 
-      if (!subscription || !subscription.enabled) {
-        // Subscription deleted or disabled, mark as exhausted
+      if (!subscription) {
+        // Subscription deleted, mark as exhausted
         await db
           .updateTable("webhookDeliveries")
           .set({
             status: "exhausted",
-            lastError: "Subscription not found or disabled",
+            lastError: "Subscription not found",
           })
           .where("id", "=", delivery.id)
           .execute();
@@ -155,9 +148,7 @@ export async function processPendingDeliveries(batchSize = 10): Promise<number> 
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-Floyd-Signature": signature,
-          "X-Floyd-Event": delivery.eventType,
-          "X-Floyd-Delivery-Id": delivery.id,
+          "Floyd-Signature": signature,
         },
         body: payloadString,
         signal: AbortSignal.timeout(30000), // 30 second timeout

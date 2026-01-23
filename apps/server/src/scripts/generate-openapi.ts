@@ -11,7 +11,6 @@ registry.register("Ledger", ledger.schema);
 registry.register("Resource", resource.schema);
 registry.register("Allocation", allocation.schema);
 registry.register("WebhookSubscription", webhook.subscriptionSchema);
-registry.register("WebhookDelivery", webhook.deliverySchema);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -295,11 +294,6 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             url: z.string().url().openapi({ example: "https://example.com/webhook" }),
-            eventTypes: z
-              .array(z.string())
-              .optional()
-              .openapi({ example: ["allocation.created", "allocation.confirmed"] }),
-            enabled: z.boolean().default(true),
           }),
         },
       },
@@ -309,26 +303,6 @@ registry.registerPath({
     201: {
       description: "Webhook subscription created (includes secret)",
       content: { "application/json": { schema: webhook.createSubscriptionSchema } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "get",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}",
-  tags: ["Webhooks"],
-  summary: "Get a webhook subscription",
-  request: {
-    params: z.object({ ledgerId: z.string(), subscriptionId: z.string() }),
-  },
-  responses: {
-    200: {
-      description: "Webhook subscription details",
-      content: { "application/json": { schema: webhook.getSubscriptionSchema } },
-    },
-    404: {
-      description: "Webhook subscription not found",
-      content: { "application/json": { schema: error.schema } },
     },
   },
 });
@@ -345,8 +319,6 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             url: z.string().url().optional(),
-            eventTypes: z.array(z.string()).nullable().optional(),
-            enabled: z.boolean().optional(),
           }),
         },
       },
@@ -355,7 +327,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Webhook subscription updated",
-      content: { "application/json": { schema: webhook.getSubscriptionSchema } },
+      content: { "application/json": { schema: webhook.updateSubscriptionSchema } },
     },
     404: {
       description: "Webhook subscription not found",
@@ -398,52 +370,6 @@ registry.registerPath({
     },
     404: {
       description: "Webhook subscription not found",
-      content: { "application/json": { schema: error.schema } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "get",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/deliveries",
-  tags: ["Webhooks"],
-  summary: "List webhook deliveries",
-  description: "Lists delivery attempts for a webhook subscription.",
-  request: {
-    params: z.object({ ledgerId: z.string(), subscriptionId: z.string() }),
-    query: z.object({
-      status: z.string().optional().openapi({ example: "failed" }),
-      limit: z.coerce.number().int().min(1).max(100).default(50),
-    }),
-  },
-  responses: {
-    200: {
-      description: "List of webhook deliveries",
-      content: { "application/json": { schema: webhook.listDeliveriesSchema } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/deliveries/{deliveryId}/retry",
-  tags: ["Webhooks"],
-  summary: "Retry a failed delivery",
-  description: "Retries a webhook delivery that is in failed or exhausted status.",
-  request: {
-    params: z.object({
-      ledgerId: z.string(),
-      subscriptionId: z.string(),
-      deliveryId: z.string(),
-    }),
-  },
-  responses: {
-    200: {
-      description: "Delivery queued for retry",
-      content: { "application/json": { schema: webhook.retryDeliverySchema } },
-    },
-    404: {
-      description: "Delivery not found or not in retryable state",
       content: { "application/json": { schema: error.schema } },
     },
   },

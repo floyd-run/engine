@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { services } from "../../services/index.js";
 import { NotFoundError } from "lib/errors";
-import { serializeWebhookSubscription, serializeWebhookDelivery } from "./serializers";
+import { serializeWebhookSubscription } from "./serializers";
 
 // Nested under /v1/ledgers/:ledgerId/webhooks
 export const webhooks = new Hono()
@@ -31,19 +31,6 @@ export const webhooks = new Hono()
       },
       201,
     );
-  })
-
-  // Get subscription
-  .get("/:subscriptionId", async (c) => {
-    const { subscription } = await services.webhook.get({
-      id: c.req.param("subscriptionId")!,
-    });
-
-    if (!subscription) {
-      throw new NotFoundError("Webhook subscription not found");
-    }
-
-    return c.json({ data: serializeWebhookSubscription(subscription) });
   })
 
   // Update subscription
@@ -90,28 +77,4 @@ export const webhooks = new Hono()
         secret,
       },
     });
-  })
-
-  // List deliveries for a subscription
-  .get("/:subscriptionId/deliveries", async (c) => {
-    const { deliveries } = await services.webhook.listDeliveries({
-      subscriptionId: c.req.param("subscriptionId")!,
-      status: c.req.query("status"),
-      limit: c.req.query("limit") as unknown as number | undefined,
-    });
-
-    return c.json({ data: deliveries.map(serializeWebhookDelivery) });
-  })
-
-  // Retry a failed delivery
-  .post("/:subscriptionId/deliveries/:deliveryId/retry", async (c) => {
-    const { delivery } = await services.webhook.retryDelivery({
-      id: c.req.param("deliveryId")!,
-    });
-
-    if (!delivery) {
-      throw new NotFoundError("Delivery not found or not in retryable state");
-    }
-
-    return c.json({ data: serializeWebhookDelivery(delivery) });
   });

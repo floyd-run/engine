@@ -15,7 +15,7 @@
   "devDependencies": {
     "@asteasolutions/zod-to-openapi": "^8.4.0",
     "@floyd-run/utils": "workspace:*",
-    "@floyd/typescript": "workspace:*",
+    "@floyd-run/typescript": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

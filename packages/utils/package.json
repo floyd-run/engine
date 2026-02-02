@@ -11,7 +11,7 @@
     "ulid": "^2.3.0"
   },
   "devDependencies": {
-    "@floyd/typescript": "workspace:*",
+    "@floyd-run/typescript": "workspace:*",
     "typescript": "^5.9.3"
   }
 }

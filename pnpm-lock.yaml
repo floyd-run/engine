@@ -48,10 +48,10 @@ importers:
       '@faker-js/faker':
         specifier: ^10.2.0
         version: 10.2.0
-      '@floyd/eslint':
+      '@floyd-run/eslint':
         specifier: workspace:*
         version: link:../../tooling/eslint
-      '@floyd/typescript':
+      '@floyd-run/typescript':
         specifier: workspace:*
         version: link:../../tooling/typescript
       '@types/node':
@@ -88,12 +88,12 @@ importers:
       '@asteasolutions/zod-to-openapi':
         specifier: ^8.4.0
         version: 8.4.0(zod@4.3.5)
+      '@floyd-run/typescript':
+        specifier: workspace:*
+        version: link:../../tooling/typescript
       '@floyd-run/utils':
         specifier: workspace:*
         version: link:../utils
-      '@floyd/typescript':
-        specifier: workspace:*
-        version: link:../../tooling/typescript
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -104,7 +104,7 @@ importers:
         specifier: ^2.3.0
         version: 2.4.0
     devDependencies:
-      '@floyd/typescript':
+      '@floyd-run/typescript':
         specifier: workspace:*
         version: link:../../tooling/typescript
       typescript:

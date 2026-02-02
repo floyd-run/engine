@@ -1,5 +1,5 @@
 {
-  "name": "@floyd/server",
+  "name": "@floyd-run/engine",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,8 +28,8 @@
   "devDependencies": {
     "@asteasolutions/zod-to-openapi": "^8.4.0",
     "@faker-js/faker": "^10.2.0",
-    "@floyd/eslint": "workspace:*",
-    "@floyd/typescript": "workspace:*",
+    "@floyd-run/eslint": "workspace:*",
+    "@floyd-run/typescript": "workspace:*",
     "@types/node": "^25.0.9",
     "@types/pg": "^8.16.0",
     "dotenv": "^17.2.3",

@@ -1,5 +1,5 @@
 {
-  "name": "@floyd/typescript",
+  "name": "@floyd-run/typescript",
   "version": "0.0.0",
   "private": true,
   "exports": {

@@ -18,11 +18,11 @@ The engine runs migrations automatically on startup.
 
 **Environment variables:**
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `FLOYD_API_KEY` | No | API key for authentication. If not set, auth is disabled. |
-| `PORT` | No | Server port (default: 4000) |
+| Variable        | Required | Description                                               |
+| --------------- | -------- | --------------------------------------------------------- |
+| `DATABASE_URL`  | Yes      | PostgreSQL connection string                              |
+| `FLOYD_API_KEY` | No       | API key for authentication. If not set, auth is disabled. |
+| `PORT`          | No       | Server port (default: 4000)                               |
 
 ### Option 2: Docker Compose
 
@@ -47,7 +47,7 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgres://floyd:floyd@postgres:5432/floyd
-      FLOYD_API_KEY: your-secret-key  # optional
+      FLOYD_API_KEY: your-secret-key # optional
     ports:
       - "4000:4000"
 

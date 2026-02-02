@@ -1,5 +1,7 @@
 # Floyd Engine
 
+> **Dev Preview** - Floyd Engine is in active development. APIs may change. Not recommended for production use yet.
+
 Floyd Engine is a transaction layer for scheduling.
 
 It helps agent workflows safely book time slots under real-world conditions like:

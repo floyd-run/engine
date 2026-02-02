@@ -1,4 +1,5 @@
 import { processPendingDeliveries } from "infra/webhooks";
+import { logger } from "infra/logger";
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
 const BATCH_SIZE = 10;
@@ -9,33 +10,29 @@ async function runWorker(): Promise<void> {
   if (isRunning) return;
   isRunning = true;
 
-  console.log("[webhook-worker] Starting webhook delivery worker...");
+  logger.info("[webhook-worker] Starting webhook delivery worker...");
 
   while (isRunning) {
     try {
       const processed = await processPendingDeliveries(BATCH_SIZE);
       if (processed > 0) {
-        console.log(`[webhook-worker] Processed ${processed} deliveries`);
+        logger.info(`[webhook-worker] Processed ${processed} deliveries`);
       }
     } catch (error) {
-      console.error("[webhook-worker] Error processing deliveries:", error);
+      logger.error(error, "[webhook-worker] Error processing deliveries");
     }
 
     await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 }
 
-function stopWorker(): void {
-  console.log("[webhook-worker] Stopping webhook delivery worker...");
+export function stopWebhookWorker(): void {
+  logger.info("[webhook-worker] Stopping webhook delivery worker...");
   isRunning = false;
 }
 
-// Handle graceful shutdown
-process.on("SIGTERM", stopWorker);
-process.on("SIGINT", stopWorker);
-
-// Start the worker
-runWorker().catch((error) => {
-  console.error("[webhook-worker] Fatal error:", error);
-  process.exit(1);
-});
+export function startWebhookWorker(): void {
+  runWorker().catch((error) => {
+    logger.error(error, "[webhook-worker] Fatal error");
+  });
+}

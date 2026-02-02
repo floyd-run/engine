@@ -1,23 +1,86 @@
 # Quickstart
 
-This gets you from "API key" to "hold → confirm → cancel".
+Get Floyd Engine running and make your first booking in under 5 minutes.
 
-## Prerequisites
+## Run the Engine
 
-Before creating allocations, you'll need:
+### Option 1: Docker (recommended)
 
-- An API key
-- A ledger ID
-- A resource (represents a bookable entity like a room, person, or service)
+```bash
+docker run \
+  -e DATABASE_URL="postgres://user:pass@host:5432/dbname" \
+  -e FLOYD_API_KEY="your-secret-key" \
+  -p 4000:4000 \
+  ghcr.io/floyd-run/engine:master
+```
+
+The engine runs migrations automatically on startup.
+
+**Environment variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `FLOYD_API_KEY` | No | API key for authentication. If not set, auth is disabled. |
+| `PORT` | No | Server port (default: 4000) |
+
+### Option 2: Docker Compose
+
+Create a `docker-compose.yml`:
+
+```yaml
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: floyd
+      POSTGRES_USER: floyd
+      POSTGRES_PASSWORD: floyd
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  engine:
+    image: ghcr.io/floyd-run/engine:master
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://floyd:floyd@postgres:5432/floyd
+      FLOYD_API_KEY: your-secret-key  # optional
+    ports:
+      - "4000:4000"
+
+volumes:
+  postgres_data:
+```
+
+Then run:
+
+```bash
+docker-compose up
+```
 
 ## Base URL
 
-Use your Floyd Engine API base URL:
+Once running, the API is available at:
 
-- Local: `http://localhost:3000`
-- Production: `https://engine.floyd.run`
+```
+http://localhost:4000
+```
 
-All endpoints below assume `/v1`.
+All endpoints below use the `/v1` prefix.
+
+## Authentication
+
+If you set `FLOYD_API_KEY`, include it in requests:
+
+```bash
+curl -H "Authorization: Bearer your-secret-key" \
+  http://localhost:4000/v1/ledgers
+```
+
+If `FLOYD_API_KEY` is not set, authentication is disabled (useful for local development).
 
 ## 0) Create a ledger (if needed)
 
@@ -175,6 +238,7 @@ Response:
 
 ## Next
 
-- [The Booking Kernel](./concepts/booking-kernel.md)
-- [Idempotency](./concepts/idempotency.md)
-- [Errors](./concepts/errors.md)
+- [Allocations](./allocations.md) - Deep dive into the booking model
+- [Idempotency](./idempotency.md) - Safe retries
+- [Webhooks](./webhooks.md) - Real-time notifications
+- [Errors](./errors.md) - Error handling

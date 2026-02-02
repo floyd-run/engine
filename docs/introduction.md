@@ -15,6 +15,16 @@ Floyd's core primitive is a **two-phase booking**:
 
 This makes double-booking **impossible by construction**, because overlap rules are enforced at the database layer.
 
+## Quick Install
+
+```bash
+docker run -e DATABASE_URL="postgres://user:pass@host:5432/dbname" \
+  -p 4000:4000 \
+  ghcr.io/floyd-run/engine:master
+```
+
+See the [Quickstart](./quickstart) for full setup instructions.
+
 ## Key ideas
 
 - **Hold**: temporarily reserves a time slot with `expiresAt`
@@ -24,8 +34,9 @@ This makes double-booking **impossible by construction**, because overlap rules 
 
 ## Where to go next
 
-- [Quickstart](./quickstart)
-- [Allocations](./allocations)
-- [Idempotency](./idempotency)
-- [Errors](./errors)
-- API Reference (see the "API Reference" section in the sidebar)
+- [Quickstart](./quickstart) - Get running in 5 minutes
+- [Allocations](./allocations) - The booking model
+- [Webhooks](./webhooks) - Real-time notifications
+- [Idempotency](./idempotency) - Safe retries
+- [Errors](./errors) - Error handling
+- API Reference (see the sidebar)

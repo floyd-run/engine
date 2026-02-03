@@ -1,0 +1,21 @@
+{
+  "name": "@floyd-run/schema",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./inputs": "./inputs/index.ts",
+    "./outputs": "./outputs/index.ts",
+    "./types": "./types/index.ts",
+    "./constants": "./constants/index.ts"
+  },
+  "dependencies": {
+    "zod": "^4.3.5"
+  },
+  "devDependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.4.0",
+    "@floyd-run/utils": "workspace:*",
+    "@floyd-run/typescript": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

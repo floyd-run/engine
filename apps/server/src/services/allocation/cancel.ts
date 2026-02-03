@@ -1,0 +1,63 @@
+import { sql } from "kysely";
+import { db } from "database";
+import { createService } from "lib/service";
+import { allocation } from "@floyd-run/schema/inputs";
+import { ConflictError, NotFoundError } from "lib/errors";
+import { enqueueWebhookEvent } from "infra/webhooks";
+
+export default createService({
+  input: allocation.cancelSchema,
+  execute: async (input) => {
+    return await db.transaction().execute(async (trx) => {
+      // 1. Get the allocation with lock
+      const existing = await trx
+        .selectFrom("allocations")
+        .selectAll()
+        .where("id", "=", input.id)
+        .forUpdate()
+        .executeTakeFirst();
+
+      if (!existing) {
+        throw new NotFoundError("Allocation not found");
+      }
+
+      // 2. Capture server time after acquiring lock
+      const result = await sql<{
+        serverTime: Date;
+      }>`SELECT clock_timestamp() AS server_time`.execute(trx);
+      const serverTime = result.rows[0]!.serverTime;
+
+      // 3. Validate state transition
+      if (existing.status === "cancelled") {
+        // Already cancelled - idempotent success
+        return { allocation: existing, serverTime };
+      }
+
+      if (existing.status === "expired") {
+        throw new ConflictError("invalid_state_transition", {
+          currentStatus: existing.status,
+          requestedStatus: "cancelled",
+          message: "Cannot cancel an expired allocation",
+        });
+      }
+
+      // 4. Update to cancelled (valid from hold or confirmed)
+      // Clear expires_at per database constraint
+      const allocation = await trx
+        .updateTable("allocations")
+        .set({
+          status: "cancelled",
+          expiresAt: null,
+          updatedAt: serverTime,
+        })
+        .where("id", "=", input.id)
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+      // 5. Enqueue webhook event (in same transaction)
+      await enqueueWebhookEvent(trx, "allocation.cancelled", allocation.ledgerId, allocation);
+
+      return { allocation, serverTime };
+    });
+  },
+});

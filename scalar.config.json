@@ -1,0 +1,43 @@
+{
+  "$schema": "https://cdn.scalar.com/schema/scalar-config.json",
+  "subdomain": "floyd",
+  "customDomain": "docs.floyd.run",
+  "theme": "deepSpace",
+  "guides": [
+    {
+      "name": "Docs",
+      "sidebar": [
+        {
+          "type": "page",
+          "name": "Introduction",
+          "icon": "phosphor/regular/info",
+          "path": "docs/introduction.md"
+        },
+        {
+          "type": "page",
+          "name": "Quickstart",
+          "icon": "phosphor/regular/rocket",
+          "path": "docs/quickstart.md"
+        },
+        {
+          "name": "Concepts",
+          "type": "folder",
+          "icon": "phosphor/regular/puzzle-piece",
+          "children": [
+            { "type": "page", "name": "Allocations", "path": "docs/allocations.md" },
+            { "type": "page", "name": "Webhooks", "path": "docs/webhooks.md" },
+            { "type": "page", "name": "Idempotency", "path": "docs/idempotency.md" },
+            { "type": "page", "name": "Errors", "path": "docs/errors.md" },
+            { "type": "page", "name": "Time Format", "path": "docs/time-format.md" }
+          ]
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "API Reference",
+      "path": "apps/server/openapi.json"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@floyd-run/utils",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./id": "./id.ts"
+  },
+  "dependencies": {
+    "ulid": "^2.3.0"
+  },
+  "devDependencies": {
+    "@floyd-run/typescript": "workspace:*",
+    "typescript": "^5.9.3"
+  }
+}

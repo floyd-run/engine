@@ -1,0 +1,14 @@
+{
+  "name": "floyd-engine",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.8.0",
+    "turbo": "^2.7.5"
+  },
+  "packageManager": "pnpm@10.21.0"
+}

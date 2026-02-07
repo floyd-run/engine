@@ -3,7 +3,7 @@ import { client } from "../../setup/client";
 import { createAllocation, createLedger, createResource } from "../../setup/factories";
 import type { AvailabilityResponse } from "../../setup/types";
 
-describe("GET /v1/ledgers/:ledgerId/availability", () => {
+describe("POST /v1/ledgers/:ledgerId/availability", () => {
   it("returns full window as free when no allocations", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
@@ -11,9 +11,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -41,9 +43,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -75,9 +79,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -106,9 +112,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -132,9 +140,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -165,9 +175,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -203,9 +215,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -234,9 +248,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -262,9 +278,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource1.id}&resourceIds=${resource2.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource1.id, resource2.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
@@ -296,9 +314,11 @@ describe("GET /v1/ledgers/:ledgerId/availability", () => {
     const startAt = "2026-01-01T10:00:00.000Z";
     const endAt = "2026-01-01T12:00:00.000Z";
 
-    const response = await client.get(
-      `/v1/ledgers/${ledger.id}/availability?resourceIds=${resource.id}&startAt=${startAt}&endAt=${endAt}`,
-    );
+    const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
+      resourceIds: [resource.id],
+      startAt,
+      endAt,
+    });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;

@@ -2,7 +2,14 @@ import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-ope
 import { z } from "zod";
 import { writeFileSync } from "fs";
 import { join } from "path";
-import { allocation, resource, ledger, webhook, error, availability } from "@floyd-run/schema/outputs";
+import {
+  allocation,
+  resource,
+  ledger,
+  webhook,
+  error,
+  availability,
+} from "@floyd-run/schema/outputs";
 
 const registry = new OpenAPIRegistry();
 

@@ -16,9 +16,21 @@ Response:
     {
       "resourceId": "rsc_01abc123def456ghi789jkl012",
       "timeline": [
-        { "startAt": "2026-01-04T10:00:00.000Z", "endAt": "2026-01-04T11:00:00.000Z", "status": "free" },
-        { "startAt": "2026-01-04T11:00:00.000Z", "endAt": "2026-01-04T12:00:00.000Z", "status": "busy" },
-        { "startAt": "2026-01-04T12:00:00.000Z", "endAt": "2026-01-04T18:00:00.000Z", "status": "free" }
+        {
+          "startAt": "2026-01-04T10:00:00.000Z",
+          "endAt": "2026-01-04T11:00:00.000Z",
+          "status": "free"
+        },
+        {
+          "startAt": "2026-01-04T11:00:00.000Z",
+          "endAt": "2026-01-04T12:00:00.000Z",
+          "status": "busy"
+        },
+        {
+          "startAt": "2026-01-04T12:00:00.000Z",
+          "endAt": "2026-01-04T18:00:00.000Z",
+          "status": "free"
+        }
       ]
     }
   ]
@@ -57,10 +69,12 @@ Expired holds and cancelled allocations do **not** block time.
 3. Create a hold on the chosen slot
 
 ```javascript
-const { data } = await fetch(`${baseUrl}/v1/ledgers/${ledgerId}/availability?...`).then(r => r.json());
+const { data } = await fetch(`${baseUrl}/v1/ledgers/${ledgerId}/availability?...`).then((r) =>
+  r.json(),
+);
 
-const freeSlots = data[0].timeline.filter(block => block.status === "free");
-const suitableSlot = freeSlots.find(slot => {
+const freeSlots = data[0].timeline.filter((block) => block.status === "free");
+const suitableSlot = freeSlots.find((slot) => {
   const duration = new Date(slot.endAt) - new Date(slot.startAt);
   return duration >= requiredDuration;
 });

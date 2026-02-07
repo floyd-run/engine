@@ -32,11 +32,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "createdAt", "updatedAt"]
       },
       "Resource": {
         "type": "object",
@@ -54,12 +50,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "ledgerId",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
       },
       "Allocation": {
         "type": "object",
@@ -75,12 +66,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "hold",
-              "confirmed",
-              "cancelled",
-              "expired"
-            ]
+            "enum": ["hold", "confirmed", "cancelled", "expired"]
           },
           "startAt": {
             "type": "string"
@@ -89,16 +75,10 @@
             "type": "string"
           },
           "expiresAt": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": ["string", "null"]
           },
           "metadata": {
-            "type": [
-              "object",
-              "null"
-            ],
+            "type": ["object", "null"],
             "additionalProperties": {}
           },
           "createdAt": {
@@ -140,13 +120,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "ledgerId",
-          "url",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "ledgerId", "url", "createdAt", "updatedAt"]
       },
       "AvailabilityItem": {
         "type": "object",
@@ -167,24 +141,14 @@
                 },
                 "status": {
                   "type": "string",
-                  "enum": [
-                    "free",
-                    "busy"
-                  ]
+                  "enum": ["free", "busy"]
                 }
               },
-              "required": [
-                "startAt",
-                "endAt",
-                "status"
-              ]
+              "required": ["startAt", "endAt", "status"]
             }
           }
         },
-        "required": [
-          "resourceId",
-          "timeline"
-        ]
+        "required": ["resourceId", "timeline"]
       },
       "TimelineBlock": {
         "type": "object",
@@ -197,17 +161,10 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "free",
-              "busy"
-            ]
+            "enum": ["free", "busy"]
           }
         },
-        "required": [
-          "startAt",
-          "endAt",
-          "status"
-        ]
+        "required": ["startAt", "endAt", "status"]
       },
       "Error": {
         "type": "object",
@@ -231,16 +188,12 @@
                     "additionalProperties": {}
                   }
                 },
-                "required": [
-                  "code"
-                ]
+                "required": ["code"]
               }
             ]
           }
         },
-        "required": [
-          "error"
-        ]
+        "required": ["error"]
       }
     },
     "parameters": {}
@@ -248,9 +201,7 @@
   "paths": {
     "/v1/ledgers": {
       "get": {
-        "tags": [
-          "Ledgers"
-        ],
+        "tags": ["Ledgers"],
         "summary": "List all ledgers",
         "responses": {
           "200": {
@@ -275,17 +226,11 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "id",
-                          "createdAt",
-                          "updatedAt"
-                        ]
+                        "required": ["id", "createdAt", "updatedAt"]
                       }
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -293,9 +238,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Ledgers"
-        ],
+        "tags": ["Ledgers"],
         "summary": "Create a new ledger",
         "requestBody": {
           "content": {
@@ -328,16 +271,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
+                      "required": ["id", "createdAt", "updatedAt"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -347,9 +284,7 @@
     },
     "/v1/ledgers/{id}": {
       "get": {
-        "tags": [
-          "Ledgers"
-        ],
+        "tags": ["Ledgers"],
         "summary": "Get a ledger by ID",
         "parameters": [
           {
@@ -384,16 +319,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "createdAt",
-                        "updatedAt"
-                      ]
+                      "required": ["id", "createdAt", "updatedAt"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -424,16 +353,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -443,9 +368,7 @@
     },
     "/v1/ledgers/{ledgerId}/resources": {
       "get": {
-        "tags": [
-          "Resources"
-        ],
+        "tags": ["Resources"],
         "summary": "List all resources in a ledger",
         "parameters": [
           {
@@ -483,18 +406,11 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "id",
-                          "ledgerId",
-                          "createdAt",
-                          "updatedAt"
-                        ]
+                        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                       }
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -502,9 +418,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Resources"
-        ],
+        "tags": ["Resources"],
         "summary": "Create a new resource",
         "parameters": [
           {
@@ -550,17 +464,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "ledgerId",
-                        "createdAt",
-                        "updatedAt"
-                      ]
+                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -570,9 +477,7 @@
     },
     "/v1/ledgers/{ledgerId}/resources/{id}": {
       "get": {
-        "tags": [
-          "Resources"
-        ],
+        "tags": ["Resources"],
         "summary": "Get a resource by ID",
         "parameters": [
           {
@@ -616,17 +521,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "ledgerId",
-                        "createdAt",
-                        "updatedAt"
-                      ]
+                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -657,16 +555,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -674,9 +568,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Resources"
-        ],
+        "tags": ["Resources"],
         "summary": "Delete a resource",
         "parameters": [
           {
@@ -726,16 +618,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -745,9 +633,7 @@
     },
     "/v1/ledgers/{ledgerId}/availability": {
       "get": {
-        "tags": [
-          "Availability"
-        ],
+        "tags": ["Availability"],
         "summary": "Query resource availability",
         "description": "Returns a timeline of free/busy blocks for the specified resources within the given time window. Overlapping and adjacent allocations are merged into single busy blocks.",
         "parameters": [
@@ -766,9 +652,7 @@
                 "type": "string"
               },
               "description": "Resource IDs to query (can be repeated)",
-              "example": [
-                "rsc_01abc123def456ghi789jkl012"
-              ]
+              "example": ["rsc_01abc123def456ghi789jkl012"]
             },
             "required": true,
             "description": "Resource IDs to query (can be repeated)",
@@ -829,30 +713,18 @@
                                 },
                                 "status": {
                                   "type": "string",
-                                  "enum": [
-                                    "free",
-                                    "busy"
-                                  ]
+                                  "enum": ["free", "busy"]
                                 }
                               },
-                              "required": [
-                                "startAt",
-                                "endAt",
-                                "status"
-                              ]
+                              "required": ["startAt", "endAt", "status"]
                             }
                           }
                         },
-                        "required": [
-                          "resourceId",
-                          "timeline"
-                        ]
+                        "required": ["resourceId", "timeline"]
                       }
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -862,9 +734,7 @@
     },
     "/v1/ledgers/{ledgerId}/allocations": {
       "get": {
-        "tags": [
-          "Allocations"
-        ],
+        "tags": ["Allocations"],
         "summary": "List all allocations in a ledger",
         "parameters": [
           {
@@ -900,12 +770,7 @@
                           },
                           "status": {
                             "type": "string",
-                            "enum": [
-                              "hold",
-                              "confirmed",
-                              "cancelled",
-                              "expired"
-                            ]
+                            "enum": ["hold", "confirmed", "cancelled", "expired"]
                           },
                           "startAt": {
                             "type": "string"
@@ -914,16 +779,10 @@
                             "type": "string"
                           },
                           "expiresAt": {
-                            "type": [
-                              "string",
-                              "null"
-                            ]
+                            "type": ["string", "null"]
                           },
                           "metadata": {
-                            "type": [
-                              "object",
-                              "null"
-                            ],
+                            "type": ["object", "null"],
                             "additionalProperties": {}
                           },
                           "createdAt": {
@@ -948,9 +807,7 @@
                       }
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -958,9 +815,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Allocations"
-        ],
+        "tags": ["Allocations"],
         "summary": "Create a new allocation",
         "description": "Creates a new allocation for a resource. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
@@ -985,10 +840,7 @@
                   },
                   "status": {
                     "type": "string",
-                    "enum": [
-                      "hold",
-                      "confirmed"
-                    ],
+                    "enum": ["hold", "confirmed"],
                     "default": "hold"
                   },
                   "startAt": {
@@ -1000,25 +852,15 @@
                     "format": "date-time"
                   },
                   "expiresAt": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
+                    "type": ["string", "null"],
                     "format": "date-time"
                   },
                   "metadata": {
-                    "type": [
-                      "object",
-                      "null"
-                    ],
+                    "type": ["object", "null"],
                     "additionalProperties": {}
                   }
                 },
-                "required": [
-                  "resourceId",
-                  "startAt",
-                  "endAt"
-                ]
+                "required": ["resourceId", "startAt", "endAt"]
               }
             }
           }
@@ -1045,12 +887,7 @@
                         },
                         "status": {
                           "type": "string",
-                          "enum": [
-                            "hold",
-                            "confirmed",
-                            "cancelled",
-                            "expired"
-                          ]
+                          "enum": ["hold", "confirmed", "cancelled", "expired"]
                         },
                         "startAt": {
                           "type": "string"
@@ -1059,16 +896,10 @@
                           "type": "string"
                         },
                         "expiresAt": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
+                          "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1098,14 +929,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "serverTime"
-                      ]
+                      "required": ["serverTime"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1136,16 +963,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1155,9 +978,7 @@
     },
     "/v1/ledgers/{ledgerId}/allocations/{id}": {
       "get": {
-        "tags": [
-          "Allocations"
-        ],
+        "tags": ["Allocations"],
         "summary": "Get an allocation by ID",
         "parameters": [
           {
@@ -1199,12 +1020,7 @@
                         },
                         "status": {
                           "type": "string",
-                          "enum": [
-                            "hold",
-                            "confirmed",
-                            "cancelled",
-                            "expired"
-                          ]
+                          "enum": ["hold", "confirmed", "cancelled", "expired"]
                         },
                         "startAt": {
                           "type": "string"
@@ -1213,16 +1029,10 @@
                           "type": "string"
                         },
                         "expiresAt": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
+                          "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1252,14 +1062,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "serverTime"
-                      ]
+                      "required": ["serverTime"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1290,16 +1096,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1309,9 +1111,7 @@
     },
     "/v1/ledgers/{ledgerId}/allocations/{id}/confirm": {
       "post": {
-        "tags": [
-          "Allocations"
-        ],
+        "tags": ["Allocations"],
         "summary": "Confirm a held allocation",
         "description": "Confirms an allocation that is currently in HOLD status.",
         "parameters": [
@@ -1354,12 +1154,7 @@
                         },
                         "status": {
                           "type": "string",
-                          "enum": [
-                            "hold",
-                            "confirmed",
-                            "cancelled",
-                            "expired"
-                          ]
+                          "enum": ["hold", "confirmed", "cancelled", "expired"]
                         },
                         "startAt": {
                           "type": "string"
@@ -1368,16 +1163,10 @@
                           "type": "string"
                         },
                         "expiresAt": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
+                          "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1407,14 +1196,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "serverTime"
-                      ]
+                      "required": ["serverTime"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1445,16 +1230,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1485,16 +1266,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1504,9 +1281,7 @@
     },
     "/v1/ledgers/{ledgerId}/allocations/{id}/cancel": {
       "post": {
-        "tags": [
-          "Allocations"
-        ],
+        "tags": ["Allocations"],
         "summary": "Cancel an allocation",
         "description": "Cancels an allocation that is in HOLD or CONFIRMED status.",
         "parameters": [
@@ -1549,12 +1324,7 @@
                         },
                         "status": {
                           "type": "string",
-                          "enum": [
-                            "hold",
-                            "confirmed",
-                            "cancelled",
-                            "expired"
-                          ]
+                          "enum": ["hold", "confirmed", "cancelled", "expired"]
                         },
                         "startAt": {
                           "type": "string"
@@ -1563,16 +1333,10 @@
                           "type": "string"
                         },
                         "expiresAt": {
-                          "type": [
-                            "string",
-                            "null"
-                          ]
+                          "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": [
-                            "object",
-                            "null"
-                          ],
+                          "type": ["object", "null"],
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1602,14 +1366,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "serverTime"
-                      ]
+                      "required": ["serverTime"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1640,16 +1400,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1680,16 +1436,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1699,9 +1451,7 @@
     },
     "/v1/ledgers/{ledgerId}/webhooks": {
       "get": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "List webhook subscriptions",
         "parameters": [
           {
@@ -1742,19 +1492,11 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "id",
-                          "ledgerId",
-                          "url",
-                          "createdAt",
-                          "updatedAt"
-                        ]
+                        "required": ["id", "ledgerId", "url", "createdAt", "updatedAt"]
                       }
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1762,9 +1504,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Create a webhook subscription",
         "description": "Creates a new webhook subscription. The secret is only returned once at creation time.",
         "parameters": [
@@ -1789,9 +1529,7 @@
                     "example": "https://example.com/webhook"
                   }
                 },
-                "required": [
-                  "url"
-                ]
+                "required": ["url"]
               }
             }
           }
@@ -1826,19 +1564,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "ledgerId",
-                        "url",
-                        "createdAt",
-                        "updatedAt",
-                        "secret"
-                      ]
+                      "required": ["id", "ledgerId", "url", "createdAt", "updatedAt", "secret"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1848,9 +1577,7 @@
     },
     "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}": {
       "patch": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Update a webhook subscription",
         "parameters": [
           {
@@ -1912,18 +1639,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "ledgerId",
-                        "url",
-                        "createdAt",
-                        "updatedAt"
-                      ]
+                      "required": ["id", "ledgerId", "url", "createdAt", "updatedAt"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -1954,16 +1673,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -1971,9 +1686,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Delete a webhook subscription",
         "parameters": [
           {
@@ -2023,16 +1736,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }
@@ -2042,9 +1751,7 @@
     },
     "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/rotate-secret": {
       "post": {
-        "tags": [
-          "Webhooks"
-        ],
+        "tags": ["Webhooks"],
         "summary": "Rotate webhook secret",
         "description": "Generates a new secret for the webhook subscription. The old secret is invalidated immediately.",
         "parameters": [
@@ -2095,19 +1802,10 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "id",
-                        "ledgerId",
-                        "url",
-                        "createdAt",
-                        "updatedAt",
-                        "secret"
-                      ]
+                      "required": ["id", "ledgerId", "url", "createdAt", "updatedAt", "secret"]
                     }
                   },
-                  "required": [
-                    "data"
-                  ]
+                  "required": ["data"]
                 }
               }
             }
@@ -2138,16 +1836,12 @@
                               "additionalProperties": {}
                             }
                           },
-                          "required": [
-                            "code"
-                          ]
+                          "required": ["code"]
                         }
                       ]
                     }
                   },
-                  "required": [
-                    "error"
-                  ]
+                  "required": ["error"]
                 }
               }
             }

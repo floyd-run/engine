@@ -5,7 +5,6 @@ export function serializeResource(resource: ResourceRow): Resource {
   return {
     id: resource.id,
     ledgerId: resource.ledgerId,
-    timezone: resource.timezone,
     createdAt: resource.createdAt.toISOString(),
     updatedAt: resource.updatedAt.toISOString(),
   };

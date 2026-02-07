@@ -10,3 +10,5 @@ export type WebhookDeliveryStatus = ConstantType<typeof WebhookDeliveryStatus>;
 export type Allocation = z.infer<typeof outputs.allocation.schema>;
 export type Resource = z.infer<typeof outputs.resource.schema>;
 export type Ledger = z.infer<typeof outputs.ledger.schema>;
+export type AvailabilityItem = z.infer<typeof outputs.availability.itemSchema>;
+export type TimelineBlock = z.infer<typeof outputs.availability.timelineBlockSchema>;

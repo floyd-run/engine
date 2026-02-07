@@ -43,9 +43,6 @@
           "ledgerId": {
             "type": "string"
           },
-          "timezone": {
-            "type": "string"
-          },
           "createdAt": {
             "type": "string"
           },
@@ -53,7 +50,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
       },
       "Allocation": {
         "type": "object",
@@ -124,6 +121,50 @@
           }
         },
         "required": ["id", "ledgerId", "url", "createdAt", "updatedAt"]
+      },
+      "AvailabilityItem": {
+        "type": "object",
+        "properties": {
+          "resourceId": {
+            "type": "string"
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startAt": {
+                  "type": "string"
+                },
+                "endAt": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["free", "busy"]
+                }
+              },
+              "required": ["startAt", "endAt", "status"]
+            }
+          }
+        },
+        "required": ["resourceId", "timeline"]
+      },
+      "TimelineBlock": {
+        "type": "object",
+        "properties": {
+          "startAt": {
+            "type": "string"
+          },
+          "endAt": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["free", "busy"]
+          }
+        },
+        "required": ["startAt", "endAt", "status"]
       },
       "Error": {
         "type": "object",
@@ -358,9 +399,6 @@
                           "ledgerId": {
                             "type": "string"
                           },
-                          "timezone": {
-                            "type": "string"
-                          },
                           "createdAt": {
                             "type": "string"
                           },
@@ -368,7 +406,7 @@
                             "type": "string"
                           }
                         },
-                        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                       }
                     }
                   },
@@ -397,13 +435,7 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "properties": {
-                  "timezone": {
-                    "type": "string",
-                    "default": "UTC",
-                    "example": "America/New_York"
-                  }
-                }
+                "properties": {}
               }
             }
           }
@@ -425,9 +457,6 @@
                         "ledgerId": {
                           "type": "string"
                         },
-                        "timezone": {
-                          "type": "string"
-                        },
                         "createdAt": {
                           "type": "string"
                         },
@@ -435,7 +464,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -485,9 +514,6 @@
                         "ledgerId": {
                           "type": "string"
                         },
-                        "timezone": {
-                          "type": "string"
-                        },
                         "createdAt": {
                           "type": "string"
                         },
@@ -495,7 +521,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -598,6 +624,107 @@
                     }
                   },
                   "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/availability": {
+      "get": {
+        "tags": ["Availability"],
+        "summary": "Query resource availability",
+        "description": "Returns a timeline of free/busy blocks for the specified resources within the given time window. Overlapping and adjacent allocations are merged into single busy blocks.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Resource IDs to query (can be repeated)",
+              "example": ["rsc_01abc123def456ghi789jkl012"]
+            },
+            "required": true,
+            "description": "Resource IDs to query (can be repeated)",
+            "name": "resourceIds",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Start of the time window (ISO 8601)",
+              "example": "2026-01-04T10:00:00Z"
+            },
+            "required": true,
+            "description": "Start of the time window (ISO 8601)",
+            "name": "startAt",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "End of the time window (ISO 8601)",
+              "example": "2026-01-04T18:00:00Z"
+            },
+            "required": true,
+            "description": "End of the time window (ISO 8601)",
+            "name": "endAt",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability timeline for each resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string"
+                          },
+                          "timeline": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "startAt": {
+                                  "type": "string"
+                                },
+                                "endAt": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": ["free", "busy"]
+                                }
+                              },
+                              "required": ["startAt", "endAt", "status"]
+                            }
+                          }
+                        },
+                        "required": ["resourceId", "timeline"]
+                      }
+                    }
+                  },
+                  "required": ["data"]
                 }
               }
             }

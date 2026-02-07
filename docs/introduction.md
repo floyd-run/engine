@@ -38,6 +38,7 @@ See the [Quickstart](./quickstart) for full setup instructions.
 
 - [Quickstart](./quickstart) - Get running in 5 minutes
 - [Allocations](./allocations) - The booking model
+- [Availability](./availability) - Query free/busy timelines
 - [Webhooks](./webhooks) - Real-time notifications
 - [Idempotency](./idempotency) - Safe retries
 - [Errors](./errors) - Error handling

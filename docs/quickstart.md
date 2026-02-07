@@ -96,7 +96,7 @@ Response:
 ```json
 {
   "data": {
-    "id": "ws_01abc123def456ghi789jkl012",
+    "id": "ldg_01abc123def456ghi789jkl012",
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
   }
@@ -110,9 +110,7 @@ Resources represent bookable entities (rooms, people, services, etc.). You need 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/resources" \
   -H "Content-Type: application/json" \
-  -d '{
-    "timezone": "America/New_York"
-  }'
+  -d '{}'
 ```
 
 Response:
@@ -120,9 +118,8 @@ Response:
 ```json
 {
   "data": {
-    "id": "res_01abc123def456ghi789jkl012",
-    "ledgerId": "ws_01abc123def456ghi789jkl012",
-    "timezone": "America/New_York",
+    "id": "rsc_01abc123def456ghi789jkl012",
+    "ledgerId": "ldg_01abc123def456ghi789jkl012",
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
   }
@@ -136,7 +133,7 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: demo-001" \
   -d '{
-    "resourceId": "res_01abc123def456ghi789jkl012",
+    "resourceId": "rsc_01abc123def456ghi789jkl012",
     "startAt": "2026-01-04T10:00:00Z",
     "endAt": "2026-01-04T10:30:00Z",
     "expiresAt": "2026-01-04T10:05:00Z",
@@ -149,9 +146,9 @@ Response:
 ```json
 {
   "data": {
-    "id": "alloc_01abc123def456ghi789jkl012",
-    "ledgerId": "ws_01abc123def456ghi789jkl012",
-    "resourceId": "res_01abc123def456ghi789jkl012",
+    "id": "alc_01abc123def456ghi789jkl012",
+    "ledgerId": "ldg_01abc123def456ghi789jkl012",
+    "resourceId": "rsc_01abc123def456ghi789jkl012",
     "startAt": "2026-01-04T10:00:00.000Z",
     "endAt": "2026-01-04T10:30:00.000Z",
     "status": "hold",
@@ -221,9 +218,9 @@ Response:
 {
   "data": [
     {
-      "id": "alloc_01abc123def456ghi789jkl012",
-      "ledgerId": "ws_01abc123def456ghi789jkl012",
-      "resourceId": "res_01abc123def456ghi789jkl012",
+      "id": "alc_01abc123def456ghi789jkl012",
+      "ledgerId": "ldg_01abc123def456ghi789jkl012",
+      "resourceId": "rsc_01abc123def456ghi789jkl012",
       "status": "confirmed",
       "startAt": "2026-01-04T10:00:00.000Z",
       "endAt": "2026-01-04T10:30:00.000Z",
@@ -239,6 +236,7 @@ Response:
 ## Next
 
 - [Allocations](./allocations.md) - Deep dive into the booking model
+- [Availability](./availability.md) - Query free/busy timelines
 - [Idempotency](./idempotency.md) - Safe retries
 - [Webhooks](./webhooks.md) - Real-time notifications
 - [Errors](./errors.md) - Error handling

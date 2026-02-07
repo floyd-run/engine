@@ -3,7 +3,6 @@ import { isValidId } from "@floyd-run/utils";
 
 export const createSchema = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
-  timezone: z.string().default("UTC"),
 });
 
 export const getSchema = z.object({

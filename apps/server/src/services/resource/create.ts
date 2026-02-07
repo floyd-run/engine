@@ -11,7 +11,6 @@ export default createService({
       .values({
         id: generateId("rsc"),
         ledgerId: input.ledgerId,
-        timezone: input.timezone,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

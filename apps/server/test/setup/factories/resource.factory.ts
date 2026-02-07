@@ -1,9 +1,8 @@
-import { faker } from "@faker-js/faker";
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
 import { createLedger } from "./ledger.factory";
 
-export async function createResource(overrides?: { ledgerId?: string; timezone?: string }) {
+export async function createResource(overrides?: { ledgerId?: string }) {
   let ledgerId = overrides?.ledgerId;
   if (!ledgerId) {
     const { ledger } = await createLedger();
@@ -15,7 +14,6 @@ export async function createResource(overrides?: { ledgerId?: string; timezone?:
     .values({
       id: generateId("rsc"),
       ledgerId,
-      timezone: overrides?.timezone ?? faker.location.timeZone(),
     })
     .returningAll()
     .executeTakeFirst();

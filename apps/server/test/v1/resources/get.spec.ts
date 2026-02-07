@@ -19,7 +19,6 @@ describe("GET /v1/ledgers/:ledgerId/resources/:id", () => {
     const { data } = (await response.json()) as ResourceResponse;
     expect(data.id).toBe(resource.id);
     expect(data.ledgerId).toBe(ledgerId);
-    expect(data.timezone).toBe(resource.timezone);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });

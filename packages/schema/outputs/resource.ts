@@ -3,7 +3,6 @@ import { z } from "./zod";
 export const schema = z.object({
   id: z.string(),
   ledgerId: z.string(),
-  timezone: z.string(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

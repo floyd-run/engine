@@ -110,9 +110,7 @@ Resources represent bookable entities (rooms, people, services, etc.). You need 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/resources" \
   -H "Content-Type: application/json" \
-  -d '{
-    "timezone": "America/New_York"
-  }'
+  -d '{}'
 ```
 
 Response:
@@ -120,9 +118,8 @@ Response:
 ```json
 {
   "data": {
-    "id": "res_01abc123def456ghi789jkl012",
-    "ledgerId": "ws_01abc123def456ghi789jkl012",
-    "timezone": "America/New_York",
+    "id": "rsc_01abc123def456ghi789jkl012",
+    "ledgerId": "ldg_01abc123def456ghi789jkl012",
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
   }

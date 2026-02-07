@@ -15,7 +15,6 @@ Avoid “naive” timestamps (no timezone), e.g. `2026-01-04T10:00:00`.
 
 - For API calls: send UTC (`Z`)
 - For UI: convert to/from user locale at the edge
-- For scheduling rules (business hours): use a resource/org timezone (when you add availability logic)
 
 ## Interval rules
 

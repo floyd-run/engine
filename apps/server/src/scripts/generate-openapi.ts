@@ -2,7 +2,7 @@ import { OpenAPIRegistry, OpenApiGeneratorV31 } from "@asteasolutions/zod-to-ope
 import { z } from "zod";
 import { writeFileSync } from "fs";
 import { join } from "path";
-import { allocation, resource, ledger, webhook, error } from "@floyd-run/schema/outputs";
+import { allocation, resource, ledger, webhook, error, availability } from "@floyd-run/schema/outputs";
 
 const registry = new OpenAPIRegistry();
 
@@ -11,6 +11,8 @@ registry.register("Ledger", ledger.schema);
 registry.register("Resource", resource.schema);
 registry.register("Allocation", allocation.schema);
 registry.register("WebhookSubscription", webhook.subscriptionSchema);
+registry.register("AvailabilityItem", availability.itemSchema);
+registry.register("TimelineBlock", availability.timelineBlockSchema);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -112,9 +114,7 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: z.object({
-            timezone: z.string().default("UTC").openapi({ example: "America/New_York" }),
-          }),
+          schema: z.object({}),
         },
       },
     },
@@ -140,6 +140,40 @@ registry.registerPath({
     404: {
       description: "Resource not found",
       content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+// Availability routes
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/availability",
+  tags: ["Availability"],
+  summary: "Query resource availability",
+  description:
+    "Returns a timeline of free/busy blocks for the specified resources within the given time window. " +
+    "Overlapping and adjacent allocations are merged into single busy blocks.",
+  request: {
+    params: z.object({ ledgerId: z.string() }),
+    query: z.object({
+      resourceIds: z.array(z.string()).openapi({
+        description: "Resource IDs to query (can be repeated)",
+        example: ["rsc_01abc123def456ghi789jkl012"],
+      }),
+      startAt: z.string().datetime().openapi({
+        description: "Start of the time window (ISO 8601)",
+        example: "2026-01-04T10:00:00Z",
+      }),
+      endAt: z.string().datetime().openapi({
+        description: "End of the time window (ISO 8601)",
+        example: "2026-01-04T18:00:00Z",
+      }),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Availability timeline for each resource",
+      content: { "application/json": { schema: availability.querySchema } },
     },
   },
 });

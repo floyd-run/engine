@@ -5,7 +5,13 @@ Query free/busy timelines for resources before creating allocations.
 ## Query availability
 
 ```bash
-curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/availability?resourceIds=$RESOURCE_ID&startAt=2026-01-04T10:00:00Z&endAt=2026-01-04T18:00:00Z"
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/availability" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceIds": ["rsc_01abc123def456ghi789jkl012"],
+    "startAt": "2026-01-04T10:00:00Z",
+    "endAt": "2026-01-04T18:00:00Z"
+  }'
 ```
 
 Response:
@@ -42,7 +48,13 @@ Response:
 Query multiple resources in a single request:
 
 ```bash
-curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/availability?resourceIds=$RESOURCE_1&resourceIds=$RESOURCE_2&startAt=2026-01-04T10:00:00Z&endAt=2026-01-04T18:00:00Z"
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/availability" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceIds": ["rsc_resource1", "rsc_resource2"],
+    "startAt": "2026-01-04T10:00:00Z",
+    "endAt": "2026-01-04T18:00:00Z"
+  }'
 ```
 
 Each resource gets its own timeline in the response.
@@ -69,9 +81,11 @@ Expired holds and cancelled allocations do **not** block time.
 3. Create a hold on the chosen slot
 
 ```javascript
-const { data } = await fetch(`${baseUrl}/v1/ledgers/${ledgerId}/availability?...`).then((r) =>
-  r.json(),
-);
+const { data } = await fetch(`${baseUrl}/v1/ledgers/${ledgerId}/availability`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ resourceIds, startAt, endAt }),
+}).then((r) => r.json());
 
 const freeSlots = data[0].timeline.filter((block) => block.status === "free");
 const suitableSlot = freeSlots.find((slot) => {

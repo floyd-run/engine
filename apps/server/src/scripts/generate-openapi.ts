@@ -153,7 +153,7 @@ registry.registerPath({
 
 // Availability routes
 registry.registerPath({
-  method: "get",
+  method: "post",
   path: "/v1/ledgers/{ledgerId}/availability",
   tags: ["Availability"],
   summary: "Query resource availability",
@@ -162,20 +162,26 @@ registry.registerPath({
     "Overlapping and adjacent allocations are merged into single busy blocks.",
   request: {
     params: z.object({ ledgerId: z.string() }),
-    query: z.object({
-      resourceIds: z.array(z.string()).openapi({
-        description: "Resource IDs to query (can be repeated)",
-        example: ["rsc_01abc123def456ghi789jkl012"],
-      }),
-      startAt: z.string().datetime().openapi({
-        description: "Start of the time window (ISO 8601)",
-        example: "2026-01-04T10:00:00Z",
-      }),
-      endAt: z.string().datetime().openapi({
-        description: "End of the time window (ISO 8601)",
-        example: "2026-01-04T18:00:00Z",
-      }),
-    }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            resourceIds: z.array(z.string()).openapi({
+              description: "Resource IDs to query",
+              example: ["rsc_01abc123def456ghi789jkl012"],
+            }),
+            startAt: z.string().datetime().openapi({
+              description: "Start of the time window (ISO 8601)",
+              example: "2026-01-04T10:00:00Z",
+            }),
+            endAt: z.string().datetime().openapi({
+              description: "End of the time window (ISO 8601)",
+              example: "2026-01-04T18:00:00Z",
+            }),
+          }),
+        },
+      },
+    },
   },
   responses: {
     200: {

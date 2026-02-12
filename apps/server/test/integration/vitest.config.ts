@@ -20,7 +20,7 @@ export default defineConfig({
       middleware: path.resolve(__dirname, "../../src/middleware"),
       migrations: path.resolve(__dirname, "../../src/migrations"),
       routes: path.resolve(__dirname, "../../src/routes"),
-      services: path.resolve(__dirname, "../../src/services"),
+      operations: path.resolve(__dirname, "../../src/operations"),
     },
   },
 });

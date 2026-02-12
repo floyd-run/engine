@@ -1,12 +1,12 @@
 import { Hono } from "hono";
-import { services } from "../../services/index.js";
+import { operations } from "../../operations/index.js";
 
 // Nested under /v1/ledgers/:ledgerId/availability
 export const availability = new Hono().post("/", async (c) => {
   const ledgerId = c.req.param("ledgerId")!;
   const body = await c.req.json();
 
-  const result = await services.availability.query({
+  const result = await operations.availability.query({
     ledgerId,
     resourceIds: body.resourceIds,
     startAt: body.startAt,

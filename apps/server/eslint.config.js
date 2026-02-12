@@ -10,7 +10,7 @@ export default [
         {
           patterns: [
             {
-              group: ["database/*", "infra/*", "services/*", "config/*", "routes/*", "workers/*"],
+              group: ["database/*", "infra/*", "operations/*", "config/*", "routes/*", "workers/*"],
               message: "domain/ must be pure — no imports from app infrastructure layers.",
             },
           ],

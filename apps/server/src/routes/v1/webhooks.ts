@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { services } from "../../services/index.js";
+import { operations } from "../../operations/index.js";
 import { NotFoundError } from "lib/errors";
 import { serializeWebhookSubscription } from "./serializers";
 
@@ -7,7 +7,7 @@ import { serializeWebhookSubscription } from "./serializers";
 export const webhooks = new Hono()
   // List subscriptions
   .get("/", async (c) => {
-    const { subscriptions } = await services.webhook.list({
+    const { subscriptions } = await operations.webhook.list({
       ledgerId: c.req.param("ledgerId")!,
     });
     return c.json({ data: subscriptions.map(serializeWebhookSubscription) });
@@ -16,7 +16,7 @@ export const webhooks = new Hono()
   // Create subscription
   .post("/", async (c) => {
     const body = await c.req.json();
-    const { subscription } = await services.webhook.create({
+    const { subscription } = await operations.webhook.create({
       ...body,
       ledgerId: c.req.param("ledgerId")!,
     });
@@ -36,7 +36,7 @@ export const webhooks = new Hono()
   // Update subscription
   .patch("/:subscriptionId", async (c) => {
     const body = await c.req.json();
-    const { subscription } = await services.webhook.update({
+    const { subscription } = await operations.webhook.update({
       ...body,
       id: c.req.param("subscriptionId")!,
     });
@@ -50,7 +50,7 @@ export const webhooks = new Hono()
 
   // Delete subscription
   .delete("/:subscriptionId", async (c) => {
-    const { deleted } = await services.webhook.remove({
+    const { deleted } = await operations.webhook.remove({
       id: c.req.param("subscriptionId")!,
     });
 
@@ -63,7 +63,7 @@ export const webhooks = new Hono()
 
   // Rotate secret
   .post("/:subscriptionId/rotate-secret", async (c) => {
-    const { subscription, secret } = await services.webhook.rotateSecret({
+    const { subscription, secret } = await operations.webhook.rotateSecret({
       id: c.req.param("subscriptionId")!,
     });
 

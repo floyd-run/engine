@@ -2,7 +2,7 @@
 
 > **Dev Preview** - Floyd Engine is in active development. APIs may change. Not recommended for production use yet.
 
-Floyd Engine is a transaction layer for scheduling.
+Floyd Engine is a booking engine for AI agents.
 
 It helps agent workflows safely book time slots under real-world conditions like:
 
@@ -10,10 +10,10 @@ It helps agent workflows safely book time slots under real-world conditions like
 - retries/timeouts
 - high concurrency
 
-Floyd's core primitive is a **two-phase booking**:
+Floyd's core flow is a **two-phase booking**:
 
-1. **Create a hold** (`hold`) with an expiration time
-2. **Confirm** it (`confirmed`) when the user says "yes"
+1. **Create a hold** on a service — reserves the slot with an expiration
+2. **Confirm** when the user says "yes"
 
 This makes double-booking **impossible by construction**, because overlap rules are enforced at the database layer.
 
@@ -29,19 +29,21 @@ See the [Quickstart](./quickstart) for full setup instructions.
 
 ## Key ideas
 
-- **Hold**: temporarily reserves a time slot with `expiresAt`
-- **Confirm**: commits the hold and clears expiry
+- **Service**: groups resources with a policy (e.g., "Yoga Class" using Room A with weekday-hours rules)
+- **Booking**: a policy-evaluated reservation with lifecycle (hold → confirm → cancel/expire)
+- **Allocation**: a time block on a resource. Bookings create allocations automatically; raw allocations exist for ad-hoc blocking.
 - **Policy**: scheduling rules (working hours, duration limits, grid alignment, buffers)
-- **Idempotency**: retry-safe create requests using `Idempotency-Key` header
-- **409 Conflict**: means "the slot is not available" or "idempotency mismatch"
+- **Idempotency**: retry-safe requests using `Idempotency-Key` header
+- **409 Conflict**: means "the slot is not available", "policy rejected", or "idempotency mismatch"
 
 ## Where to go next
 
 - [Quickstart](./quickstart) - Get running in 5 minutes
-- [Allocations](./allocations) - The booking model
+- [Services](./services) - Grouping resources with policies
+- [Bookings](./bookings) - The reservation lifecycle
+- [Allocations](./allocations) - Raw time blocks
 - [Policies](./policies) - Scheduling rules
 - [Availability](./availability) - Query free/busy timelines
 - [Webhooks](./webhooks) - Real-time notifications
 - [Idempotency](./idempotency) - Safe retries
 - [Errors](./errors) - Error handling
-- API Reference (see the sidebar)

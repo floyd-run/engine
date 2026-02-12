@@ -1,6 +1,6 @@
 # Availability
 
-Query free/busy timelines for resources before creating allocations.
+Query free/busy timelines for resources before creating bookings or allocations.
 
 ## Query availability
 
@@ -61,12 +61,17 @@ Each resource gets its own timeline in the response.
 
 ## What counts as "busy"
 
-A time slot is marked `busy` if it overlaps with:
+A time slot is marked `busy` if it overlaps with an active, non-expired allocation:
 
-- A `hold` allocation that hasn't expired
-- A `confirmed` allocation
+- `active = true` and `expiresAt` is null (permanent block)
+- `active = true` and `expiresAt > now()` (temporary block, not yet expired)
 
-Expired holds and cancelled allocations do **not** block time.
+These do **not** block time:
+
+- `active = false` (cancelled/expired booking allocations)
+- Expired allocations (`expiresAt <= now()`)
+
+Both booking-owned and raw allocations are considered.
 
 ## Timeline behavior
 
@@ -78,7 +83,7 @@ Expired holds and cancelled allocations do **not** block time.
 
 1. Query availability for the desired time window
 2. Find `free` blocks that match your duration requirements
-3. Create a hold on the chosen slot
+3. Create a booking on the chosen slot
 
 ```javascript
 const { data } = await fetch(`${baseUrl}/v1/ledgers/${ledgerId}/availability`, {

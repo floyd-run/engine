@@ -1,36 +1,80 @@
 # Webhooks
 
-Floyd sends webhook notifications when allocation events occur. Subscribe to receive real-time updates about your allocations.
+Floyd sends webhook notifications when booking and allocation events occur. Subscribe to receive real-time updates.
 
 ## Events
 
-| Event                  | Description                  |
-| ---------------------- | ---------------------------- |
-| `allocation.created`   | A new allocation was created |
-| `allocation.confirmed` | A hold was confirmed         |
-| `allocation.cancelled` | An allocation was cancelled  |
-| `allocation.expired`   | A hold expired               |
+### Booking events
+
+| Event               | Description                  |
+| ------------------- | ---------------------------- |
+| `booking.created`   | A new booking was created    |
+| `booking.confirmed` | A hold booking was confirmed |
+| `booking.cancelled` | A booking was cancelled      |
+| `booking.expired`   | A hold booking expired       |
+
+### Allocation events
+
+| Event                | Description                  |
+| -------------------- | ---------------------------- |
+| `allocation.created` | A raw allocation was created |
+| `allocation.deleted` | A raw allocation was deleted |
 
 ## Payload format
+
+### Booking event payload
+
+```json
+{
+  "id": "whd_01abc123...",
+  "type": "booking.created",
+  "ledgerId": "ldg_01xyz789...",
+  "createdAt": "2026-01-15T10:00:00Z",
+  "data": {
+    "booking": {
+      "id": "bkg_01def456...",
+      "ledgerId": "ldg_01xyz789...",
+      "serviceId": "svc_01ghi789...",
+      "status": "hold",
+      "expiresAt": "2026-01-15T10:15:00Z",
+      "allocations": [
+        {
+          "id": "alc_01jkl012...",
+          "resourceId": "rsc_01mno345...",
+          "startAt": "2026-01-15T14:00:00Z",
+          "endAt": "2026-01-15T15:00:00Z",
+          "active": true
+        }
+      ],
+      "metadata": null,
+      "createdAt": "2026-01-15T10:00:00Z",
+      "updatedAt": "2026-01-15T10:00:00Z"
+    }
+  }
+}
+```
+
+### Allocation event payload
 
 ```json
 {
   "id": "whd_01abc123...",
   "type": "allocation.created",
   "ledgerId": "ldg_01xyz789...",
-  "createdAt": "2024-01-15T10:00:00Z",
+  "createdAt": "2026-01-15T10:00:00Z",
   "data": {
     "allocation": {
       "id": "alc_01def456...",
       "ledgerId": "ldg_01xyz789...",
       "resourceId": "rsc_01ghi789...",
-      "status": "hold",
-      "startAt": "2024-01-15T14:00:00Z",
-      "endAt": "2024-01-15T15:00:00Z",
-      "expiresAt": "2024-01-15T10:15:00Z",
+      "bookingId": null,
+      "active": true,
+      "startAt": "2026-01-15T14:00:00Z",
+      "endAt": "2026-01-15T15:00:00Z",
+      "expiresAt": null,
       "metadata": null,
-      "createdAt": "2024-01-15T10:00:00Z",
-      "updatedAt": "2024-01-15T10:00:00Z"
+      "createdAt": "2026-01-15T10:00:00Z",
+      "updatedAt": "2026-01-15T10:00:00Z"
     }
   }
 }
@@ -64,9 +108,8 @@ app.post("/webhook", (req, res) => {
     return res.status(401).send("Invalid signature");
   }
 
-  // Process the event
   const event = req.body;
-  console.log(`Received ${event.type} for allocation ${event.data.allocation.id}`);
+  console.log(`Received ${event.type}`);
 
   res.status(200).send("OK");
 });

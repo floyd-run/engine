@@ -24,6 +24,8 @@
           "type": "folder",
           "icon": "phosphor/regular/puzzle-piece",
           "children": [
+            { "type": "page", "name": "Services", "path": "docs/services.md" },
+            { "type": "page", "name": "Bookings", "path": "docs/bookings.md" },
             { "type": "page", "name": "Allocations", "path": "docs/allocations.md" },
             { "type": "page", "name": "Policies", "path": "docs/policies.md" },
             { "type": "page", "name": "Availability", "path": "docs/availability.md" },

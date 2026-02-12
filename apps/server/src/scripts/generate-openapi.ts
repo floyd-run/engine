@@ -10,6 +10,8 @@ import {
   policy,
   error,
   availability,
+  service,
+  booking,
 } from "@floyd-run/schema/outputs";
 
 const registry = new OpenAPIRegistry();
@@ -22,6 +24,8 @@ registry.register("WebhookSubscription", webhook.subscriptionSchema);
 registry.register("AvailabilityItem", availability.itemSchema);
 registry.register("TimelineBlock", availability.timelineBlockSchema);
 registry.register("Policy", policy.schema);
+registry.register("Service", service.schema);
+registry.register("Booking", booking.schema);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -123,7 +127,12 @@ registry.registerPath({
     body: {
       content: {
         "application/json": {
-          schema: z.object({}),
+          schema: z.object({
+            timezone: z.string().nullable().optional().openapi({
+              description: "IANA timezone for the resource (e.g. America/New_York)",
+              example: "America/New_York",
+            }),
+          }),
         },
       },
     },
@@ -234,18 +243,19 @@ registry.registerPath({
   tags: ["Allocations"],
   summary: "Create a new allocation",
   description:
-    "Creates a new allocation for a resource. Supports idempotency via the Idempotency-Key header.",
+    "Creates a raw allocation for a resource. Use bookings for policy-evaluated reservations with lifecycle management. Supports idempotency via the Idempotency-Key header.",
   request: {
     params: z.object({ ledgerId: z.string() }),
     body: {
       content: {
         "application/json": {
           schema: z.object({
-            resourceId: z.string().openapi({ example: "res_01abc123def456ghi789jkl012" }),
-            status: z.enum(["hold", "confirmed"]).default("hold"),
+            resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
             startAt: z.string().datetime(),
             endAt: z.string().datetime(),
-            expiresAt: z.string().datetime().nullable().optional(),
+            expiresAt: z.string().datetime().nullable().optional().openapi({
+              description: "If set, the allocation auto-expires after this time",
+            }),
             metadata: z.record(z.string(), z.unknown()).nullable().optional(),
           }),
         },
@@ -265,25 +275,58 @@ registry.registerPath({
 });
 
 registry.registerPath({
-  method: "post",
-  path: "/v1/ledgers/{ledgerId}/allocations/{id}/confirm",
+  method: "delete",
+  path: "/v1/ledgers/{ledgerId}/allocations/{id}",
   tags: ["Allocations"],
-  summary: "Confirm a held allocation",
-  description: "Confirms an allocation that is currently in HOLD status.",
+  summary: "Delete an allocation",
+  description:
+    "Deletes a raw allocation. Allocations that belong to a booking cannot be deleted directly — cancel the booking instead.",
   request: {
     params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
-    200: {
-      description: "Allocation confirmed",
-      content: { "application/json": { schema: allocation.getSchema } },
-    },
+    204: { description: "Allocation deleted" },
     404: {
       description: "Allocation not found",
       content: { "application/json": { schema: error.schema } },
     },
     409: {
-      description: "Allocation cannot be confirmed",
+      description: "Allocation belongs to a booking",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+// Service routes
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/services",
+  tags: ["Services"],
+  summary: "List all services in a ledger",
+  request: { params: z.object({ ledgerId: z.string() }) },
+  responses: {
+    200: {
+      description: "List of services",
+      content: { "application/json": { schema: service.listSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/services/{id}",
+  tags: ["Services"],
+  summary: "Get a service by ID",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    200: {
+      description: "Service details",
+      content: { "application/json": { schema: service.getSchema } },
+    },
+    404: {
+      description: "Service not found",
       content: { "application/json": { schema: error.schema } },
     },
   },
@@ -291,24 +334,239 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/ledgers/{ledgerId}/allocations/{id}/cancel",
-  tags: ["Allocations"],
-  summary: "Cancel an allocation",
-  description: "Cancels an allocation that is in HOLD or CONFIRMED status.",
+  path: "/v1/ledgers/{ledgerId}/services",
+  tags: ["Services"],
+  summary: "Create a new service",
+  description: "Creates a service that groups resources with an optional scheduling policy.",
+  request: {
+    params: z.object({ ledgerId: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            name: z.string().openapi({ description: "Service name", example: "Haircut" }),
+            policyId: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Policy to enforce on bookings" }),
+            resourceIds: z
+              .array(z.string())
+              .optional()
+              .openapi({
+                description: "Resources that belong to this service",
+                example: ["rsc_01abc123def456ghi789jkl012"],
+              }),
+            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Service created",
+      content: { "application/json": { schema: service.getSchema } },
+    },
+    404: {
+      description: "Policy or resource not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "put",
+  path: "/v1/ledgers/{ledgerId}/services/{id}",
+  tags: ["Services"],
+  summary: "Update a service",
+  description:
+    "Replaces the full service definition including name, policy, and resource assignments.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            name: z.string().openapi({ description: "Service name", example: "Haircut" }),
+            policyId: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Policy to enforce on bookings" }),
+            resourceIds: z
+              .array(z.string())
+              .optional()
+              .openapi({
+                description: "Resources that belong to this service",
+                example: ["rsc_01abc123def456ghi789jkl012"],
+              }),
+            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Service updated",
+      content: { "application/json": { schema: service.getSchema } },
+    },
+    404: {
+      description: "Service, policy, or resource not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/v1/ledgers/{ledgerId}/services/{id}",
+  tags: ["Services"],
+  summary: "Delete a service",
+  description: "Deletes a service. Fails if the service has bookings in hold or confirmed status.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    204: { description: "Service deleted" },
+    404: {
+      description: "Service not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    409: {
+      description: "Service has active bookings",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+// Booking routes
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/bookings",
+  tags: ["Bookings"],
+  summary: "List all bookings in a ledger",
+  request: { params: z.object({ ledgerId: z.string() }) },
+  responses: {
+    200: {
+      description: "List of bookings",
+      content: { "application/json": { schema: booking.listSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/bookings/{id}",
+  tags: ["Bookings"],
+  summary: "Get a booking by ID",
+  description: "Returns the booking with its nested allocations.",
   request: {
     params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
-      description: "Allocation cancelled",
-      content: { "application/json": { schema: allocation.getSchema } },
+      description: "Booking details with allocations",
+      content: { "application/json": { schema: booking.getSchema } },
     },
     404: {
-      description: "Allocation not found",
+      description: "Booking not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/bookings",
+  tags: ["Bookings"],
+  summary: "Create a new booking",
+  description:
+    "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. Supports idempotency via the Idempotency-Key header.",
+  request: {
+    params: z.object({ ledgerId: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            serviceId: z.string().openapi({ example: "svc_01abc123def456ghi789jkl012" }),
+            resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
+            startAt: z.string().datetime().openapi({ example: "2026-01-15T10:00:00Z" }),
+            endAt: z.string().datetime().openapi({ example: "2026-01-15T11:00:00Z" }),
+            status: z
+              .enum(["hold", "confirmed"])
+              .default("hold")
+              .openapi({ description: "Initial status. Hold creates a temporary reservation." }),
+            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Booking created",
+      content: { "application/json": { schema: booking.getSchema } },
+    },
+    404: {
+      description: "Service or resource not found",
       content: { "application/json": { schema: error.schema } },
     },
     409: {
-      description: "Allocation cannot be cancelled",
+      description: "Conflict (overlap, policy rejected, or resource not in service)",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/bookings/{id}/confirm",
+  tags: ["Bookings"],
+  summary: "Confirm a held booking",
+  description:
+    "Confirms a booking that is in hold status. Idempotent — confirming an already confirmed booking returns success. Supports idempotency via the Idempotency-Key header.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    200: {
+      description: "Booking confirmed",
+      content: { "application/json": { schema: booking.getSchema } },
+    },
+    404: {
+      description: "Booking not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    409: {
+      description: "Booking cannot be confirmed (expired or invalid state)",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/bookings/{id}/cancel",
+  tags: ["Bookings"],
+  summary: "Cancel a booking",
+  description:
+    "Cancels a booking in hold or confirmed status. Idempotent — cancelling an already cancelled booking returns success. Supports idempotency via the Idempotency-Key header.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    200: {
+      description: "Booking cancelled",
+      content: { "application/json": { schema: booking.getSchema } },
+    },
+    404: {
+      description: "Booking not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    409: {
+      description: "Booking cannot be cancelled (invalid state)",
       content: { "application/json": { schema: error.schema } },
     },
   },
@@ -557,7 +815,7 @@ const doc = generator.generateDocument({
   info: {
     title: "Floyd Engine API",
     version: "1.0.0",
-    description: "Resource scheduling and allocation engine",
+    description: "Booking engine for AI agents",
   },
   servers: [
     {

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { operations } from "../../operations/index.js";
+import { operations } from "operations";
 import { NotFoundError } from "lib/errors";
 import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infra/idempotency";
 import { serializeAllocation } from "./serializers";

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { operations } from "../../operations/index.js";
+import { operations } from "operations";
 
 // Nested under /v1/ledgers/:ledgerId/availability
 export const availability = new Hono().post("/", async (c) => {

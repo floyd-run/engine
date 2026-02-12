@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { resource } from "@floyd-run/schema/inputs";
+import { resourceInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: resource.listSchema,
+  input: resourceInput.list,
   execute: async (input) => {
     const resources = await db
       .selectFrom("resources")

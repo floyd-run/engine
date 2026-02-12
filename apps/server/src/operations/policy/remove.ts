@@ -1,10 +1,10 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { policy } from "@floyd-run/schema/inputs";
+import { policyInput } from "@floyd-run/schema/inputs";
 import { ConflictError } from "lib/errors";
 
 export default createOperation({
-  input: policy.removeSchema,
+  input: policyInput.remove,
   execute: async (input) => {
     try {
       const result = await db

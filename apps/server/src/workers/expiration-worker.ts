@@ -52,21 +52,21 @@ async function processExpiredBookings(): Promise<number> {
       .execute();
 
     // Enqueue webhook events
-    for (const bkg of expiredBookings) {
+    for (const booking of expiredBookings) {
       const allocations = await trx
         .selectFrom("allocations")
         .selectAll()
-        .where("bookingId", "=", bkg.id)
+        .where("bookingId", "=", booking.id)
         .execute();
 
-      const expiredBkg = {
-        ...bkg,
+      const expiredBooking = {
+        ...booking,
         status: "expired" as const,
         expiresAt: null,
         updatedAt: serverTime,
       };
-      await enqueueWebhookEvent(trx, "booking.expired", bkg.ledgerId, {
-        booking: serializeBooking(expiredBkg, allocations),
+      await enqueueWebhookEvent(trx, "booking.expired", booking.ledgerId, {
+        booking: serializeBooking(expiredBooking, allocations),
       });
     }
 

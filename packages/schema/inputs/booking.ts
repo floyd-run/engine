@@ -2,7 +2,7 @@ import z from "zod";
 import { isValidId } from "@floyd-run/utils";
 import { BookingStatus } from "../constants";
 
-export const createSchema = z
+export const create = z
   .object({
     ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
     serviceId: z.string().refine((id) => isValidId(id, "svc"), { message: "Invalid service ID" }),
@@ -17,21 +17,21 @@ export const createSchema = z
     path: ["endAt"],
   });
 
-export const getSchema = z.object({
+export const get = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const listSchema = z.object({
+export const list = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const confirmSchema = z.object({
+export const confirm = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const cancelSchema = z.object({
+export const cancel = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

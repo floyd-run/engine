@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { webhook } from "@floyd-run/schema/inputs";
+import { webhookInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: webhook.updateSubscriptionSchema,
+  input: webhookInput.updateSubscription,
   execute: async (input) => {
     const subscription = await db
       .updateTable("webhookSubscriptions")

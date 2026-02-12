@@ -1,12 +1,12 @@
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
-import { allocation } from "@floyd-run/schema/inputs";
+import { allocationInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
 import { serializeAllocation } from "routes/v1/serializers";
 
 export default createOperation({
-  input: allocation.removeSchema,
+  input: allocationInput.remove,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Lock the allocation row

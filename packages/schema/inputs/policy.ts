@@ -153,27 +153,27 @@ const policyConfigSchema = z
   })
   .passthrough();
 
-export const createSchema = z.object({
+export const create = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
   config: policyConfigSchema,
 });
 
-export const updateSchema = z.object({
+export const update = z.object({
   id: z.string().refine((id) => isValidId(id, "pol"), { message: "Invalid policy ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
   config: policyConfigSchema,
 });
 
-export const getSchema = z.object({
+export const get = z.object({
   id: z.string().refine((id) => isValidId(id, "pol"), { message: "Invalid policy ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const listSchema = z.object({
+export const list = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const removeSchema = z.object({
+export const remove = z.object({
   id: z.string().refine((id) => isValidId(id, "pol"), { message: "Invalid policy ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

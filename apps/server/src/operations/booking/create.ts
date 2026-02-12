@@ -1,7 +1,7 @@
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
 import { generateId } from "@floyd-run/utils";
-import { booking } from "@floyd-run/schema/inputs";
+import { bookingInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
 import { serializeBooking } from "routes/v1/serializers";
@@ -11,7 +11,7 @@ import { insertAllocation } from "../allocation/internal/insert";
 const DEFAULT_HOLD_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export default createOperation({
-  input: booking.createSchema,
+  input: bookingInput.create,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Lock resource row (serializes concurrent writes)
@@ -104,7 +104,7 @@ export default createOperation({
       const expiresAt = isHold ? new Date(serverTime.getTime() + holdDurationMs) : null;
 
       // 7. Insert booking
-      const bkg = await trx
+      const booking = await trx
         .insertInto("bookings")
         .values({
           id: generateId("bkg"),
@@ -119,10 +119,10 @@ export default createOperation({
         .executeTakeFirstOrThrow();
 
       // 8. Conflict check + insert allocation (startAt/endAt = blocked window including buffers)
-      const alloc = await insertAllocation(trx, {
+      const allocation = await insertAllocation(trx, {
         ledgerId: input.ledgerId,
         resourceId: input.resourceId,
-        bookingId: bkg.id,
+        bookingId: booking.id,
         startAt,
         endAt,
         bufferBeforeMs,
@@ -134,10 +134,10 @@ export default createOperation({
 
       // 9. Enqueue webhook
       await enqueueWebhookEvent(trx, "booking.created", input.ledgerId, {
-        booking: serializeBooking(bkg, [alloc]),
+        booking: serializeBooking(booking, [allocation]),
       });
 
-      return { booking: bkg, allocations: [alloc], serverTime };
+      return { booking, allocations: [allocation], serverTime };
     });
   },
 });

@@ -1,10 +1,10 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { service } from "@floyd-run/schema/inputs";
+import { serviceInput } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
 
 export default createOperation({
-  input: service.updateSchema,
+  input: serviceInput.update,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Lock service row
@@ -51,7 +51,7 @@ export default createOperation({
       }
 
       // 4. Update service row
-      const svc = await trx
+      const service = await trx
         .updateTable("services")
         .set({
           name: input.name,
@@ -72,7 +72,7 @@ export default createOperation({
           .execute();
       }
 
-      return { service: svc, resourceIds: input.resourceIds };
+      return { service, resourceIds: input.resourceIds };
     });
   },
 });

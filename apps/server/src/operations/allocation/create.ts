@@ -1,13 +1,13 @@
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
-import { allocation } from "@floyd-run/schema/inputs";
+import { allocationInput } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
 import { serializeAllocation } from "routes/v1/serializers";
 import { insertAllocation } from "./internal/insert";
 
 export default createOperation({
-  input: allocation.createSchema,
+  input: allocationInput.create,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Lock the resource row (FOR UPDATE) - serializes concurrent writes
@@ -27,7 +27,7 @@ export default createOperation({
       const serverTime = await getServerTime(trx);
 
       // 3. Check conflicts + insert allocation
-      const alloc = await insertAllocation(trx, {
+      const allocation = await insertAllocation(trx, {
         ledgerId: input.ledgerId,
         resourceId: input.resourceId,
         bookingId: null,
@@ -42,10 +42,10 @@ export default createOperation({
 
       // 4. Enqueue webhook event (in same transaction)
       await enqueueWebhookEvent(trx, "allocation.created", input.ledgerId, {
-        allocation: serializeAllocation(alloc),
+        allocation: serializeAllocation(allocation),
       });
 
-      return { allocation: alloc, serverTime };
+      return { allocation, serverTime };
     });
   },
 });

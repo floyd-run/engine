@@ -336,15 +336,15 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
 
       expect(response.status).toBe(201);
       const { data } = (await response.json()) as { data: Booking };
-      const alloc = data.allocations[0]!;
+      const allocation = data.allocations[0]!;
 
       // Allocation startAt/endAt = buffer-expanded blocked window
-      expect(alloc.startAt).toBe("2026-06-01T09:45:00.000Z"); // 10:00 - 15min
-      expect(alloc.endAt).toBe("2026-06-01T11:10:00.000Z"); // 11:00 + 10min
+      expect(allocation.startAt).toBe("2026-06-01T09:45:00.000Z"); // 10:00 - 15min
+      expect(allocation.endAt).toBe("2026-06-01T11:10:00.000Z"); // 11:00 + 10min
 
       // Buffer amounts stored for deriving original customer time
-      expect(alloc.bufferBeforeMs).toBe(900_000);
-      expect(alloc.bufferAfterMs).toBe(600_000);
+      expect(allocation.bufferBeforeMs).toBe(900_000);
+      expect(allocation.bufferAfterMs).toBe(600_000);
     });
 
     it("stores zero buffers when no policy", async () => {
@@ -368,13 +368,13 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
 
       expect(response.status).toBe(201);
       const { data } = (await response.json()) as { data: Booking };
-      const alloc = data.allocations[0]!;
+      const allocation = data.allocations[0]!;
 
       // Without policy, allocation times = input times (no buffers)
-      expect(alloc.startAt).toBe(startAt);
-      expect(alloc.endAt).toBe(endAt);
-      expect(alloc.bufferBeforeMs).toBe(0);
-      expect(alloc.bufferAfterMs).toBe(0);
+      expect(allocation.startAt).toBe(startAt);
+      expect(allocation.endAt).toBe(endAt);
+      expect(allocation.bufferBeforeMs).toBe(0);
+      expect(allocation.bufferAfterMs).toBe(0);
     });
 
     it("detects conflicts across buffer windows", async () => {

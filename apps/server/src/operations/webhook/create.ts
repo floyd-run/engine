@@ -1,11 +1,11 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
 import { generateId } from "@floyd-run/utils";
-import { webhook } from "@floyd-run/schema/inputs";
+import { webhookInput } from "@floyd-run/schema/inputs";
 import { generateSecret } from "./generate-secret";
 
 export default createOperation({
-  input: webhook.createSubscriptionSchema,
+  input: webhookInput.createSubscription,
   execute: async (input) => {
     const subscription = await db
       .insertInto("webhookSubscriptions")

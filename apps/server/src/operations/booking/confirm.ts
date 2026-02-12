@@ -1,12 +1,12 @@
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
-import { booking } from "@floyd-run/schema/inputs";
+import { bookingInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
 import { serializeBooking } from "routes/v1/serializers";
 
 export default createOperation({
-  input: booking.confirmSchema,
+  input: bookingInput.confirm,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Lock booking row
@@ -52,7 +52,7 @@ export default createOperation({
       }
 
       // 5. Update booking
-      const bkg = await trx
+      const booking = await trx
         .updateTable("bookings")
         .set({
           status: "confirmed",
@@ -77,11 +77,11 @@ export default createOperation({
         .execute();
 
       // 7. Enqueue webhook
-      await enqueueWebhookEvent(trx, "booking.confirmed", bkg.ledgerId, {
-        booking: serializeBooking(bkg, allocations),
+      await enqueueWebhookEvent(trx, "booking.confirmed", booking.ledgerId, {
+        booking: serializeBooking(booking, allocations),
       });
 
-      return { booking: bkg, allocations, serverTime };
+      return { booking, allocations, serverTime };
     });
   },
 });

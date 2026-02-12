@@ -1,7 +1,7 @@
 import { sql } from "kysely";
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
-import { availability } from "@floyd-run/schema/inputs";
+import { availabilityInput } from "@floyd-run/schema/inputs";
 import { InputError, NotFoundError } from "lib/errors";
 import { resolveServiceDays, generateSlots } from "domain/scheduling/availability";
 import type { PolicyConfig } from "domain/policy/evaluate";
@@ -10,7 +10,7 @@ import type { BlockingAllocation } from "domain/scheduling/availability";
 const MAX_SLOTS_RANGE_MS = 7 * 24 * 60 * 60_000; // 7 days
 
 export default createOperation({
-  input: availability.slotsSchema,
+  input: availabilityInput.slots,
   execute: async (input) => {
     const { ledgerId, serviceId, startAt, endAt, durationMs, includeUnavailable } = input;
 

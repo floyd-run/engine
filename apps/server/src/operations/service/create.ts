@@ -1,11 +1,11 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
 import { generateId } from "@floyd-run/utils";
-import { service } from "@floyd-run/schema/inputs";
+import { serviceInput } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
 
 export default createOperation({
-  input: service.createSchema,
+  input: serviceInput.create,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Validate policyId exists and belongs to ledger (if provided)
@@ -39,7 +39,7 @@ export default createOperation({
       }
 
       // 3. Insert service
-      const svc = await trx
+      const service = await trx
         .insertInto("services")
         .values({
           id: generateId("svc"),
@@ -55,11 +55,11 @@ export default createOperation({
       if (input.resourceIds.length > 0) {
         await trx
           .insertInto("serviceResources")
-          .values(input.resourceIds.map((resourceId) => ({ serviceId: svc.id, resourceId })))
+          .values(input.resourceIds.map((resourceId) => ({ serviceId: service.id, resourceId })))
           .execute();
       }
 
-      return { service: svc, resourceIds: input.resourceIds };
+      return { service, resourceIds: input.resourceIds };
     });
   },
 });

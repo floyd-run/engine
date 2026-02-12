@@ -1,27 +1,27 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { booking } from "@floyd-run/schema/inputs";
+import { bookingInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: booking.getSchema,
+  input: bookingInput.get,
   execute: async (input) => {
-    const bkg = await db
+    const booking = await db
       .selectFrom("bookings")
       .selectAll()
       .where("id", "=", input.id)
       .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
-    if (!bkg) {
+    if (!booking) {
       return { booking: null, allocations: [] };
     }
 
     const allocations = await db
       .selectFrom("allocations")
       .selectAll()
-      .where("bookingId", "=", bkg.id)
+      .where("bookingId", "=", booking.id)
       .execute();
 
-    return { booking: bkg, allocations };
+    return { booking, allocations };
   },
 });

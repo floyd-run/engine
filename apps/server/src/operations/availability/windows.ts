@@ -1,7 +1,7 @@
 import { sql } from "kysely";
 import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
-import { availability } from "@floyd-run/schema/inputs";
+import { availabilityInput } from "@floyd-run/schema/inputs";
 import { InputError, NotFoundError } from "lib/errors";
 import { resolveServiceDays, computeWindows } from "domain/scheduling/availability";
 import type { PolicyConfig } from "domain/policy/evaluate";
@@ -10,7 +10,7 @@ import type { BlockingAllocation } from "domain/scheduling/availability";
 const MAX_WINDOWS_RANGE_MS = 31 * 24 * 60 * 60_000; // 31 days
 
 export default createOperation({
-  input: availability.windowsSchema,
+  input: availabilityInput.windows,
   execute: async (input) => {
     const { ledgerId, serviceId, startAt, endAt, includeUnavailable } = input;
 

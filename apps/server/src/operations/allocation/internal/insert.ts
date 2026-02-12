@@ -38,7 +38,7 @@ export async function insertAllocation(
   }
 
   // 2. Insert the allocation
-  const alloc = await trx
+  const allocation = await trx
     .insertInto("allocations")
     .values({
       id: generateId("alc"),
@@ -56,5 +56,5 @@ export async function insertAllocation(
     .returningAll()
     .executeTakeFirstOrThrow();
 
-  return alloc;
+  return allocation;
 }

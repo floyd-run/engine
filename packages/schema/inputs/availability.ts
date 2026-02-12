@@ -1,7 +1,7 @@
 import z from "zod";
 import { isValidId } from "@floyd-run/utils";
 
-export const querySchema = z.object({
+export const query = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
   resourceIds: z.array(
     z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
@@ -23,11 +23,11 @@ const serviceAvailabilityBase = {
   includeUnavailable: z.boolean().default(false),
 };
 
-export const slotsSchema = z.object({
+export const slots = z.object({
   ...serviceAvailabilityBase,
   durationMs: z.number().int().positive(),
 });
 
-export const windowsSchema = z.object({
+export const windows = z.object({
   ...serviceAvailabilityBase,
 });

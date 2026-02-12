@@ -1,7 +1,7 @@
 import { sql } from "kysely";
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { availability } from "@floyd-run/schema/inputs";
+import { availabilityInput } from "@floyd-run/schema/inputs";
 import type { AvailabilityItem } from "@floyd-run/schema/types";
 import { clampInterval, mergeIntervals, buildTimeline } from "domain/scheduling/timeline";
 
@@ -12,7 +12,7 @@ interface BlockingAllocation {
 }
 
 export default createOperation({
-  input: availability.querySchema,
+  input: availabilityInput.query,
   execute: async (input): Promise<{ items: AvailabilityItem[] }> => {
     const { ledgerId, resourceIds, startAt, endAt } = input;
 

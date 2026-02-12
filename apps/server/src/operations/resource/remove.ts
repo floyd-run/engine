@@ -1,10 +1,10 @@
-import { resource } from "@floyd-run/schema/inputs";
+import { resourceInput } from "@floyd-run/schema/inputs";
 import { db } from "database";
 import { createOperation } from "lib/operation";
 import { ConflictError, NotFoundError } from "lib/errors";
 
 export default createOperation({
-  input: resource.removeSchema,
+  input: resourceInput.remove,
   execute: async (input) => {
     try {
       const result = await db

@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { service } from "@floyd-run/schema/inputs";
+import { serviceInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: service.listSchema,
+  input: serviceInput.list,
   execute: async (input) => {
     const services = await db
       .selectFrom("services")
@@ -13,8 +13,8 @@ export default createOperation({
 
     // Batch load resourceIds for all services
     const resourceIdsByService = new Map<string, string[]>();
-    for (const svc of services) {
-      resourceIdsByService.set(svc.id, []);
+    for (const s of services) {
+      resourceIdsByService.set(s.id, []);
     }
 
     if (services.length > 0) {
@@ -28,18 +28,18 @@ export default createOperation({
         )
         .execute();
 
-      for (const sr of serviceResources) {
-        const list = resourceIdsByService.get(sr.serviceId);
+      for (const serviceResource of serviceResources) {
+        const list = resourceIdsByService.get(serviceResource.serviceId);
         if (list) {
-          list.push(sr.resourceId);
+          list.push(serviceResource.resourceId);
         }
       }
     }
 
     return {
-      services: services.map((svc) => ({
-        service: svc,
-        resourceIds: resourceIdsByService.get(svc.id) || [],
+      services: services.map((s) => ({
+        service: s,
+        resourceIds: resourceIdsByService.get(s.id) || [],
       })),
     };
   },

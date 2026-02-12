@@ -1,10 +1,10 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { service } from "@floyd-run/schema/inputs";
+import { serviceInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
 
 export default createOperation({
-  input: service.removeSchema,
+  input: serviceInput.remove,
   execute: async (input) => {
     return await db.transaction().execute(async (trx) => {
       // 1. Verify service exists

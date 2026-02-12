@@ -1,10 +1,10 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
 import { generateId } from "@floyd-run/utils";
-import { resource } from "@floyd-run/schema/inputs";
+import { resourceInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: resource.createSchema,
+  input: resourceInput.create,
   execute: async (input) => {
     const resource = await db
       .insertInto("resources")

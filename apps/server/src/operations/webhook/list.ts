@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { webhook } from "@floyd-run/schema/inputs";
+import { webhookInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: webhook.listSubscriptionsSchema,
+  input: webhookInput.listSubscriptions,
   execute: async (input) => {
     const subscriptions = await db
       .selectFrom("webhookSubscriptions")

@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { ledger } from "@floyd-run/schema/inputs";
+import { ledgerInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: ledger.getSchema,
+  input: ledgerInput.get,
   execute: async (input) => {
     const ledger = await db
       .selectFrom("ledgers")

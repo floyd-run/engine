@@ -1,27 +1,27 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { service } from "@floyd-run/schema/inputs";
+import { serviceInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: service.getSchema,
+  input: serviceInput.get,
   execute: async (input) => {
-    const svc = await db
+    const service = await db
       .selectFrom("services")
       .selectAll()
       .where("id", "=", input.id)
       .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
-    if (!svc) {
+    if (!service) {
       return { service: null, resourceIds: [] };
     }
 
     const resources = await db
       .selectFrom("serviceResources")
       .select("resourceId")
-      .where("serviceId", "=", svc.id)
+      .where("serviceId", "=", service.id)
       .execute();
 
-    return { service: svc, resourceIds: resources.map((r) => r.resourceId) };
+    return { service, resourceIds: resources.map((r) => r.resourceId) };
   },
 });

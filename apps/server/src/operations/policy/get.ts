@@ -1,9 +1,9 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { policy } from "@floyd-run/schema/inputs";
+import { policyInput } from "@floyd-run/schema/inputs";
 
 export default createOperation({
-  input: policy.getSchema,
+  input: policyInput.get,
   execute: async (input) => {
     const row = await db
       .selectFrom("policies")

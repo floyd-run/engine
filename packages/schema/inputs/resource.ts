@@ -1,7 +1,7 @@
 import z from "zod";
 import { isValidId } from "@floyd-run/utils";
 
-export const createSchema = z.object({
+export const create = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
   timezone: z
     .string()
@@ -21,16 +21,16 @@ export const createSchema = z.object({
     .optional(),
 });
 
-export const getSchema = z.object({
+export const get = z.object({
   id: z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const listSchema = z.object({
+export const list = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const removeSchema = z.object({
+export const remove = z.object({
   id: z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

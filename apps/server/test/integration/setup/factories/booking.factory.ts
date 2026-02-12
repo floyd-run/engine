@@ -38,12 +38,12 @@ export async function createBooking(overrides?: {
   }
 
   if (!ledgerId) {
-    const svc = await db
+    const service = await db
       .selectFrom("services")
       .where("id", "=", serviceId)
       .selectAll()
       .executeTakeFirstOrThrow();
-    ledgerId = svc.ledgerId;
+    ledgerId = service.ledgerId;
   }
 
   const startAt = overrides?.startAt ?? faker.date.future();

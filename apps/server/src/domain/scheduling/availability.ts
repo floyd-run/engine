@@ -265,8 +265,8 @@ function overlapsAny(
   end: number,
   allocations: { start: number; end: number }[],
 ): boolean {
-  for (const alloc of allocations) {
-    if (start < alloc.end && end > alloc.start) return true;
+  for (const allocation of allocations) {
+    if (start < allocation.end && end > allocation.start) return true;
   }
   return false;
 }

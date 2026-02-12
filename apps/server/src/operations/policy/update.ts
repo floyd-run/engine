@@ -1,11 +1,11 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
-import { policy } from "@floyd-run/schema/inputs";
+import { policyInput } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
 import { preparePolicyConfig } from "domain/policy";
 
 export default createOperation({
-  input: policy.updateSchema,
+  input: policyInput.update,
   execute: async (input) => {
     // 1. Verify policy exists
     const existing = await db

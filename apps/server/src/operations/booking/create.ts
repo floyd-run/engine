@@ -31,14 +31,14 @@ export default createOperation({
       const serverTime = await getServerTime(trx);
 
       // 3. Load service
-      const svc = await trx
+      const service = await trx
         .selectFrom("services")
         .selectAll()
         .where("id", "=", input.serviceId)
         .where("ledgerId", "=", input.ledgerId)
         .executeTakeFirst();
 
-      if (!svc) {
+      if (!service) {
         throw new NotFoundError("Service not found");
       }
 
@@ -63,11 +63,11 @@ export default createOperation({
       let endAt = input.endAt;
       let bufferBeforeMs = 0;
       let bufferAfterMs = 0;
-      if (svc.policyId) {
+      if (service.policyId) {
         const policy = await trx
           .selectFrom("policies")
           .selectAll()
-          .where("id", "=", svc.policyId)
+          .where("id", "=", service.policyId)
           .executeTakeFirst();
 
         if (policy) {
@@ -114,7 +114,7 @@ export default createOperation({
           id: generateId("bkg"),
           ledgerId: input.ledgerId,
           serviceId: input.serviceId,
-          policyId: svc.policyId,
+          policyId: service.policyId,
           status: input.status,
           expiresAt,
           metadata: input.metadata ?? null,

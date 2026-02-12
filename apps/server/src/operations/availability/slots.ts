@@ -28,14 +28,14 @@ export default createOperation({
     }
 
     // 1. Load service
-    const svc = await db
+    const service = await db
       .selectFrom("services")
       .selectAll()
       .where("id", "=", serviceId)
       .where("ledgerId", "=", ledgerId)
       .executeTakeFirst();
 
-    if (!svc) throw new NotFoundError("Service not found");
+    if (!service) throw new NotFoundError("Service not found");
 
     // 2. Load service's resources
     const serviceResourceRows = await db
@@ -82,11 +82,11 @@ export default createOperation({
 
     // 5. Load policy
     let policy: PolicyConfig | null = null;
-    if (svc.policyId) {
+    if (service.policyId) {
       const policyRow = await db
         .selectFrom("policies")
         .selectAll()
-        .where("id", "=", svc.policyId)
+        .where("id", "=", service.policyId)
         .executeTakeFirst();
 
       if (policyRow) {

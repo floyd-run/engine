@@ -92,13 +92,9 @@ export default createOperation({
           bufferBeforeMs = result.bufferBeforeMs;
           bufferAfterMs = result.bufferAfterMs;
 
-          // Use policy hold_duration if configured
-          const configRecord = policy.config as Record<string, unknown>;
-          if (
-            configRecord["hold_duration_ms"] &&
-            typeof configRecord["hold_duration_ms"] === "number"
-          ) {
-            holdDurationMs = configRecord["hold_duration_ms"];
+          // Use resolved hold_duration (respects per-rule overrides)
+          if (result.resolvedConfig.hold_duration_ms !== undefined) {
+            holdDurationMs = result.resolvedConfig.hold_duration_ms;
           }
         }
       }
@@ -136,7 +132,7 @@ export default createOperation({
         serverTime,
       });
 
-      // 10. Enqueue webhook
+      // 9. Enqueue webhook
       await enqueueWebhookEvent(trx, "booking.created", input.ledgerId, {
         booking: serializeBooking(bkg, [alloc]),
       });

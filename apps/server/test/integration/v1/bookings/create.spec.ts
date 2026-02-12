@@ -101,6 +101,43 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     expect(response.status).toBe(422);
   });
 
+  it("returns 422 when endAt equals startAt", async () => {
+    const { ledger } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ledger.id });
+    const { service } = await createService({
+      ledgerId: ledger.id,
+      resourceIds: [resource.id],
+    });
+    const time = "2026-06-01T10:00:00.000Z";
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+      serviceId: service.id,
+      resourceId: resource.id,
+      startAt: time,
+      endAt: time,
+    });
+
+    expect(response.status).toBe(422);
+  });
+
+  it("returns 422 when endAt is before startAt", async () => {
+    const { ledger } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ledger.id });
+    const { service } = await createService({
+      ledgerId: ledger.id,
+      resourceIds: [resource.id],
+    });
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+      serviceId: service.id,
+      resourceId: resource.id,
+      startAt: "2026-06-01T11:00:00.000Z",
+      endAt: "2026-06-01T10:00:00.000Z",
+    });
+
+    expect(response.status).toBe(422);
+  });
+
   it("returns 404 for non-existent service", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });

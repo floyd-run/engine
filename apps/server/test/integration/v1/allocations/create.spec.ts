@@ -70,6 +70,31 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     expect(response.status).toBe(422);
   });
 
+  it("returns 422 when endAt equals startAt", async () => {
+    const { resource, ledgerId } = await createResource();
+    const time = new Date("2026-02-01T10:00:00Z").toISOString();
+
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
+      resourceId: resource.id,
+      startAt: time,
+      endAt: time,
+    });
+
+    expect(response.status).toBe(422);
+  });
+
+  it("returns 422 when endAt is before startAt", async () => {
+    const { resource, ledgerId } = await createResource();
+
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
+      resourceId: resource.id,
+      startAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+      endAt: new Date("2026-02-01T10:00:00Z").toISOString(),
+    });
+
+    expect(response.status).toBe(422);
+  });
+
   it("returns 404 for non-existent resource", async () => {
     const { ledgerId } = await createResource();
 

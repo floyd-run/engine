@@ -38,7 +38,7 @@ function sortAllowedMs(arr: number[]): number[] {
   return [...new Set(arr)].sort((a, b) => a - b);
 }
 
-function canonicalizeValue(key: string, value: unknown, parentKey?: string): unknown {
+function canonicalizeValue(key: string, value: unknown): unknown {
   if (value === null || value === undefined) return value;
 
   if (Array.isArray(value)) {

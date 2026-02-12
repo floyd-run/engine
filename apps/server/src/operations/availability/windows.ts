@@ -65,7 +65,8 @@ export default createOperation({
     }
 
     if (targetResourceIds.length === 0) {
-      return { data: [], serverTime: new Date() };
+      const serverTime = await getServerTime(db);
+      return { data: [], serverTime };
     }
 
     // 3. Load resources (for timezone)

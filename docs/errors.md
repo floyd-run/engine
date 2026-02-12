@@ -106,6 +106,19 @@ Trying to delete a service that has bookings in `hold` or `confirmed` status.
 }
 ```
 
+### Resource in use
+
+Trying to delete a resource that has allocations or service associations.
+
+```json
+{
+  "error": {
+    "code": "resource_in_use",
+    "message": "Resource has active allocations or service associations"
+  }
+}
+```
+
 ### Policy in use
 
 Trying to delete a policy that is referenced by one or more services.

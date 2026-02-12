@@ -59,6 +59,7 @@ export interface ResolvedConfig {
   grid?: GridConfig | undefined;
   booking_window?: BookingWindowConfig | undefined;
   buffers?: BuffersConfig | undefined;
+  hold_duration_ms?: number | undefined;
 }
 
 interface TimeWindow {
@@ -361,6 +362,7 @@ export function evaluatePolicy(
       grid: resolvedRaw["grid"] as GridConfig | undefined,
       booking_window: resolvedRaw["booking_window"] as BookingWindowConfig | undefined,
       buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
+      hold_duration_ms: resolvedRaw["hold_duration_ms"] as number | undefined,
     };
 
     // ─── Step 5: Duration check ────────────────────────────────────────────

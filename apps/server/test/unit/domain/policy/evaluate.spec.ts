@@ -1670,4 +1670,54 @@ describe("Edge cases", () => {
     const result = evaluatePolicy(policy, request, context);
     expectAllowed(result);
   });
+
+  // ─── hold_duration_ms resolution ─────────────────────────────────────────
+
+  it("resolvedConfig includes hold_duration_ms from base config", () => {
+    const policy = makePolicy({
+      config: {
+        hold_duration_ms: 5 * MINUTE,
+      },
+    });
+
+    const request = makeRequest("2026-03-16T10:00:00Z", "2026-03-16T11:00:00Z");
+    const result = evaluatePolicy(policy, request, makeContext());
+
+    expectAllowed(result);
+    expect(result.resolvedConfig.hold_duration_ms).toBe(5 * MINUTE);
+  });
+
+  it("resolvedConfig hold_duration_ms is overridden by matching rule config", () => {
+    const policy = makePolicy({
+      default: "open",
+      config: {
+        hold_duration_ms: 5 * MINUTE,
+      },
+      rules: [
+        {
+          match: { type: "weekly", days: ["monday"] },
+          config: {
+            hold_duration_ms: 10 * MINUTE,
+          },
+        },
+      ],
+    });
+
+    // 2026-03-16 is Monday
+    const request = makeRequest("2026-03-16T10:00:00Z", "2026-03-16T11:00:00Z");
+    const result = evaluatePolicy(policy, request, makeContext());
+
+    expectAllowed(result);
+    expect(result.resolvedConfig.hold_duration_ms).toBe(10 * MINUTE);
+  });
+
+  it("resolvedConfig hold_duration_ms is undefined when not configured", () => {
+    const policy = makePolicy({ config: {} });
+
+    const request = makeRequest("2026-03-16T10:00:00Z", "2026-03-16T11:00:00Z");
+    const result = evaluatePolicy(policy, request, makeContext());
+
+    expectAllowed(result);
+    expect(result.resolvedConfig.hold_duration_ms).toBeUndefined();
+  });
 });

@@ -6,6 +6,7 @@ import { ConflictError, NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
 import { serializeBooking } from "routes/v1/serializers";
 import { evaluatePolicy, type PolicyConfig } from "domain/policy/evaluate";
+import { insertAllocation } from "../allocation/internal/insert";
 
 const DEFAULT_HOLD_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -100,28 +101,11 @@ export default createOperation({
         }
       }
 
-      // 6. Conflict check: active, non-expired, overlapping allocations
-      const conflicting = await trx
-        .selectFrom("allocations")
-        .select("id")
-        .where("resourceId", "=", input.resourceId)
-        .where("active", "=", true)
-        .where((eb) => eb.or([eb("expiresAt", "is", null), eb("expiresAt", ">", serverTime)]))
-        .where("startAt", "<", endAt)
-        .where("endAt", ">", startAt)
-        .execute();
-
-      if (conflicting.length > 0) {
-        throw new ConflictError("overlap_conflict", {
-          conflictingAllocationIds: conflicting.map((a) => a.id),
-        });
-      }
-
-      // 7. Compute expiresAt
+      // 6. Compute expiresAt
       const isHold = input.status === "hold";
       const expiresAt = isHold ? new Date(serverTime.getTime() + holdDurationMs) : null;
 
-      // 8. Insert booking
+      // 7. Insert booking
       const bkg = await trx
         .insertInto("bookings")
         .values({
@@ -135,24 +119,19 @@ export default createOperation({
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // 9. Insert allocation (startAt/endAt = blocked window including buffers)
-      const alloc = await trx
-        .insertInto("allocations")
-        .values({
-          id: generateId("alc"),
-          ledgerId: input.ledgerId,
-          resourceId: input.resourceId,
-          bookingId: bkg.id,
-          active: true,
-          startAt,
-          endAt,
-          bufferBeforeMs,
-          bufferAfterMs,
-          expiresAt,
-          metadata: null,
-        })
-        .returningAll()
-        .executeTakeFirstOrThrow();
+      // 8. Conflict check + insert allocation (startAt/endAt = blocked window including buffers)
+      const alloc = await insertAllocation(trx, {
+        ledgerId: input.ledgerId,
+        resourceId: input.resourceId,
+        bookingId: bkg.id,
+        startAt,
+        endAt,
+        bufferBeforeMs,
+        bufferAfterMs,
+        expiresAt,
+        metadata: null,
+        serverTime,
+      });
 
       // 10. Enqueue webhook
       await enqueueWebhookEvent(trx, "booking.created", input.ledgerId, {

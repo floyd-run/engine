@@ -1,11 +1,8 @@
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
 import { createLedger } from "./ledger.factory";
-import { normalizePolicyConfig } from "../../../src/services/policy/normalize";
-import {
-  canonicalizePolicyConfig,
-  hashPolicyConfig,
-} from "../../../src/services/policy/canonicalize";
+import { normalizePolicyConfig } from "domain/policy/normalize";
+import { canonicalizePolicyConfig, hashPolicyConfig } from "domain/policy/canonicalize";
 
 const DEFAULT_CONFIG = {
   schema_version: 1,

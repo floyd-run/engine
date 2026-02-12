@@ -10,7 +10,7 @@ import {
   type EvaluationInput,
   type EvaluationContext,
   type EvaluationResult,
-} from "services/policy/evaluate";
+} from "domain/policy/evaluate";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 

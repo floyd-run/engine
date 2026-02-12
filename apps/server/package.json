@@ -7,6 +7,8 @@
     "start": "tsx src/index.ts",
     "dev": "tsx watch -r dotenv/config src/index.ts",
     "test": "vitest",
+    "test:unit": "vitest --project unit",
+    "test:integration": "vitest --project integration",
     "migrate": "tsx -r dotenv/config src/scripts/migrate.ts",
     "migrate:down": "tsx -r dotenv/config src/scripts/migrate.ts down",
     "migrate:redo": "tsx -r dotenv/config src/scripts/migrate.ts redo",

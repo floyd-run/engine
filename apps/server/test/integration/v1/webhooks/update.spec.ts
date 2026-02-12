@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createLedger, createWebhookSubscription } from "../../setup/factories";
-import { WebhookSubscription } from "../../../src/routes/v1/serializers";
+import { WebhookSubscription } from "routes/v1/serializers";
 
 describe("PATCH /v1/ledgers/:ledgerId/webhooks/:subscriptionId", () => {
   it("returns 200 when updating url", async () => {

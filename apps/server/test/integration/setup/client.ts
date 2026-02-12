@@ -15,7 +15,7 @@ export interface Client {
 }
 
 export const createClient = async (): Promise<Client> => {
-  const { default: app } = await import("../../src/app");
+  const { default: app } = await import("../../../src/app");
 
   const makeRequest = async (
     method: HttpMethod,
@@ -43,6 +43,8 @@ export const createClient = async (): Promise<Client> => {
       makeRequest("GET", path, options?.headers ?? {}),
     post: (path: string, body?: unknown, options?: RequestOptions) =>
       makeRequest("POST", path, options?.headers ?? {}, body),
+    put: (path: string, body?: unknown, options?: RequestOptions) =>
+      makeRequest("PUT", path, options?.headers ?? {}, body),
     patch: (path: string, body?: unknown, options?: RequestOptions) =>
       makeRequest("PATCH", path, options?.headers ?? {}, body),
     delete: (path: string, body?: unknown, options?: RequestOptions) =>

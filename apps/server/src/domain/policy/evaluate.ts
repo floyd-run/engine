@@ -1,10 +1,10 @@
 /**
- * Pure policy evaluator implementing SPEC-POLICY-001 Steps 1-9.
+ * Pure policy evaluator.
  *
  * Takes a canonical policy config, a booking request, and evaluation context.
  * Returns whether the booking is allowed and the resolved config + effective windows.
  *
- * Step 10 (conflict detection) is NOT here — it stays in the allocation service.
+ * Conflict detection is NOT here — it stays in the allocation service.
  */
 
 // ─── Types ───────────────────────────────────────────────────────────────────

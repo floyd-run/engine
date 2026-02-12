@@ -2,9 +2,9 @@ import { db } from "database";
 import { createService } from "lib/service";
 import { generateId } from "@floyd-run/utils";
 import { policy } from "@floyd-run/schema/inputs";
-import { normalizePolicyConfig } from "./normalize";
-import { canonicalizePolicyConfig, hashPolicyConfig } from "./canonicalize";
-import { validatePolicyConfig } from "./validate";
+import { normalizePolicyConfig } from "domain/policy/normalize";
+import { canonicalizePolicyConfig, hashPolicyConfig } from "domain/policy/canonicalize";
+import { validatePolicyConfig } from "domain/policy/validate";
 
 export default createService({
   input: policy.createSchema,

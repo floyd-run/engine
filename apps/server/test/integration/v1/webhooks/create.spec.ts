@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createLedger } from "../../setup/factories";
-import { WebhookSubscription } from "../../../src/routes/v1/serializers";
+import { WebhookSubscription } from "routes/v1/serializers";
 
 describe("POST /v1/ledgers/:ledgerId/webhooks", () => {
   it("returns 201 for valid webhook subscription", async () => {

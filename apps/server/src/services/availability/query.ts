@@ -3,7 +3,7 @@ import { db } from "database";
 import { createService } from "lib/service";
 import { availability } from "@floyd-run/schema/inputs";
 import type { AvailabilityItem } from "@floyd-run/schema/types";
-import { clampInterval, mergeIntervals, buildTimeline } from "lib/timeline";
+import { clampInterval, mergeIntervals, buildTimeline } from "domain/scheduling/timeline";
 
 interface BlockingAllocation {
   resourceId: string;

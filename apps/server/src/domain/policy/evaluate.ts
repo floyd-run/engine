@@ -191,7 +191,7 @@ export function dateRange(from: string, to: string): string[] {
 /**
  * Convert time string (HH:MM) to milliseconds since midnight.
  */
-function timeToMs(time: string): number {
+export function timeToMs(time: string): number {
   if (time === "24:00") return 1440 * 60_000;
   const [h, m] = time.split(":").map(Number);
   return h! * 3_600_000 + m! * 60_000;
@@ -199,7 +199,7 @@ function timeToMs(time: string): number {
 
 // ─── Match Logic ─────────────────────────────────────────────────────────────
 
-function matchesCondition(match: RuleMatch, dateStr: string, dayOfWeek: string): boolean {
+export function matchesCondition(match: RuleMatch, dateStr: string, dayOfWeek: string): boolean {
   switch (match.type) {
     case "weekly":
       return match.days?.includes(dayOfWeek) ?? false;

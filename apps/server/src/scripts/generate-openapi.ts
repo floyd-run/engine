@@ -23,6 +23,10 @@ registry.register("Allocation", allocation.schema);
 registry.register("WebhookSubscription", webhook.subscriptionSchema);
 registry.register("AvailabilityItem", availability.itemSchema);
 registry.register("TimelineBlock", availability.timelineBlockSchema);
+registry.register("Slot", availability.slotSchema);
+registry.register("ResourceSlots", availability.resourceSlotsSchema);
+registry.register("Window", availability.windowSchema);
+registry.register("ResourceWindows", availability.resourceWindowsSchema);
 registry.register("Policy", policy.schema);
 registry.register("Service", service.schema);
 registry.register("Booking", booking.schema);
@@ -436,6 +440,113 @@ registry.registerPath({
     },
     409: {
       description: "Service has active bookings",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+// Service Availability routes
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/services/{id}/availability/slots",
+  tags: ["Service Availability"],
+  summary: "Query available booking slots",
+  description:
+    "Returns discrete grid-aligned time slots for appointment-style booking. " +
+    "Applies the service's policy (schedule, duration, grid, buffers, lead time) and filters by existing allocations. " +
+    "Pass includeUnavailable: true to get the full grid with available/unavailable status.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            startAt: z.string().datetime().openapi({
+              description: "Start of the query window (ISO 8601)",
+              example: "2026-03-02T00:00:00Z",
+            }),
+            endAt: z.string().datetime().openapi({
+              description: "End of the query window (ISO 8601). Max 7 days from startAt.",
+              example: "2026-03-07T00:00:00Z",
+            }),
+            durationMs: z.number().int().positive().openapi({
+              description: "Desired booking duration in milliseconds",
+              example: 3600000,
+            }),
+            resourceIds: z.array(z.string()).optional().openapi({
+              description:
+                "Filter to specific resources. Defaults to all resources in the service.",
+            }),
+            includeUnavailable: z.boolean().optional().openapi({
+              description: "Return all grid positions with status. Defaults to false.",
+            }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Available slots per resource",
+      content: { "application/json": { schema: availability.slotsResponseSchema } },
+    },
+    404: {
+      description: "Service not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    422: {
+      description: "Invalid input (range too large, invalid resourceIds, etc.)",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/services/{id}/availability/windows",
+  tags: ["Service Availability"],
+  summary: "Query available time windows",
+  description:
+    "Returns continuous available time ranges for rental-style booking. " +
+    "Applies the service's policy and subtracts existing allocations (with buffer-aware gap shrinkage). " +
+    "Pass includeUnavailable: true to get the full schedule with available/unavailable status.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            startAt: z.string().datetime().openapi({
+              description: "Start of the query window (ISO 8601)",
+              example: "2026-03-02T00:00:00Z",
+            }),
+            endAt: z.string().datetime().openapi({
+              description: "End of the query window (ISO 8601). Max 31 days from startAt.",
+              example: "2026-03-07T00:00:00Z",
+            }),
+            resourceIds: z.array(z.string()).optional().openapi({
+              description:
+                "Filter to specific resources. Defaults to all resources in the service.",
+            }),
+            includeUnavailable: z.boolean().optional().openapi({
+              description: "Return full schedule with status. Defaults to false.",
+            }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Available windows per resource",
+      content: { "application/json": { schema: availability.windowsResponseSchema } },
+    },
+    404: {
+      description: "Service not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    422: {
+      description: "Invalid input (range too large, invalid resourceIds, etc.)",
       content: { "application/json": { schema: error.schema } },
     },
   },

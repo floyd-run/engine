@@ -45,4 +45,30 @@ export const services = new Hono()
   .delete("/:id", async (c) => {
     await operations.service.remove({ id: c.req.param("id"), ledgerId: c.req.param("ledgerId")! });
     return c.body(null, 204);
+  })
+
+  .post("/:id/availability/slots", async (c) => {
+    const body = await c.req.json();
+    const result = await operations.availability.slots({
+      ...body,
+      serviceId: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({
+      data: result.data,
+      meta: { serverTime: result.serverTime.toISOString() },
+    });
+  })
+
+  .post("/:id/availability/windows", async (c) => {
+    const body = await c.req.json();
+    const result = await operations.availability.windows({
+      ...body,
+      serviceId: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({
+      data: result.data,
+      meta: { serverTime: result.serverTime.toISOString() },
+    });
   });

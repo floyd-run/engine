@@ -8,6 +8,8 @@ export {
   msSinceLocalMidnight,
   getDayOfWeek,
   dateRange,
+  timeToMs,
+  matchesCondition,
   REASON_CODES,
   type PolicyConfig,
   type EvaluationInput,

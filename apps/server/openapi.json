@@ -79,6 +79,12 @@
           "endAt": {
             "type": "string"
           },
+          "bufferBeforeMs": {
+            "type": "number"
+          },
+          "bufferAfterMs": {
+            "type": "number"
+          },
           "expiresAt": {
             "type": ["string", "null"]
           },
@@ -101,6 +107,8 @@
           "active",
           "startAt",
           "endAt",
+          "bufferBeforeMs",
+          "bufferAfterMs",
           "expiresAt",
           "metadata",
           "createdAt",
@@ -276,11 +284,25 @@
                 "endAt": {
                   "type": "string"
                 },
+                "bufferBeforeMs": {
+                  "type": "number"
+                },
+                "bufferAfterMs": {
+                  "type": "number"
+                },
                 "active": {
                   "type": "boolean"
                 }
               },
-              "required": ["id", "resourceId", "startAt", "endAt", "active"]
+              "required": [
+                "id",
+                "resourceId",
+                "startAt",
+                "endAt",
+                "bufferBeforeMs",
+                "bufferAfterMs",
+                "active"
+              ]
             }
           },
           "metadata": {
@@ -929,6 +951,12 @@
                           "endAt": {
                             "type": "string"
                           },
+                          "bufferBeforeMs": {
+                            "type": "number"
+                          },
+                          "bufferAfterMs": {
+                            "type": "number"
+                          },
                           "expiresAt": {
                             "type": ["string", "null"]
                           },
@@ -951,6 +979,8 @@
                           "active",
                           "startAt",
                           "endAt",
+                          "bufferBeforeMs",
+                          "bufferAfterMs",
                           "expiresAt",
                           "metadata",
                           "createdAt",
@@ -1045,6 +1075,12 @@
                         "endAt": {
                           "type": "string"
                         },
+                        "bufferBeforeMs": {
+                          "type": "number"
+                        },
+                        "bufferAfterMs": {
+                          "type": "number"
+                        },
                         "expiresAt": {
                           "type": ["string", "null"]
                         },
@@ -1067,6 +1103,8 @@
                         "active",
                         "startAt",
                         "endAt",
+                        "bufferBeforeMs",
+                        "bufferAfterMs",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -1181,6 +1219,12 @@
                         "endAt": {
                           "type": "string"
                         },
+                        "bufferBeforeMs": {
+                          "type": "number"
+                        },
+                        "bufferAfterMs": {
+                          "type": "number"
+                        },
                         "expiresAt": {
                           "type": ["string", "null"]
                         },
@@ -1203,6 +1247,8 @@
                         "active",
                         "startAt",
                         "endAt",
+                        "bufferBeforeMs",
+                        "bufferAfterMs",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -2010,11 +2056,25 @@
                                 "endAt": {
                                   "type": "string"
                                 },
+                                "bufferBeforeMs": {
+                                  "type": "number"
+                                },
+                                "bufferAfterMs": {
+                                  "type": "number"
+                                },
                                 "active": {
                                   "type": "boolean"
                                 }
                               },
-                              "required": ["id", "resourceId", "startAt", "endAt", "active"]
+                              "required": [
+                                "id",
+                                "resourceId",
+                                "startAt",
+                                "endAt",
+                                "bufferBeforeMs",
+                                "bufferAfterMs",
+                                "active"
+                              ]
                             }
                           },
                           "metadata": {
@@ -2052,7 +2112,7 @@
       "post": {
         "tags": ["Bookings"],
         "summary": "Create a new booking",
-        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. Supports idempotency via the Idempotency-Key header.",
+        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. When the policy defines buffers, the allocation's startAt/endAt represent the buffer-expanded blocked window. The original customer time can be derived using bufferBeforeMs and bufferAfterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
           {
             "schema": {
@@ -2147,11 +2207,25 @@
                               "endAt": {
                                 "type": "string"
                               },
+                              "bufferBeforeMs": {
+                                "type": "number"
+                              },
+                              "bufferAfterMs": {
+                                "type": "number"
+                              },
                               "active": {
                                 "type": "boolean"
                               }
                             },
-                            "required": ["id", "resourceId", "startAt", "endAt", "active"]
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startAt",
+                              "endAt",
+                              "bufferBeforeMs",
+                              "bufferAfterMs",
+                              "active"
+                            ]
                           }
                         },
                         "metadata": {
@@ -2334,11 +2408,25 @@
                               "endAt": {
                                 "type": "string"
                               },
+                              "bufferBeforeMs": {
+                                "type": "number"
+                              },
+                              "bufferAfterMs": {
+                                "type": "number"
+                              },
                               "active": {
                                 "type": "boolean"
                               }
                             },
-                            "required": ["id", "resourceId", "startAt", "endAt", "active"]
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startAt",
+                              "endAt",
+                              "bufferBeforeMs",
+                              "bufferAfterMs",
+                              "active"
+                            ]
                           }
                         },
                         "metadata": {
@@ -2485,11 +2573,25 @@
                               "endAt": {
                                 "type": "string"
                               },
+                              "bufferBeforeMs": {
+                                "type": "number"
+                              },
+                              "bufferAfterMs": {
+                                "type": "number"
+                              },
                               "active": {
                                 "type": "boolean"
                               }
                             },
-                            "required": ["id", "resourceId", "startAt", "endAt", "active"]
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startAt",
+                              "endAt",
+                              "bufferBeforeMs",
+                              "bufferAfterMs",
+                              "active"
+                            ]
                           }
                         },
                         "metadata": {
@@ -2672,11 +2774,25 @@
                               "endAt": {
                                 "type": "string"
                               },
+                              "bufferBeforeMs": {
+                                "type": "number"
+                              },
+                              "bufferAfterMs": {
+                                "type": "number"
+                              },
                               "active": {
                                 "type": "boolean"
                               }
                             },
-                            "required": ["id", "resourceId", "startAt", "endAt", "active"]
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startAt",
+                              "endAt",
+                              "bufferBeforeMs",
+                              "bufferAfterMs",
+                              "active"
+                            ]
                           }
                         },
                         "metadata": {

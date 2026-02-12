@@ -41,6 +41,8 @@ Response:
     "active": true,
     "startAt": "2026-01-04T10:00:00.000Z",
     "endAt": "2026-01-04T11:00:00.000Z",
+    "bufferBeforeMs": 0,
+    "bufferAfterMs": 0,
     "expiresAt": null,
     "metadata": { "reason": "maintenance" },
     "createdAt": "2026-01-04T10:00:00.000Z",
@@ -118,16 +120,18 @@ Overlap exists iff:
 
 ## Allocation fields
 
-| Field        | Type    | Description                                                 |
-| ------------ | ------- | ----------------------------------------------------------- |
-| `id`         | string  | Allocation ID (`alc_` prefix)                               |
-| `ledgerId`   | string  | Ledger this allocation belongs to                           |
-| `resourceId` | string  | Resource being blocked                                      |
-| `bookingId`  | string  | Booking that owns this allocation, or `null` for raw blocks |
-| `active`     | boolean | `true` = blocks time, `false` = historical record           |
-| `startAt`    | string  | Start of the time block (ISO 8601)                          |
-| `endAt`      | string  | End of the time block (ISO 8601)                            |
-| `expiresAt`  | string  | Expiration time, or `null` for permanent blocks             |
-| `metadata`   | object  | Arbitrary key-value data                                    |
-| `createdAt`  | string  | Creation timestamp                                          |
-| `updatedAt`  | string  | Last update timestamp                                       |
+| Field            | Type    | Description                                                                                          |
+| ---------------- | ------- | ---------------------------------------------------------------------------------------------------- |
+| `id`             | string  | Allocation ID (`alc_` prefix)                                                                        |
+| `ledgerId`       | string  | Ledger this allocation belongs to                                                                    |
+| `resourceId`     | string  | Resource being blocked                                                                               |
+| `bookingId`      | string  | Booking that owns this allocation, or `null` for raw blocks                                          |
+| `active`         | boolean | `true` = blocks time, `false` = historical record                                                    |
+| `startAt`        | string  | Start of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy. |
+| `endAt`          | string  | End of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy.   |
+| `bufferBeforeMs` | number  | Buffer time before the customer appointment (ms). `0` for raw allocations.                           |
+| `bufferAfterMs`  | number  | Buffer time after the customer appointment (ms). `0` for raw allocations.                            |
+| `expiresAt`      | string  | Expiration time, or `null` for permanent blocks                                                      |
+| `metadata`       | object  | Arbitrary key-value data                                                                             |
+| `createdAt`      | string  | Creation timestamp                                                                                   |
+| `updatedAt`      | string  | Last update timestamp                                                                                |

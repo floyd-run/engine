@@ -50,10 +50,11 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
 ### What happens on create
 
 1. Validates the resource belongs to the service
-2. If the service has a policy, evaluates it (working hours, duration, grid, etc.)
-3. Checks for time conflicts on the resource
-4. Creates a booking with `status=hold` and `expiresAt` (default: 15 minutes from now)
-5. Creates an allocation linked to the booking
+2. If the service has a policy, evaluates it (working hours, duration, grid, buffers, etc.)
+3. If the policy defines buffers, expands the allocation's time window (see [Buffers](#buffers))
+4. Checks for time conflicts on the resource
+5. Creates a booking with `status=hold` and `expiresAt` (default: 15 minutes from now)
+6. Creates an allocation linked to the booking
 
 ### Creating as confirmed
 
@@ -130,8 +131,10 @@ After expiration, the time slot is available for new bookings.
       {
         "id": "alc_...",
         "resourceId": "rsc_...",
-        "startAt": "2026-03-01T10:00:00.000Z",
-        "endAt": "2026-03-01T11:00:00.000Z",
+        "startAt": "2026-03-01T09:45:00.000Z",
+        "endAt": "2026-03-01T11:10:00.000Z",
+        "bufferBeforeMs": 900000,
+        "bufferAfterMs": 600000,
         "active": true
       }
     ],
@@ -146,6 +149,21 @@ After expiration, the time slot is available for new bookings.
 ```
 
 Mutating endpoints (`create`, `confirm`, `cancel`) return `meta.serverTime`.
+
+## Buffers
+
+When a service's policy defines buffers (`before_ms` / `after_ms`), the allocation's `startAt` and `endAt` are expanded to include the buffer time. This is the actual blocked window on the resource.
+
+For example, a booking at 10:00–11:00 with a 15-minute before-buffer and 10-minute after-buffer creates an allocation blocking 09:45–11:10.
+
+The allocation includes `bufferBeforeMs` and `bufferAfterMs` so the original customer time is derivable:
+
+- Customer start = `allocation.startAt` + `bufferBeforeMs`
+- Customer end = `allocation.endAt` - `bufferAfterMs`
+
+When no policy or no buffers are configured, both values are `0` and the allocation times match the requested times exactly.
+
+Conflict detection uses the buffer-expanded times, so adjacent customer appointments that would overlap in buffer time are correctly rejected.
 
 ## History
 

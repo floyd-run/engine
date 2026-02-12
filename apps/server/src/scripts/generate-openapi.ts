@@ -483,7 +483,10 @@ registry.registerPath({
   tags: ["Bookings"],
   summary: "Create a new booking",
   description:
-    "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. Supports idempotency via the Idempotency-Key header.",
+    "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. " +
+    "When the policy defines buffers, the allocation's startAt/endAt represent the buffer-expanded blocked window. " +
+    "The original customer time can be derived using bufferBeforeMs and bufferAfterMs on the allocation. " +
+    "Supports idempotency via the Idempotency-Key header.",
   request: {
     params: z.object({ ledgerId: z.string() }),
     body: {

@@ -31,6 +31,7 @@ See the [Quickstart](./quickstart) for full setup instructions.
 
 - **Hold**: temporarily reserves a time slot with `expiresAt`
 - **Confirm**: commits the hold and clears expiry
+- **Policy**: scheduling rules (working hours, duration limits, grid alignment, buffers)
 - **Idempotency**: retry-safe create requests using `Idempotency-Key` header
 - **409 Conflict**: means "the slot is not available" or "idempotency mismatch"
 
@@ -38,6 +39,7 @@ See the [Quickstart](./quickstart) for full setup instructions.
 
 - [Quickstart](./quickstart) - Get running in 5 minutes
 - [Allocations](./allocations) - The booking model
+- [Policies](./policies) - Scheduling rules
 - [Availability](./availability) - Query free/busy timelines
 - [Webhooks](./webhooks) - Real-time notifications
 - [Idempotency](./idempotency) - Safe retries

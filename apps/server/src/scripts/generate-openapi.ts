@@ -7,6 +7,7 @@ import {
   resource,
   ledger,
   webhook,
+  policy,
   error,
   availability,
 } from "@floyd-run/schema/outputs";
@@ -20,6 +21,7 @@ registry.register("Allocation", allocation.schema);
 registry.register("WebhookSubscription", webhook.subscriptionSchema);
 registry.register("AvailabilityItem", availability.itemSchema);
 registry.register("TimelineBlock", availability.timelineBlockSchema);
+registry.register("Policy", policy.schema);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -417,6 +419,132 @@ registry.registerPath({
     },
     404: {
       description: "Webhook subscription not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+// Policy routes
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/policies",
+  tags: ["Policies"],
+  summary: "List policies for a ledger",
+  request: { params: z.object({ ledgerId: z.string() }) },
+  responses: {
+    200: {
+      description: "List of policies",
+      content: { "application/json": { schema: policy.listSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "get",
+  path: "/v1/ledgers/{ledgerId}/policies/{id}",
+  tags: ["Policies"],
+  summary: "Get a policy by ID",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    200: {
+      description: "Policy details",
+      content: { "application/json": { schema: policy.getSchema } },
+    },
+    404: {
+      description: "Policy not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/policies",
+  tags: ["Policies"],
+  summary: "Create a policy",
+  description:
+    "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds).",
+  request: {
+    params: z.object({ ledgerId: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            config: z
+              .object({
+                schema_version: z.literal(1),
+                default: z.enum(["open", "closed"]),
+                config: z.object({}).passthrough(),
+                rules: z.array(z.object({}).passthrough()).optional(),
+              })
+              .passthrough()
+              .openapi({ description: "Policy configuration in authoring format" }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    201: {
+      description: "Policy created (may include warnings)",
+      content: { "application/json": { schema: policy.getSchema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "put",
+  path: "/v1/ledgers/{ledgerId}/policies/{id}",
+  tags: ["Policies"],
+  summary: "Update a policy",
+  description:
+    "Replaces the full policy configuration. The config is re-normalized, re-validated, and re-hashed.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            config: z
+              .object({
+                schema_version: z.literal(1),
+                default: z.enum(["open", "closed"]),
+                config: z.object({}).passthrough(),
+                rules: z.array(z.object({}).passthrough()).optional(),
+              })
+              .passthrough()
+              .openapi({ description: "Policy configuration in authoring format" }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Policy updated (may include warnings)",
+      content: { "application/json": { schema: policy.getSchema } },
+    },
+    404: {
+      description: "Policy not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
+registry.registerPath({
+  method: "delete",
+  path: "/v1/ledgers/{ledgerId}/policies/{id}",
+  tags: ["Policies"],
+  summary: "Delete a policy",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+  },
+  responses: {
+    204: { description: "Policy deleted" },
+    404: {
+      description: "Policy not found",
       content: { "application/json": { schema: error.schema } },
     },
   },

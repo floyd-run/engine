@@ -25,6 +25,7 @@
           "icon": "phosphor/regular/puzzle-piece",
           "children": [
             { "type": "page", "name": "Allocations", "path": "docs/allocations.md" },
+            { "type": "page", "name": "Policies", "path": "docs/policies.md" },
             { "type": "page", "name": "Availability", "path": "docs/availability.md" },
             { "type": "page", "name": "Webhooks", "path": "docs/webhooks.md" },
             { "type": "page", "name": "Idempotency", "path": "docs/idempotency.md" },

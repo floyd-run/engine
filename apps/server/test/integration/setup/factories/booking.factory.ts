@@ -81,6 +81,8 @@ export async function createBooking(overrides?: {
       active: status === "hold" || status === "confirmed",
       startAt,
       endAt,
+      bufferBeforeMs: 0,
+      bufferAfterMs: 0,
       expiresAt,
       metadata: null,
     })

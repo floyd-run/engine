@@ -5,6 +5,7 @@ import {
   createResource,
   createService,
   createAllocation,
+  createPolicy,
 } from "../../setup/factories";
 import type { Booking } from "@floyd-run/schema/types";
 
@@ -262,6 +263,164 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         resourceId: resource.id,
         startAt: "2026-06-01T10:00:00.000Z",
         endAt: "2026-06-01T11:00:00.000Z",
+      });
+
+      expect(response.status).toBe(201);
+    });
+  });
+
+  describe("buffers", () => {
+    it("stores buffer-expanded times as allocation startAt/endAt", async () => {
+      const { ledger } = await createLedger();
+      const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({
+        ledgerId: ledger.id,
+        config: {
+          schema_version: 1,
+          default: "open",
+          config: {
+            buffers: { before_ms: 900_000, after_ms: 600_000 }, // 15min before, 10min after
+          },
+        },
+      });
+      const { service } = await createService({
+        ledgerId: ledger.id,
+        policyId: policy.id,
+        resourceIds: [resource.id],
+      });
+
+      const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt: "2026-06-01T10:00:00.000Z",
+        endAt: "2026-06-01T11:00:00.000Z",
+        status: "confirmed",
+      });
+
+      expect(response.status).toBe(201);
+      const { data } = (await response.json()) as { data: Booking };
+      const alloc = data.allocations[0]!;
+
+      // Allocation startAt/endAt = buffer-expanded blocked window
+      expect(alloc.startAt).toBe("2026-06-01T09:45:00.000Z"); // 10:00 - 15min
+      expect(alloc.endAt).toBe("2026-06-01T11:10:00.000Z"); // 11:00 + 10min
+
+      // Buffer amounts stored for deriving original customer time
+      expect(alloc.bufferBeforeMs).toBe(900_000);
+      expect(alloc.bufferAfterMs).toBe(600_000);
+    });
+
+    it("stores zero buffers when no policy", async () => {
+      const { ledger } = await createLedger();
+      const { resource } = await createResource({ ledgerId: ledger.id });
+      const { service } = await createService({
+        ledgerId: ledger.id,
+        resourceIds: [resource.id],
+      });
+
+      const startAt = "2026-06-01T10:00:00.000Z";
+      const endAt = "2026-06-01T11:00:00.000Z";
+
+      const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt,
+        endAt,
+        status: "confirmed",
+      });
+
+      expect(response.status).toBe(201);
+      const { data } = (await response.json()) as { data: Booking };
+      const alloc = data.allocations[0]!;
+
+      // Without policy, allocation times = input times (no buffers)
+      expect(alloc.startAt).toBe(startAt);
+      expect(alloc.endAt).toBe(endAt);
+      expect(alloc.bufferBeforeMs).toBe(0);
+      expect(alloc.bufferAfterMs).toBe(0);
+    });
+
+    it("detects conflicts across buffer windows", async () => {
+      const { ledger } = await createLedger();
+      const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({
+        ledgerId: ledger.id,
+        config: {
+          schema_version: 1,
+          default: "open",
+          config: {
+            buffers: { before_ms: 0, after_ms: 1_800_000 }, // 30min after-buffer
+          },
+        },
+      });
+      const { service } = await createService({
+        ledgerId: ledger.id,
+        policyId: policy.id,
+        resourceIds: [resource.id],
+      });
+
+      // First booking: customer 10:00-11:00, allocation blocks until 11:30
+      const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt: "2026-06-01T10:00:00.000Z",
+        endAt: "2026-06-01T11:00:00.000Z",
+        status: "confirmed",
+      });
+      expect(first.status).toBe(201);
+
+      // Second booking: customer 11:00-12:00, allocation starts at 11:00
+      // Conflicts because first allocation blocks until 11:30
+      const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt: "2026-06-01T11:00:00.000Z",
+        endAt: "2026-06-01T12:00:00.000Z",
+        status: "confirmed",
+      });
+
+      expect(response.status).toBe(409);
+      const body = (await response.json()) as { error: { code: string } };
+      expect(body.error.code).toBe("overlap_conflict");
+    });
+
+    it("allows bookings outside the buffer window", async () => {
+      const { ledger } = await createLedger();
+      const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({
+        ledgerId: ledger.id,
+        config: {
+          schema_version: 1,
+          default: "open",
+          config: {
+            buffers: { before_ms: 900_000, after_ms: 900_000 }, // 15min each side
+          },
+        },
+      });
+      const { service } = await createService({
+        ledgerId: ledger.id,
+        policyId: policy.id,
+        resourceIds: [resource.id],
+      });
+
+      // First booking: customer 10:00-11:00, allocation 09:45-11:15
+      const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt: "2026-06-01T10:00:00.000Z",
+        endAt: "2026-06-01T11:00:00.000Z",
+        status: "confirmed",
+      });
+      expect(first.status).toBe(201);
+
+      // Second booking: customer 11:30-12:30, allocation 11:15-12:45
+      // Adjacent at 11:15 — no overlap
+      const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+        serviceId: service.id,
+        resourceId: resource.id,
+        startAt: "2026-06-01T11:30:00.000Z",
+        endAt: "2026-06-01T12:30:00.000Z",
+        status: "confirmed",
       });
 
       expect(response.status).toBe(201);

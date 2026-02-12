@@ -36,6 +36,8 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
     active: allocation.active,
     startAt: allocation.startAt.toISOString(),
     endAt: allocation.endAt.toISOString(),
+    bufferBeforeMs: allocation.bufferBeforeMs,
+    bufferAfterMs: allocation.bufferAfterMs,
     expiresAt: allocation.expiresAt?.toISOString() ?? null,
     metadata: allocation.metadata,
     createdAt: allocation.createdAt.toISOString(),
@@ -61,30 +63,11 @@ export function serializeWebhookSubscription(sub: WebhookSubscriptionRow): Webho
   };
 }
 
-function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
-}
-
-/** Recursively convert camelCase keys back to snake_case (undoes CamelCasePlugin on JSONB) */
-function snakeCaseKeys(obj: unknown): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map(snakeCaseKeys);
-  }
-  if (obj !== null && typeof obj === "object" && !(obj instanceof Date)) {
-    const result: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      result[camelToSnake(key)] = snakeCaseKeys(value);
-    }
-    return result;
-  }
-  return obj;
-}
-
 export function serializePolicy(policy: PolicyRow): Policy {
   return {
     id: policy.id,
     ledgerId: policy.ledgerId,
-    config: snakeCaseKeys(policy.config) as Record<string, unknown>,
+    config: policy.config as Record<string, unknown>,
     configHash: policy.configHash,
     createdAt: policy.createdAt.toISOString(),
     updatedAt: policy.updatedAt.toISOString(),
@@ -116,6 +99,8 @@ export function serializeBooking(booking: BookingRow, allocations: AllocationRow
       resourceId: a.resourceId,
       startAt: a.startAt.toISOString(),
       endAt: a.endAt.toISOString(),
+      bufferBeforeMs: a.bufferBeforeMs,
+      bufferAfterMs: a.bufferAfterMs,
       active: a.active,
     })),
     metadata: booking.metadata,

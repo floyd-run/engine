@@ -56,6 +56,10 @@ export default createOperation({
 
       // 5. Policy evaluation (if service has a policy)
       let holdDurationMs = DEFAULT_HOLD_DURATION_MS;
+      let startAt = input.startAt;
+      let endAt = input.endAt;
+      let bufferBeforeMs = 0;
+      let bufferAfterMs = 0;
       if (svc.policyId) {
         const policy = await trx
           .selectFrom("policies")
@@ -79,13 +83,19 @@ export default createOperation({
             });
           }
 
+          // Use buffer-expanded times as the allocation's blocked window
+          startAt = result.effectiveStartAt;
+          endAt = result.effectiveEndAt;
+          bufferBeforeMs = result.bufferBeforeMs;
+          bufferAfterMs = result.bufferAfterMs;
+
           // Use policy hold_duration if configured
-          const policyConfig = policy.config as Record<string, unknown>;
+          const configRecord = policy.config as Record<string, unknown>;
           if (
-            policyConfig["hold_duration_ms"] &&
-            typeof policyConfig["hold_duration_ms"] === "number"
+            configRecord["hold_duration_ms"] &&
+            typeof configRecord["hold_duration_ms"] === "number"
           ) {
-            holdDurationMs = policyConfig["hold_duration_ms"];
+            holdDurationMs = configRecord["hold_duration_ms"];
           }
         }
       }
@@ -93,12 +103,12 @@ export default createOperation({
       // 6. Conflict check: active, non-expired, overlapping allocations
       const conflicting = await trx
         .selectFrom("allocations")
-        .select(["id", "startAt", "endAt"])
+        .select("id")
         .where("resourceId", "=", input.resourceId)
         .where("active", "=", true)
         .where((eb) => eb.or([eb("expiresAt", "is", null), eb("expiresAt", ">", serverTime)]))
-        .where("startAt", "<", input.endAt)
-        .where("endAt", ">", input.startAt)
+        .where("startAt", "<", endAt)
+        .where("endAt", ">", startAt)
         .execute();
 
       if (conflicting.length > 0) {
@@ -125,7 +135,7 @@ export default createOperation({
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // 9. Insert allocation
+      // 9. Insert allocation (startAt/endAt = blocked window including buffers)
       const alloc = await trx
         .insertInto("allocations")
         .values({
@@ -134,8 +144,10 @@ export default createOperation({
           resourceId: input.resourceId,
           bookingId: bkg.id,
           active: true,
-          startAt: input.startAt,
-          endAt: input.endAt,
+          startAt,
+          endAt,
+          bufferBeforeMs,
+          bufferAfterMs,
           expiresAt,
           metadata: null,
         })

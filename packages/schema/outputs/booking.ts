@@ -6,6 +6,8 @@ const bookingAllocationSchema = z.object({
   resourceId: z.string(),
   startAt: z.string(),
   endAt: z.string(),
+  bufferBeforeMs: z.number(),
+  bufferAfterMs: z.number(),
   active: z.boolean(),
 });
 

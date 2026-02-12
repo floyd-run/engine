@@ -8,6 +8,8 @@ export const schema = z.object({
   active: z.boolean(),
   startAt: z.string(),
   endAt: z.string(),
+  bufferBeforeMs: z.number(),
+  bufferAfterMs: z.number(),
   expiresAt: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.string(),

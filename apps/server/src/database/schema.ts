@@ -27,6 +27,8 @@ export interface AllocationsTable {
   active: boolean;
   startAt: Date;
   endAt: Date;
+  bufferBeforeMs: number;
+  bufferAfterMs: number;
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;
   createdAt: Generated<Date>;

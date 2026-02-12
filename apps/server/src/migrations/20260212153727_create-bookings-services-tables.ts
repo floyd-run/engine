@@ -94,6 +94,17 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await sql`ALTER TABLE allocations DROP CONSTRAINT IF EXISTS allocations_status_check`.execute(db);
   await db.schema.alterTable("allocations").dropColumn("status").execute();
 
+  // Add buffer columns
+  await db.schema
+    .alterTable("allocations")
+    .addColumn("buffer_before_ms", "integer", (col) => col.notNull().defaultTo(0))
+    .execute();
+
+  await db.schema
+    .alterTable("allocations")
+    .addColumn("buffer_after_ms", "integer", (col) => col.notNull().defaultTo(0))
+    .execute();
+
   // Drop old indexes
   await db.schema.dropIndex("idx_allocations_status").ifExists().execute();
   await db.schema.dropIndex("idx_allocations_time_range").ifExists().execute();
@@ -152,6 +163,8 @@ export async function down(db: Kysely<Database>): Promise<void> {
   `.execute(db);
 
   // Drop new columns
+  await db.schema.alterTable("allocations").dropColumn("buffer_after_ms").execute();
+  await db.schema.alterTable("allocations").dropColumn("buffer_before_ms").execute();
   await db.schema.alterTable("allocations").dropColumn("active").execute();
   await db.schema.alterTable("allocations").dropColumn("booking_id").execute();
 

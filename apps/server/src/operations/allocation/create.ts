@@ -28,11 +28,10 @@ export default createOperation({
       // 3. Check for overlapping active allocations (not expired)
       const conflicting = await trx
         .selectFrom("allocations")
-        .select(["id", "startAt", "endAt"])
+        .select("id")
         .where("resourceId", "=", input.resourceId)
         .where("active", "=", true)
         .where((eb) => eb.or([eb("expiresAt", "is", null), eb("expiresAt", ">", serverTime)]))
-        // Overlap condition: existing.start < new.end AND existing.end > new.start
         .where("startAt", "<", input.endAt)
         .where("endAt", ">", input.startAt)
         .execute();
@@ -54,6 +53,8 @@ export default createOperation({
           active: true,
           startAt: input.startAt,
           endAt: input.endAt,
+          bufferBeforeMs: 0,
+          bufferAfterMs: 0,
           expiresAt: input.expiresAt ?? null,
           metadata: input.metadata ?? null,
         })

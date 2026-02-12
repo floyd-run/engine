@@ -45,6 +45,8 @@ export async function createAllocation(overrides?: {
       active: overrides?.active ?? true,
       startAt,
       endAt,
+      bufferBeforeMs: 0,
+      bufferAfterMs: 0,
       expiresAt: overrides?.expiresAt ?? null,
       metadata: overrides?.metadata ?? null,
     })

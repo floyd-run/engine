@@ -1,6 +1,6 @@
 import type { Hono } from "hono";
 
-type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
+type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
   headers?: Record<string, string>;
@@ -9,6 +9,7 @@ interface RequestOptions {
 export interface Client {
   get: (path: string, options?: RequestOptions) => Promise<Response>;
   post: (path: string, body?: unknown, options?: RequestOptions) => Promise<Response>;
+  put: (path: string, body?: unknown, options?: RequestOptions) => Promise<Response>;
   patch: (path: string, body?: unknown, options?: RequestOptions) => Promise<Response>;
   delete: (path: string, body?: unknown, options?: RequestOptions) => Promise<Response>;
 }

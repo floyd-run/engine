@@ -67,11 +67,21 @@ export interface WebhookDeliveriesTable {
   createdAt: Generated<Date>;
 }
 
+export interface PoliciesTable {
+  id: string;
+  ledgerId: string;
+  config: Record<string, unknown>;
+  configHash: string;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
 export interface Database {
   allocations: AllocationsTable;
   idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
   ledgers: LedgersTable;
+  policies: PoliciesTable;
   webhookSubscriptions: WebhookSubscriptionsTable;
   webhookDeliveries: WebhookDeliveriesTable;
 }
@@ -97,3 +107,7 @@ export type WebhookSubscriptionUpdate = Updateable<WebhookSubscriptionsTable>;
 
 export type WebhookDeliveryRow = Selectable<WebhookDeliveriesTable>;
 export type NewWebhookDelivery = Insertable<WebhookDeliveriesTable>;
+
+export type PolicyRow = Selectable<PoliciesTable>;
+export type NewPolicy = Insertable<PoliciesTable>;
+export type PolicyUpdate = Updateable<PoliciesTable>;

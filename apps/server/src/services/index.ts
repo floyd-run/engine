@@ -3,6 +3,7 @@ import { availability } from "./availability";
 import { resource } from "./resource";
 import { ledger } from "./ledger";
 import { webhook } from "./webhook";
+import { policy } from "./policy";
 
 export const services = {
   allocation,
@@ -10,4 +11,5 @@ export const services = {
   resource,
   ledger,
   webhook,
+  policy,
 };

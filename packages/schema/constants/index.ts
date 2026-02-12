@@ -17,3 +17,8 @@ export const WebhookDeliveryStatus = {
   FAILED: "failed",
   EXHAUSTED: "exhausted",
 } as const;
+
+export const PolicyDefault = {
+  OPEN: "open",
+  CLOSED: "closed",
+} as const;

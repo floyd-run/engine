@@ -1,5 +1,4 @@
-import { db } from "database";
-import { sql } from "kysely";
+import { db, getServerTime } from "database";
 import { logger } from "infra/logger";
 import { enqueueWebhookEvent } from "infra/webhooks";
 
@@ -10,11 +9,7 @@ let isRunning = false;
 
 async function processExpiredHolds(): Promise<number> {
   return await db.transaction().execute(async (trx) => {
-    // Get server time
-    const result = await sql<{
-      serverTime: Date;
-    }>`SELECT clock_timestamp() AS server_time`.execute(trx);
-    const serverTime = result.rows[0]!.serverTime;
+    const serverTime = await getServerTime(trx);
 
     // Find expired holds and lock them
     const expiredHolds = await trx

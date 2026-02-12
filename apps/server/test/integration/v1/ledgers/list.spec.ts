@@ -14,8 +14,8 @@ describe("GET /v1/ledgers", () => {
   });
 
   it("returns 200 with ledgers list", async () => {
-    const { ledger: ws1 } = await createLedger();
-    const { ledger: ws2 } = await createLedger();
+    const { ledger: ledger1 } = await createLedger();
+    const { ledger: ledger2 } = await createLedger();
 
     const response = await client.get("/v1/ledgers");
     expect(response.status).toBe(200);
@@ -25,7 +25,7 @@ describe("GET /v1/ledgers", () => {
     expect(body.data.length).toBeGreaterThanOrEqual(2);
 
     const ids = body.data.map((w) => w.id);
-    expect(ids).toContain(ws1.id);
-    expect(ids).toContain(ws2.id);
+    expect(ids).toContain(ledger1.id);
+    expect(ids).toContain(ledger2.id);
   });
 });

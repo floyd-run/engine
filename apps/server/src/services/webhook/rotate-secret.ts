@@ -1,11 +1,7 @@
 import { db } from "database";
 import { createService } from "lib/service";
 import { webhook } from "@floyd-run/schema/inputs";
-import { randomBytes } from "crypto";
-
-function generateSecret(): string {
-  return `whsec_${randomBytes(24).toString("base64url")}`;
-}
+import { generateSecret } from "./generate-secret";
 
 export default createService({
   input: webhook.rotateSecretSchema,

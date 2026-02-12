@@ -2,9 +2,7 @@ import { db } from "database";
 import { createService } from "lib/service";
 import { policy } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
-import { normalizePolicyConfig } from "domain/policy/normalize";
-import { canonicalizePolicyConfig, hashPolicyConfig } from "domain/policy/canonicalize";
-import { validatePolicyConfig } from "domain/policy/validate";
+import { preparePolicyConfig } from "domain/policy";
 
 export default createService({
   input: policy.updateSchema,
@@ -21,10 +19,9 @@ export default createService({
     }
 
     // 2. Normalize, validate, canonicalize, hash
-    const normalized = normalizePolicyConfig(input.config as unknown as Record<string, unknown>);
-    const { warnings } = validatePolicyConfig(normalized);
-    const canonicalJson = canonicalizePolicyConfig(normalized);
-    const configHash = hashPolicyConfig(canonicalJson);
+    const { normalized, configHash, warnings } = preparePolicyConfig(
+      input.config as unknown as Record<string, unknown>,
+    );
 
     // 3. Update
     const row = await db

@@ -31,12 +31,12 @@ describe("GET /v1/ledgers/:ledgerId/resources", () => {
   });
 
   it("does not return resources from other ledgers", async () => {
-    const { ledger: ws1 } = await createLedger();
-    const { ledger: ws2 } = await createLedger();
-    const { resource } = await createResource({ ledgerId: ws1.id });
-    await createResource({ ledgerId: ws2.id });
+    const { ledger: ledger1 } = await createLedger();
+    const { ledger: ledger2 } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ledger1.id });
+    await createResource({ ledgerId: ledger2.id });
 
-    const response = await client.get(`/v1/ledgers/${ws1.id}/resources`);
+    const response = await client.get(`/v1/ledgers/${ledger1.id}/resources`);
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as ListResponse<Resource>;

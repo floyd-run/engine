@@ -1,5 +1,4 @@
-import { sql } from "kysely";
-import { db } from "database";
+import { db, getServerTime } from "database";
 import { createService } from "lib/service";
 import { generateId } from "@floyd-run/utils";
 import { allocation } from "@floyd-run/schema/inputs";
@@ -23,10 +22,7 @@ export default createService({
       }
 
       // 2. Capture server time immediately after acquiring lock
-      const result = await sql<{
-        serverTime: Date;
-      }>`SELECT clock_timestamp() AS server_time`.execute(trx);
-      const serverTime = result.rows[0]!.serverTime;
+      const serverTime = await getServerTime(trx);
 
       // 3. Check for overlapping allocations that would block this request
       // Blocking allocations are: confirmed OR (hold AND not expired)

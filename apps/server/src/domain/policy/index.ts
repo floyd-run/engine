@@ -1,6 +1,7 @@
 export { normalizePolicyConfig } from "./normalize";
 export { canonicalizePolicyConfig, hashPolicyConfig } from "./canonicalize";
 export { validatePolicyConfig, type PolicyWarning } from "./validate";
+export { preparePolicyConfig } from "./prepare";
 export {
   evaluatePolicy,
   toLocalDate,

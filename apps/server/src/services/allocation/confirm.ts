@@ -1,5 +1,4 @@
-import { db } from "database";
-import { sql } from "kysely";
+import { db, getServerTime } from "database";
 import { createService } from "lib/service";
 import { allocation } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
@@ -22,10 +21,7 @@ export default createService({
       }
 
       // 2. Capture server time after acquiring lock
-      const result = await sql<{
-        serverTime: Date;
-      }>`SELECT clock_timestamp() AS server_time`.execute(trx);
-      const serverTime = result.rows[0]!.serverTime;
+      const serverTime = await getServerTime(trx);
 
       // 3. Validate state transition
       if (existing.status === "confirmed") {

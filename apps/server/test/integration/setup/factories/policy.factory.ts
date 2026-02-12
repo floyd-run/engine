@@ -1,8 +1,7 @@
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
 import { createLedger } from "./ledger.factory";
-import { normalizePolicyConfig } from "domain/policy/normalize";
-import { canonicalizePolicyConfig, hashPolicyConfig } from "domain/policy/canonicalize";
+import { preparePolicyConfig } from "domain/policy";
 
 const DEFAULT_CONFIG = {
   schema_version: 1,
@@ -30,9 +29,7 @@ export async function createPolicy(overrides?: {
   }
 
   const rawConfig = overrides?.config ?? DEFAULT_CONFIG;
-  const normalized = normalizePolicyConfig(rawConfig);
-  const canonicalJson = canonicalizePolicyConfig(normalized);
-  const configHash = hashPolicyConfig(canonicalJson);
+  const { normalized, configHash } = preparePolicyConfig(rawConfig);
 
   const policy = await db
     .insertInto("policies")

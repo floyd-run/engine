@@ -138,7 +138,18 @@ export function idempotent(options: IdempotencyOptions = {}) {
         ttlHours,
       });
 
-      await next();
+      try {
+        await next();
+      } catch (handlerError: unknown) {
+        // Handler failed — clean up the in_progress record so client can retry
+        await db
+          .deleteFrom("idempotencyKeys")
+          .where("ledgerId", "=", ledgerId)
+          .where("key", "=", idempotencyKey)
+          .where("status", "=", "in_progress")
+          .execute();
+        throw handlerError;
+      }
     } catch (error: unknown) {
       // Check if it's a unique constraint violation
       const isConflict =
@@ -257,24 +268,5 @@ export async function storeIdempotencyResponse(
     })
     .where("ledgerId", "=", ctx.ledgerId)
     .where("key", "=", ctx.key)
-    .execute();
-}
-
-/**
- * Call this if the handler fails to clean up the in_progress record.
- * This allows the client to retry with the same idempotency key.
- */
-export async function clearIdempotencyKey(c: Context): Promise<void> {
-  const ctx = c.get("idempotencyContext") as IdempotencyContext | undefined;
-
-  if (!ctx) {
-    return;
-  }
-
-  await db
-    .deleteFrom("idempotencyKeys")
-    .where("ledgerId", "=", ctx.ledgerId)
-    .where("key", "=", ctx.key)
-    .where("status", "=", "in_progress")
     .execute();
 }

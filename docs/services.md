@@ -92,6 +92,15 @@ When a booking is created against a service:
 
 A resource can belong to multiple services. For example, "Room A" could be used by both "Yoga Class" and "Meeting Rental" services, each with different policies.
 
+## Querying availability
+
+Once a service is set up, query when it's bookable:
+
+- **[Slots](./availability#slots)** — grid-aligned positions for appointment-style booking (`POST /services/:id/availability/slots`)
+- **[Windows](./availability#windows)** — continuous available ranges for rental-style booking (`POST /services/:id/availability/windows`)
+
+Both endpoints respect the service's policy (working hours, grid, buffers, lead time) and return per-resource results.
+
 ## Example: salon setup
 
 ```bash

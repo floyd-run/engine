@@ -251,7 +251,7 @@ curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings"
 - [Services](./services.md) - Grouping resources with policies
 - [Bookings](./bookings.md) - The reservation lifecycle
 - [Allocations](./allocations.md) - Raw time blocks and ad-hoc blocking
-- [Availability](./availability.md) - Query free/busy timelines
+- [Availability](./availability.md) - Slots, windows, and free/busy timelines
 - [Policies](./policies.md) - Scheduling rules
 - [Idempotency](./idempotency.md) - Safe retries
 - [Webhooks](./webhooks.md) - Real-time notifications

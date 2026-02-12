@@ -43,7 +43,7 @@ See the [Quickstart](./quickstart) for full setup instructions.
 - [Bookings](./bookings) - The reservation lifecycle
 - [Allocations](./allocations) - Raw time blocks
 - [Policies](./policies) - Scheduling rules
-- [Availability](./availability) - Query free/busy timelines
+- [Availability](./availability) - Slots, windows, and free/busy timelines
 - [Webhooks](./webhooks) - Real-time notifications
 - [Idempotency](./idempotency) - Safe retries
 - [Errors](./errors) - Error handling

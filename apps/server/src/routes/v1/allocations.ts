@@ -5,7 +5,7 @@ import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infr
 import { serializeAllocation } from "./serializers";
 
 // Significant fields for allocation create idempotency hash
-const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startAt", "endAt", "status", "expiresAt"];
+const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startAt", "endAt", "expiresAt"];
 
 // Nested under /v1/ledgers/:ledgerId/allocations
 export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
@@ -33,20 +33,7 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
     return c.json(responseBody, 201);
   })
 
-  .post("/:id/confirm", idempotent(), async (c) => {
-    const { allocation, serverTime } = await operations.allocation.confirm({
-      id: c.req.param("id"),
-    });
-    const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
-    await storeIdempotencyResponse(c, responseBody, 200);
-    return c.json(responseBody);
-  })
-
-  .post("/:id/cancel", idempotent(), async (c) => {
-    const { allocation, serverTime } = await operations.allocation.cancel({
-      id: c.req.param("id"),
-    });
-    const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
-    await storeIdempotencyResponse(c, responseBody, 200);
-    return c.json(responseBody);
+  .delete("/:id", async (c) => {
+    await operations.allocation.remove({ id: c.req.param("id") });
+    return c.body(null, 204);
   });

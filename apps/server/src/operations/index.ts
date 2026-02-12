@@ -4,6 +4,8 @@ import { resource } from "./resource";
 import { ledger } from "./ledger";
 import { webhook } from "./webhook";
 import { policy } from "./policy";
+import { service } from "./service";
+import { booking } from "./booking";
 
 export const operations = {
   allocation,
@@ -12,4 +14,6 @@ export const operations = {
   ledger,
   webhook,
   policy,
+  service,
+  booking,
 };

@@ -4,13 +4,16 @@ import {
   LedgerRow,
   WebhookSubscriptionRow,
   PolicyRow,
+  ServiceRow,
+  BookingRow,
 } from "database/schema";
-import { Allocation, Resource, Ledger, Policy } from "@floyd-run/schema/types";
+import { Allocation, Resource, Ledger, Policy, Service, Booking } from "@floyd-run/schema/types";
 
 export function serializeResource(resource: ResourceRow): Resource {
   return {
     id: resource.id,
     ledgerId: resource.ledgerId,
+    timezone: resource.timezone,
     createdAt: resource.createdAt.toISOString(),
     updatedAt: resource.updatedAt.toISOString(),
   };
@@ -29,7 +32,8 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
     id: allocation.id,
     ledgerId: allocation.ledgerId,
     resourceId: allocation.resourceId,
-    status: allocation.status,
+    bookingId: allocation.bookingId,
+    active: allocation.active,
     startAt: allocation.startAt.toISOString(),
     endAt: allocation.endAt.toISOString(),
     expiresAt: allocation.expiresAt?.toISOString() ?? null,
@@ -84,5 +88,38 @@ export function serializePolicy(policy: PolicyRow): Policy {
     configHash: policy.configHash,
     createdAt: policy.createdAt.toISOString(),
     updatedAt: policy.updatedAt.toISOString(),
+  };
+}
+
+export function serializeService(service: ServiceRow, resourceIds: string[]): Service {
+  return {
+    id: service.id,
+    ledgerId: service.ledgerId,
+    name: service.name,
+    policyId: service.policyId,
+    resourceIds,
+    metadata: service.metadata,
+    createdAt: service.createdAt.toISOString(),
+    updatedAt: service.updatedAt.toISOString(),
+  };
+}
+
+export function serializeBooking(booking: BookingRow, allocations: AllocationRow[]): Booking {
+  return {
+    id: booking.id,
+    ledgerId: booking.ledgerId,
+    serviceId: booking.serviceId,
+    status: booking.status,
+    expiresAt: booking.expiresAt?.toISOString() ?? null,
+    allocations: allocations.map((a) => ({
+      id: a.id,
+      resourceId: a.resourceId,
+      startAt: a.startAt.toISOString(),
+      endAt: a.endAt.toISOString(),
+      active: a.active,
+    })),
+    metadata: booking.metadata,
+    createdAt: booking.createdAt.toISOString(),
+    updatedAt: booking.updatedAt.toISOString(),
   };
 }

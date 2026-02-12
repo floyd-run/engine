@@ -25,7 +25,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
   });
 
-  it("returns busy block for confirmed allocation", async () => {
+  it("returns busy block for active allocation", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
 
@@ -35,7 +35,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: allocStart,
       endAt: allocEnd,
     });
@@ -59,7 +59,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     ]);
   });
 
-  it("returns busy block for unexpired hold", async () => {
+  it("returns busy block for unexpired temporary allocation", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
 
@@ -70,7 +70,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "hold",
+      active: true,
       startAt: allocStart,
       endAt: allocEnd,
       expiresAt,
@@ -92,7 +92,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     expect(data[0]!.timeline[1]!.status).toBe("busy");
   });
 
-  it("ignores expired holds", async () => {
+  it("ignores expired temporary allocations", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
 
@@ -103,7 +103,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "hold",
+      active: true,
       startAt: allocStart,
       endAt: allocEnd,
       expiresAt,
@@ -121,18 +121,18 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
-    // Expired hold should not block - entire window is free
+    // Expired allocation should not block - entire window is free
     expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
   });
 
-  it("ignores cancelled allocations", async () => {
+  it("ignores inactive allocations", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
 
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "cancelled",
+      active: false,
       startAt: new Date("2026-01-01T10:30:00.000Z"),
       endAt: new Date("2026-01-01T11:00:00.000Z"),
     });
@@ -160,14 +160,14 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T10:30:00.000Z"),
       endAt: new Date("2026-01-01T11:00:00.000Z"),
     });
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T10:45:00.000Z"),
       endAt: new Date("2026-01-01T11:15:00.000Z"),
     });
@@ -200,14 +200,14 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T10:30:00.000Z"),
       endAt: new Date("2026-01-01T11:00:00.000Z"),
     });
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T11:00:00.000Z"),
       endAt: new Date("2026-01-01T11:30:00.000Z"),
     });
@@ -240,7 +240,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T09:00:00.000Z"),
       endAt: new Date("2026-01-01T13:00:00.000Z"),
     });
@@ -270,7 +270,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource1.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T10:30:00.000Z"),
       endAt: new Date("2026-01-01T11:00:00.000Z"),
     });
@@ -306,7 +306,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
-      status: "confirmed",
+      active: true,
       startAt: new Date("2026-01-01T08:00:00.000Z"),
       endAt: new Date("2026-01-01T09:00:00.000Z"),
     });

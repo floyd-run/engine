@@ -11,6 +11,7 @@ export default createOperation({
       .values({
         id: generateId("rsc"),
         ledgerId: input.ledgerId,
+        timezone: input.timezone ?? null,
       })
       .returningAll()
       .executeTakeFirstOrThrow();

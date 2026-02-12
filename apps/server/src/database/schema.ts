@@ -1,6 +1,6 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
-import {
-  AllocationStatus,
+import type {
+  BookingStatus,
   IdempotencyStatus,
   WebhookDeliveryStatus,
 } from "@floyd-run/schema/types";
@@ -14,6 +14,7 @@ export interface LedgersTable {
 export interface ResourcesTable {
   id: string;
   ledgerId: string;
+  timezone: string | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -22,9 +23,36 @@ export interface AllocationsTable {
   id: string;
   ledgerId: string;
   resourceId: string;
-  status: AllocationStatus;
+  bookingId: string | null;
+  active: boolean;
   startAt: Date;
   endAt: Date;
+  expiresAt: Date | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
+export interface ServicesTable {
+  id: string;
+  ledgerId: string;
+  policyId: string | null;
+  name: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
+export interface ServiceResourcesTable {
+  serviceId: string;
+  resourceId: string;
+}
+
+export interface BookingsTable {
+  id: string;
+  ledgerId: string;
+  serviceId: string;
+  status: BookingStatus;
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;
   createdAt: Generated<Date>;
@@ -78,6 +106,9 @@ export interface PoliciesTable {
 
 export interface Database {
   allocations: AllocationsTable;
+  bookings: BookingsTable;
+  services: ServicesTable;
+  serviceResources: ServiceResourcesTable;
   idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
   ledgers: LedgersTable;
@@ -97,6 +128,16 @@ export type ResourceUpdate = Updateable<ResourcesTable>;
 export type AllocationRow = Selectable<AllocationsTable>;
 export type NewAllocation = Insertable<AllocationsTable>;
 export type AllocationUpdate = Updateable<AllocationsTable>;
+
+export type ServiceRow = Selectable<ServicesTable>;
+export type NewService = Insertable<ServicesTable>;
+export type ServiceUpdate = Updateable<ServicesTable>;
+
+export type ServiceResourceRow = Selectable<ServiceResourcesTable>;
+
+export type BookingRow = Selectable<BookingsTable>;
+export type NewBooking = Insertable<BookingsTable>;
+export type BookingUpdate = Updateable<BookingsTable>;
 
 export type IdempotencyKeyRow = Selectable<IdempotencyKeysTable>;
 export type NewIdempotencyKey = Insertable<IdempotencyKeysTable>;

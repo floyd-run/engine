@@ -11,7 +11,6 @@ describe("Idempotency", () => {
 
       const body = {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       };
@@ -43,7 +42,6 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          status: "confirmed",
           startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
           endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         },
@@ -56,7 +54,6 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          status: "confirmed",
           startAt: new Date("2026-02-01T11:00:00Z").toISOString(), // Different time
           endAt: new Date("2026-02-01T12:00:00Z").toISOString(),
         },
@@ -76,7 +73,6 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          status: "confirmed",
           startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
           endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         },
@@ -90,7 +86,6 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          status: "confirmed",
           startAt: new Date("2026-02-01T12:00:00Z").toISOString(),
           endAt: new Date("2026-02-01T13:00:00Z").toISOString(),
         },
@@ -109,7 +104,6 @@ describe("Idempotency", () => {
 
       const basePayload = {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       };
@@ -139,89 +133,11 @@ describe("Idempotency", () => {
 
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
 
       expect(response.status).toBe(201);
-    });
-  });
-
-  describe("POST /v1/ledgers/:ledgerId/allocations/:id/confirm", () => {
-    it("returns same response for duplicate confirm with same idempotency key", async () => {
-      const { resource, ledgerId } = await createResource();
-      const idempotencyKey = `confirm-key-${Date.now()}`;
-
-      // Create a hold
-      const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-        resourceId: resource.id,
-        status: "hold",
-        startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-        endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
-      });
-      const { data: hold } = (await createResponse.json()) as AllocationResponse;
-
-      // First confirm
-      const response1 = await client.post(
-        `/v1/ledgers/${ledgerId}/allocations/${hold.id}/confirm`,
-        {},
-        { headers: { "Idempotency-Key": idempotencyKey } },
-      );
-      expect(response1.status).toBe(200);
-      const result1 = (await response1.json()) as AllocationResponse;
-
-      // Second confirm with same key
-      const response2 = await client.post(
-        `/v1/ledgers/${ledgerId}/allocations/${hold.id}/confirm`,
-        {},
-        { headers: { "Idempotency-Key": idempotencyKey } },
-      );
-      expect(response2.status).toBe(200);
-      const result2 = (await response2.json()) as AllocationResponse;
-
-      // Should return same response (cached)
-      expect(result2.data.id).toBe(result1.data.id);
-      expect(result2.data.status).toBe(result1.data.status);
-    });
-  });
-
-  describe("POST /v1/ledgers/:ledgerId/allocations/:id/cancel", () => {
-    it("returns same response for duplicate cancel with same idempotency key", async () => {
-      const { resource, ledgerId } = await createResource();
-      const idempotencyKey = `cancel-key-${Date.now()}`;
-
-      // Create a confirmed allocation
-      const createResponse = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-        resourceId: resource.id,
-        status: "confirmed",
-        startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-        endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-      });
-      const { data: allocation } = (await createResponse.json()) as AllocationResponse;
-
-      // First cancel
-      const response1 = await client.post(
-        `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
-        {},
-        { headers: { "Idempotency-Key": idempotencyKey } },
-      );
-      expect(response1.status).toBe(200);
-      const result1 = (await response1.json()) as AllocationResponse;
-
-      // Second cancel with same key
-      const response2 = await client.post(
-        `/v1/ledgers/${ledgerId}/allocations/${allocation.id}/cancel`,
-        {},
-        { headers: { "Idempotency-Key": idempotencyKey } },
-      );
-      expect(response2.status).toBe(200);
-      const result2 = (await response2.json()) as AllocationResponse;
-
-      // Should return same response (cached)
-      expect(result2.data.id).toBe(result1.data.id);
-      expect(result2.data.status).toBe(result1.data.status);
     });
   });
 });

@@ -4,14 +4,13 @@ import { createResource } from "../../setup/factories";
 import { Allocation } from "@floyd-run/schema/types";
 
 describe("POST /v1/ledgers/:ledgerId/allocations", () => {
-  it("returns 201 for valid confirmed allocation", async () => {
+  it("returns 201 for valid allocation", async () => {
     const { resource, ledgerId } = await createResource();
     const startAt = new Date("2026-02-01T10:00:00Z");
     const endAt = new Date("2026-02-01T11:00:00Z");
 
     const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
-      status: "confirmed",
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
     });
@@ -21,14 +20,15 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     expect(data.id).toMatch(/^alc_/);
     expect(data.ledgerId).toBe(ledgerId);
     expect(data.resourceId).toBe(resource.id);
-    expect(data.status).toBe("confirmed");
+    expect(data.active).toBe(true);
+    expect(data.bookingId).toBeNull();
     expect(data.startAt).toBe(startAt.toISOString());
     expect(data.endAt).toBe(endAt.toISOString());
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });
 
-  it("returns 201 for hold allocation with expiry", async () => {
+  it("returns 201 with expiresAt for temporary block", async () => {
     const { resource, ledgerId } = await createResource();
     const startAt = new Date("2026-02-01T10:00:00Z");
     const endAt = new Date("2026-02-01T11:00:00Z");
@@ -36,7 +36,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
     const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
-      status: "hold",
       startAt: startAt.toISOString(),
       endAt: endAt.toISOString(),
       expiresAt: expiresAt.toISOString(),
@@ -44,7 +43,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Allocation };
-    expect(data.status).toBe("hold");
     expect(data.expiresAt).toBe(expiresAt.toISOString());
   });
 
@@ -54,7 +52,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
     const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: resource.id,
-      status: "confirmed",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
       endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       metadata,
@@ -65,65 +62,10 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     expect(data.metadata).toEqual(metadata);
   });
 
-  it("returns 422 for invalid status", async () => {
-    const { resource, ledgerId } = await createResource();
-
-    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-      resourceId: resource.id,
-      status: "invalid",
-      startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-      endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-    });
-
-    expect(response.status).toBe(422);
-  });
-
-  it("returns 422 for terminal status (cancelled)", async () => {
-    const { resource, ledgerId } = await createResource();
-
-    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-      resourceId: resource.id,
-      status: "cancelled",
-      startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-      endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-    });
-
-    expect(response.status).toBe(422);
-  });
-
-  it("returns 422 for terminal status (expired)", async () => {
-    const { resource, ledgerId } = await createResource();
-
-    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-      resourceId: resource.id,
-      status: "expired",
-      startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-      endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-    });
-
-    expect(response.status).toBe(422);
-  });
-
-  it("defaults to hold status when not specified", async () => {
-    const { resource, ledgerId } = await createResource();
-
-    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-      resourceId: resource.id,
-      startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-      endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
-    });
-
-    expect(response.status).toBe(201);
-    const { data } = (await response.json()) as { data: Allocation };
-    expect(data.status).toBe("hold");
-  });
-
   it("returns 422 for missing required fields", async () => {
     const { ledgerId } = await createResource();
 
-    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
-      status: "confirmed",
-    });
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {});
 
     expect(response.status).toBe(422);
   });
@@ -133,7 +75,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
     const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
       resourceId: "rsc_00000000000000000000000000",
-      status: "confirmed",
       startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
       endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
     });
@@ -142,13 +83,12 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
   });
 
   describe("conflict detection", () => {
-    it("returns 409 when overlapping with confirmed allocation", async () => {
+    it("returns 409 when overlapping with active allocation", async () => {
       const { resource, ledgerId } = await createResource();
 
-      // Create first confirmed allocation: 10:00-11:00
+      // Create first allocation: 10:00-11:00
       const first = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
@@ -157,7 +97,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Try to create overlapping allocation: 10:30-11:30
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:30:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:30:00Z").toISOString(),
       });
@@ -167,14 +106,13 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       expect(body.error.code).toBe("overlap_conflict");
     });
 
-    it("returns 409 when overlapping with active hold", async () => {
+    it("returns 409 when overlapping with non-expired temporary allocation", async () => {
       const { resource, ledgerId } = await createResource();
 
-      // Create hold that expires in the future
+      // Create allocation with future expiry
       const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
       const first = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "hold",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         expiresAt: expiresAt.toISOString(),
@@ -184,7 +122,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Try to create overlapping allocation
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:30:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:30:00Z").toISOString(),
       });
@@ -192,24 +129,22 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       expect(response.status).toBe(409);
     });
 
-    it("allows allocation when hold has expired", async () => {
+    it("allows allocation when temporary allocation has expired", async () => {
       const { resource, ledgerId } = await createResource();
 
-      // Create hold that already expired
+      // Create allocation that already expired
       const expiresAt = new Date(Date.now() - 1000); // 1 second ago
       const first = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "hold",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         expiresAt: expiresAt.toISOString(),
       });
       expect(first.status).toBe(201);
 
-      // Should succeed because hold expired
+      // Should succeed because the previous allocation expired
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:30:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:30:00Z").toISOString(),
       });
@@ -223,7 +158,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Create first allocation: 10:00-11:00
       const first = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
@@ -232,7 +166,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Create adjacent allocation: 11:00-12:00 (starts exactly when first ends)
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T11:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T12:00:00Z").toISOString(),
       });
@@ -247,7 +180,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Create allocation on resource1
       const first = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource1.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
@@ -256,7 +188,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       // Same time slot on resource2 should succeed
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource2.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
@@ -264,24 +195,22 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
       expect(response.status).toBe(201);
     });
 
-    it("ignores cancelled allocations for conflict detection", async () => {
+    it("ignores inactive allocations for conflict detection", async () => {
       const { resource, ledgerId } = await createResource();
 
-      // Create and then we'll pretend it's cancelled via factory
-      // For this test, we use the factory to insert a cancelled allocation directly
+      // Insert an inactive allocation directly via factory
       const { createAllocation } = await import("../../setup/factories");
       await createAllocation({
         resourceId: resource.id,
         ledgerId,
-        status: "cancelled",
+        active: false,
         startAt: new Date("2026-02-01T10:00:00Z"),
         endAt: new Date("2026-02-01T11:00:00Z"),
       });
 
-      // Should succeed because cancelled allocations don't block
+      // Should succeed because inactive allocations don't block
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:30:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:30:00Z").toISOString(),
       });
@@ -294,7 +223,6 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        status: "confirmed",
         startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
         endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
       });

@@ -1,37 +1,36 @@
 import { createHmac } from "crypto";
 import type { Kysely, Transaction } from "kysely";
-import type { Database, AllocationRow } from "database/schema";
-import type { Allocation } from "@floyd-run/schema/types";
+import type { Database } from "database/schema";
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
-import { serializeAllocation } from "routes/v1/serializers";
 
 // Event types for webhooks
 export type WebhookEventType =
   | "allocation.created"
-  | "allocation.confirmed"
-  | "allocation.cancelled"
-  | "allocation.expired";
+  | "allocation.deleted"
+  | "booking.created"
+  | "booking.confirmed"
+  | "booking.cancelled"
+  | "booking.expired";
 
 export interface WebhookEvent {
   id: string;
   type: WebhookEventType;
   ledgerId: string;
   createdAt: string;
-  data: {
-    allocation: Allocation;
-  };
+  data: Record<string, unknown>;
 }
 
 /**
  * Enqueue webhook deliveries for all subscriptions that match the event.
  * MUST be called within the same transaction as the data mutation.
+ * Call sites are responsible for serializing their own payload data.
  */
 export async function enqueueWebhookEvent(
   trx: Transaction<Database> | Kysely<Database>,
   eventType: WebhookEventType,
   ledgerId: string,
-  allocation: AllocationRow,
+  data: Record<string, unknown>,
 ): Promise<void> {
   // Find all subscriptions for this ledger
   const subscriptions = await trx
@@ -55,9 +54,7 @@ export async function enqueueWebhookEvent(
       type: eventType,
       ledgerId,
       createdAt: now.toISOString(),
-      data: {
-        allocation: serializeAllocation(allocation),
-      },
+      data,
     };
     return {
       id: deliveryId,

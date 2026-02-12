@@ -22,8 +22,8 @@ export default createOperation({
       FROM allocations
       WHERE ledger_id = ${ledgerId}
         AND resource_id = ANY(${sql.raw(`ARRAY[${resourceIds.map((id) => `'${id}'`).join(",")}]::text[]`)})
-        AND status IN ('hold', 'confirmed')
-        AND (status != 'hold' OR expires_at > clock_timestamp())
+        AND active = true
+        AND (expires_at IS NULL OR expires_at > clock_timestamp())
         AND start_at < ${endAt}
         AND end_at > ${startAt}
       ORDER BY resource_id, start_at

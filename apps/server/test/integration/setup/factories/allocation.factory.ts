@@ -1,13 +1,13 @@
 import { faker } from "@faker-js/faker";
 import { db } from "database";
-import { AllocationStatus } from "@floyd-run/schema/types";
 import { generateId } from "@floyd-run/utils";
 import { createResource } from "./resource.factory";
 
 export async function createAllocation(overrides?: {
   ledgerId?: string;
   resourceId?: string;
-  status?: AllocationStatus;
+  active?: boolean;
+  bookingId?: string | null;
   startAt?: Date;
   endAt?: Date;
   expiresAt?: Date | null;
@@ -41,7 +41,8 @@ export async function createAllocation(overrides?: {
       id: generateId("alc"),
       ledgerId,
       resourceId,
-      status: overrides?.status ?? "confirmed",
+      bookingId: overrides?.bookingId ?? null,
+      active: overrides?.active ?? true,
       startAt,
       endAt,
       expiresAt: overrides?.expiresAt ?? null,

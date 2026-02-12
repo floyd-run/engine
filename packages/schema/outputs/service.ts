@@ -3,12 +3,9 @@ import { z } from "./zod";
 export const schema = z.object({
   id: z.string(),
   ledgerId: z.string(),
-  resourceId: z.string(),
-  bookingId: z.string().nullable(),
-  active: z.boolean(),
-  startAt: z.string(),
-  endAt: z.string(),
-  expiresAt: z.string().nullable(),
+  name: z.string(),
+  policyId: z.string().nullable(),
+  resourceIds: z.array(z.string()),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
@@ -16,11 +13,6 @@ export const schema = z.object({
 
 export const getSchema = z.object({
   data: schema,
-  meta: z
-    .object({
-      serverTime: z.string(),
-    })
-    .optional(),
 });
 
 export const listSchema = z.object({

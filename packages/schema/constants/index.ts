@@ -1,10 +1,3 @@
-export const AllocationStatus = {
-  HOLD: "hold",
-  CONFIRMED: "confirmed",
-  CANCELLED: "cancelled",
-  EXPIRED: "expired",
-} as const;
-
 export const IdempotencyStatus = {
   IN_PROGRESS: "in_progress",
   COMPLETED: "completed",
@@ -16,6 +9,13 @@ export const WebhookDeliveryStatus = {
   SUCCEEDED: "succeeded",
   FAILED: "failed",
   EXHAUSTED: "exhausted",
+} as const;
+
+export const BookingStatus = {
+  HOLD: "hold",
+  CONFIRMED: "confirmed",
+  CANCELLED: "cancelled",
+  EXPIRED: "expired",
 } as const;
 
 export const PolicyDefault = {

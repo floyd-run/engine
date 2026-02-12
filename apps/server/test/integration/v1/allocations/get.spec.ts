@@ -29,7 +29,8 @@ describe("GET /v1/ledgers/:ledgerId/allocations/:id", () => {
     expect(data.id).toBe(allocation.id);
     expect(data.ledgerId).toBe(ledgerId);
     expect(data.resourceId).toBe(resourceId);
-    expect(data.status).toBe(allocation.status);
+    expect(data.active).toBe(allocation.active);
+    expect(data.bookingId).toBe(allocation.bookingId);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });

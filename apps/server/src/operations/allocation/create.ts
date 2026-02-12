@@ -4,6 +4,7 @@ import { generateId } from "@floyd-run/utils";
 import { allocation } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
 import { enqueueWebhookEvent } from "infra/webhooks";
+import { serializeAllocation } from "routes/v1/serializers";
 
 export default createOperation({
   input: allocation.createSchema,
@@ -24,18 +25,13 @@ export default createOperation({
       // 2. Capture server time immediately after acquiring lock
       const serverTime = await getServerTime(trx);
 
-      // 3. Check for overlapping allocations that would block this request
-      // Blocking allocations are: confirmed OR (hold AND not expired)
+      // 3. Check for overlapping active allocations (not expired)
       const conflicting = await trx
         .selectFrom("allocations")
-        .select(["id", "status", "startAt", "endAt"])
+        .select(["id", "startAt", "endAt"])
         .where("resourceId", "=", input.resourceId)
-        .where((eb) =>
-          eb.or([
-            eb("status", "=", "confirmed"),
-            eb.and([eb("status", "=", "hold"), eb("expiresAt", ">", serverTime)]),
-          ]),
-        )
+        .where("active", "=", true)
+        .where((eb) => eb.or([eb("expiresAt", "is", null), eb("expiresAt", ">", serverTime)]))
         // Overlap condition: existing.start < new.end AND existing.end > new.start
         .where("startAt", "<", input.endAt)
         .where("endAt", ">", input.startAt)
@@ -47,36 +43,27 @@ export default createOperation({
         });
       }
 
-      // 4. Compute expiresAt for holds
-      // Holds require expiresAt; default to 15 minutes from serverTime if not provided
-      // Confirmed allocations must have null expiresAt
-      let expiresAt: Date | null = null;
-      if (input.status === "hold") {
-        if (input.expiresAt) {
-          expiresAt = input.expiresAt;
-        } else {
-          expiresAt = new Date(serverTime.getTime() + 15 * 60 * 1000); // 15 minutes
-        }
-      }
-
-      // 5. Insert the allocation
+      // 4. Insert the allocation
       const alloc = await trx
         .insertInto("allocations")
         .values({
           id: generateId("alc"),
           ledgerId: input.ledgerId,
           resourceId: input.resourceId,
-          status: input.status,
+          bookingId: null,
+          active: true,
           startAt: input.startAt,
           endAt: input.endAt,
-          expiresAt,
+          expiresAt: input.expiresAt ?? null,
           metadata: input.metadata ?? null,
         })
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // 6. Enqueue webhook event (in same transaction)
-      await enqueueWebhookEvent(trx, "allocation.created", input.ledgerId, alloc);
+      // 5. Enqueue webhook event (in same transaction)
+      await enqueueWebhookEvent(trx, "allocation.created", input.ledgerId, {
+        allocation: serializeAllocation(alloc),
+      });
 
       return { allocation: alloc, serverTime };
     });

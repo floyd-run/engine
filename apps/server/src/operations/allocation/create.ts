@@ -15,6 +15,7 @@ export default createOperation({
         .selectFrom("resources")
         .selectAll()
         .where("id", "=", input.resourceId)
+        .where("ledgerId", "=", input.ledgerId)
         .forUpdate()
         .executeTakeFirst();
 

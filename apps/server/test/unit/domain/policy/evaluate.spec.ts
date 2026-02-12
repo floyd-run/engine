@@ -695,7 +695,7 @@ describe("Step 5: Duration", () => {
 
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.INVALID_DURATION);
-    expect(result.details?.allowed_ms).toEqual([30 * MINUTE, 60 * MINUTE]);
+    expect(result.details?.["allowed_ms"]).toEqual([30 * MINUTE, 60 * MINUTE]);
   });
 
   it("duration below min_ms is rejected", () => {
@@ -710,7 +710,7 @@ describe("Step 5: Duration", () => {
 
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.INVALID_DURATION);
-    expect(result.details?.min_ms).toBe(60 * MINUTE);
+    expect(result.details?.["min_ms"]).toBe(60 * MINUTE);
   });
 
   it("duration above max_ms is rejected", () => {
@@ -725,7 +725,7 @@ describe("Step 5: Duration", () => {
 
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.INVALID_DURATION);
-    expect(result.details?.max_ms).toBe(60 * MINUTE);
+    expect(result.details?.["max_ms"]).toBe(60 * MINUTE);
   });
 
   it("duration within min/max is allowed", () => {
@@ -827,8 +827,8 @@ describe("Step 6: Grid alignment", () => {
 
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.MISALIGNED_START_TIME);
-    expect(result.details?.interval_ms).toBe(30 * MINUTE);
-    expect(result.details?.remainder).toBe(15 * MINUTE);
+    expect(result.details?.["interval_ms"]).toBe(30 * MINUTE);
+    expect(result.details?.["remainder"]).toBe(15 * MINUTE);
   });
 
   it("15-minute grid: start at :45 is aligned", () => {
@@ -886,8 +886,8 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.LEAD_TIME_VIOLATION);
-    expect(result.details?.leadTimeMs).toBe(1 * HOUR);
-    expect(result.details?.min_lead_time_ms).toBe(2 * HOUR);
+    expect(result.details?.["leadTimeMs"]).toBe(1 * HOUR);
+    expect(result.details?.["min_lead_time_ms"]).toBe(2 * HOUR);
   });
 
   it("booking beyond horizon is rejected", () => {

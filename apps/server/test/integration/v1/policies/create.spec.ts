@@ -47,12 +47,12 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const duration = config["config"] as Record<string, Record<string, unknown>>;
 
     // allowed_minutes: [30, 60] -> allowed_ms: [1800000, 3600000]
-    expect(duration["duration"]["allowed_ms"]).toEqual([1800000, 3600000]);
-    expect(duration["duration"]["allowed_minutes"]).toBeUndefined();
+    expect(duration["duration"]!["allowed_ms"]).toEqual([1800000, 3600000]);
+    expect(duration["duration"]!["allowed_minutes"]).toBeUndefined();
 
     // interval_minutes: 15 -> interval_ms: 900000
-    expect(duration["grid"]["interval_ms"]).toBe(900000);
-    expect(duration["grid"]["interval_minutes"]).toBeUndefined();
+    expect(duration["grid"]!["interval_ms"]).toBe(900000);
+    expect(duration["grid"]!["interval_minutes"]).toBeUndefined();
 
     // weekdays -> expanded day names
     const rules = config["rules"] as Array<{

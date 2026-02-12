@@ -19,6 +19,7 @@ export default createOperation({
         .selectFrom("resources")
         .selectAll()
         .where("id", "=", input.resourceId)
+        .where("ledgerId", "=", input.ledgerId)
         .forUpdate()
         .executeTakeFirst();
 
@@ -34,6 +35,7 @@ export default createOperation({
         .selectFrom("services")
         .selectAll()
         .where("id", "=", input.serviceId)
+        .where("ledgerId", "=", input.ledgerId)
         .executeTakeFirst();
 
       if (!svc) {

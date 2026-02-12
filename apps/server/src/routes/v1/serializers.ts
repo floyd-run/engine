@@ -92,6 +92,7 @@ export function serializeBooking(booking: BookingRow, allocations: AllocationRow
     id: booking.id,
     ledgerId: booking.ledgerId,
     serviceId: booking.serviceId,
+    policyId: booking.policyId,
     status: booking.status,
     expiresAt: booking.expiresAt?.toISOString() ?? null,
     allocations: allocations.map((a) => ({

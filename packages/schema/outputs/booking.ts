@@ -15,6 +15,7 @@ export const schema = z.object({
   id: z.string(),
   ledgerId: z.string(),
   serviceId: z.string(),
+  policyId: z.string().nullable(),
   status: z.enum([
     BookingStatus.HOLD,
     BookingStatus.CONFIRMED,

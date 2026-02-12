@@ -106,6 +106,19 @@ Trying to delete a service that has bookings in `hold` or `confirmed` status.
 }
 ```
 
+### Policy in use
+
+Trying to delete a policy that is referenced by one or more services.
+
+```json
+{
+  "error": {
+    "code": "policy_in_use",
+    "message": "Policy is referenced by one or more services"
+  }
+}
+```
+
 ### Booking-owned allocation
 
 Trying to delete an allocation that belongs to a booking. Use the booking cancel endpoint instead.

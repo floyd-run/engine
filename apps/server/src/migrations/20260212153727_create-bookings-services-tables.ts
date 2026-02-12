@@ -44,6 +44,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("id", "varchar(32)", (col) => col.primaryKey().notNull())
     .addColumn("ledger_id", "varchar(32)", (col) => col.notNull().references("ledgers.id"))
     .addColumn("service_id", "varchar(32)", (col) => col.notNull().references("services.id"))
+    .addColumn("policy_id", "varchar(32)", (col) => col.references("policies.id"))
     .addColumn("status", "varchar(50)", (col) =>
       col.notNull().check(sql`status IN ('hold', 'confirmed', 'cancelled', 'expired')`),
     )

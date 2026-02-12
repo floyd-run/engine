@@ -114,6 +114,7 @@ export default createOperation({
           id: generateId("bkg"),
           ledgerId: input.ledgerId,
           serviceId: input.serviceId,
+          policyId: svc.policyId,
           status: input.status,
           expiresAt,
           metadata: input.metadata ?? null,

@@ -54,6 +54,7 @@ export interface BookingsTable {
   id: string;
   ledgerId: string;
   serviceId: string;
+  policyId: string | null;
   status: BookingStatus;
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;

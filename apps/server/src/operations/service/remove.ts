@@ -12,6 +12,7 @@ export default createOperation({
         .selectFrom("services")
         .select("id")
         .where("id", "=", input.id)
+        .where("ledgerId", "=", input.ledgerId)
         .forUpdate()
         .executeTakeFirst();
 

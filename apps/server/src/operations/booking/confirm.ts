@@ -14,6 +14,7 @@ export default createOperation({
         .selectFrom("bookings")
         .selectAll()
         .where("id", "=", input.id)
+        .where("ledgerId", "=", input.ledgerId)
         .forUpdate()
         .executeTakeFirst();
 

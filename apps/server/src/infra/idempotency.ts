@@ -151,12 +151,11 @@ export function idempotent(options: IdempotencyOptions = {}) {
         throw handlerError;
       }
     } catch (error: unknown) {
-      // Check if it's a unique constraint violation
+      // Check if it's a unique constraint violation (PG error code 23505)
       const isConflict =
         error instanceof Error &&
-        (error.message.includes("duplicate key") ||
-          error.message.includes("unique constraint") ||
-          error.message.includes("UNIQUE constraint"));
+        "code" in error &&
+        (error as Error & { code: string }).code === "23505";
 
       if (!isConflict) {
         throw error;

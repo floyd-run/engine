@@ -13,7 +13,10 @@ export const policies = new Hono()
   })
 
   .get("/:id", async (c) => {
-    const { policy } = await operations.policy.get({ id: c.req.param("id") });
+    const { policy } = await operations.policy.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!policy) throw new NotFoundError("Policy not found");
     return c.json({ data: serializePolicy(policy) });
   })
@@ -37,6 +40,7 @@ export const policies = new Hono()
     const { policy, warnings } = await operations.policy.update({
       ...(body as object),
       id: c.req.param("id")!,
+      ledgerId: c.req.param("ledgerId")!,
     } as Parameters<typeof operations.policy.update>[0]);
 
     const responseBody: Record<string, unknown> = { data: serializePolicy(policy) };
@@ -47,7 +51,10 @@ export const policies = new Hono()
   })
 
   .delete("/:id", async (c) => {
-    const { deleted } = await operations.policy.remove({ id: c.req.param("id") });
+    const { deleted } = await operations.policy.remove({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!deleted) throw new NotFoundError("Policy not found");
     return c.body(null, 204);
   });

@@ -8,6 +8,7 @@ export default createOperation({
     const resource = await db
       .selectFrom("resources")
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .selectAll()
       .executeTakeFirst();
 

@@ -12,6 +12,7 @@ export default createOperation({
       .updateTable("webhookSubscriptions")
       .set({ secret: newSecret })
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .returningAll()
       .executeTakeFirst();
 

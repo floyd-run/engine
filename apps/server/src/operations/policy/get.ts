@@ -9,6 +9,7 @@ export default createOperation({
       .selectFrom("policies")
       .selectAll()
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
     return { policy: row ?? null };

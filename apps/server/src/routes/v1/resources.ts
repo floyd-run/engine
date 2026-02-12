@@ -13,7 +13,10 @@ export const resources = new Hono()
   })
 
   .get("/:id", async (c) => {
-    const { resource } = await operations.resource.get({ id: c.req.param("id") });
+    const { resource } = await operations.resource.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!resource) throw new NotFoundError("Resource not found");
     return c.json({ data: serializeResource(resource) });
   })
@@ -28,6 +31,6 @@ export const resources = new Hono()
   })
 
   .delete("/:id", async (c) => {
-    await operations.resource.remove({ id: c.req.param("id") });
+    await operations.resource.remove({ id: c.req.param("id"), ledgerId: c.req.param("ledgerId")! });
     return c.body(null, 204);
   });

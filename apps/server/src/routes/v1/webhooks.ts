@@ -39,6 +39,7 @@ export const webhooks = new Hono()
     const { subscription } = await operations.webhook.update({
       ...body,
       id: c.req.param("subscriptionId")!,
+      ledgerId: c.req.param("ledgerId")!,
     });
 
     if (!subscription) {
@@ -52,6 +53,7 @@ export const webhooks = new Hono()
   .delete("/:subscriptionId", async (c) => {
     const { deleted } = await operations.webhook.remove({
       id: c.req.param("subscriptionId")!,
+      ledgerId: c.req.param("ledgerId")!,
     });
 
     if (!deleted) {
@@ -65,6 +67,7 @@ export const webhooks = new Hono()
   .post("/:subscriptionId/rotate-secret", async (c) => {
     const { subscription, secret } = await operations.webhook.rotateSecret({
       id: c.req.param("subscriptionId")!,
+      ledgerId: c.req.param("ledgerId")!,
     });
 
     if (!subscription) {

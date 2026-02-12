@@ -14,6 +14,7 @@ export const updateSubscriptionSchema = z.object({
   id: z
     .string()
     .refine((id) => isValidId(id, "whs"), { message: "Invalid webhook subscription ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
   url: z.string().url().optional(),
 });
 
@@ -21,10 +22,12 @@ export const deleteSubscriptionSchema = z.object({
   id: z
     .string()
     .refine((id) => isValidId(id, "whs"), { message: "Invalid webhook subscription ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
 export const rotateSecretSchema = z.object({
   id: z
     .string()
     .refine((id) => isValidId(id, "whs"), { message: "Invalid webhook subscription ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

@@ -18,7 +18,10 @@ app.route("/", routes);
 
 app.onError((err, c) => {
   if (err instanceof InputError) {
-    return c.json({ error: err.message }, 422);
+    return c.json(
+      { error: { code: "VALIDATION_ERROR", message: err.message, details: err.issues } },
+      422,
+    );
   }
 
   if (err instanceof NotFoundError) {
@@ -41,10 +44,11 @@ app.onError((err, c) => {
     return c.json({ error: "Invalid JSON" }, 400);
   }
 
+  logger.error(err);
+
   if (config.NODE_ENV === "production") {
     return c.json({ message: "Internal server error" }, 500);
   } else {
-    logger.error(err);
     return c.json([err, err.stack], 500);
   }
 });

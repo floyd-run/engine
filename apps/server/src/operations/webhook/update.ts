@@ -11,6 +11,7 @@ export default createOperation({
         ...(input.url !== undefined && { url: input.url }),
       })
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .returningAll()
       .executeTakeFirst();
 

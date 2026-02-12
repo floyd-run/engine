@@ -8,6 +8,7 @@ export default createOperation({
     const result = await db
       .deleteFrom("webhookSubscriptions")
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
     return { deleted: result.numDeletedRows > 0n };

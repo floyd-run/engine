@@ -9,6 +9,7 @@ export default createOperation({
       .selectFrom("services")
       .selectAll()
       .where("id", "=", input.id)
+      .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
     if (!svc) {

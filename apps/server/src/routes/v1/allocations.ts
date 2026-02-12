@@ -17,7 +17,10 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   })
 
   .get("/:id", async (c) => {
-    const { allocation } = await operations.allocation.get({ id: c.req.param("id") });
+    const { allocation } = await operations.allocation.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!allocation) throw new NotFoundError("Allocation not found");
     return c.json({ data: serializeAllocation(allocation) });
   })
@@ -34,6 +37,9 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   })
 
   .delete("/:id", async (c) => {
-    await operations.allocation.remove({ id: c.req.param("id") });
+    await operations.allocation.remove({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     return c.body(null, 204);
   });

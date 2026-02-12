@@ -90,27 +90,34 @@ export function computeWebhookSignature(payload: string, secret: string): string
 export async function processPendingDeliveries(batchSize = 10): Promise<number> {
   const now = new Date();
 
-  // Claim a batch of pending deliveries
-  const deliveries = await db
-    .selectFrom("webhookDeliveries")
-    .selectAll()
-    .where((eb) => eb.or([eb("status", "=", "pending"), eb("status", "=", "failed")]))
-    .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", now)]))
-    .orderBy("nextAttemptAt", "asc")
-    .limit(batchSize)
-    .execute();
+  // Atomically claim a batch of pending deliveries using FOR UPDATE SKIP LOCKED
+  const deliveries = await db.transaction().execute(async (trx) => {
+    const rows = await trx
+      .selectFrom("webhookDeliveries")
+      .selectAll()
+      .where((eb) => eb.or([eb("status", "=", "pending"), eb("status", "=", "failed")]))
+      .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", now)]))
+      .orderBy("nextAttemptAt", "asc")
+      .limit(batchSize)
+      .forUpdate()
+      .skipLocked()
+      .execute();
+
+    if (rows.length === 0) return [];
+
+    const ids = rows.map((d) => d.id);
+    await trx
+      .updateTable("webhookDeliveries")
+      .set({ status: "in_flight" })
+      .where("id", "in", ids)
+      .execute();
+
+    return rows;
+  });
 
   if (deliveries.length === 0) {
     return 0;
   }
-
-  // Mark as in_flight
-  const deliveryIds = deliveries.map((d) => d.id);
-  await db
-    .updateTable("webhookDeliveries")
-    .set({ status: "in_flight" })
-    .where("id", "in", deliveryIds)
-    .execute();
 
   let processed = 0;
 

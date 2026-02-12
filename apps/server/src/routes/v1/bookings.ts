@@ -19,7 +19,10 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   })
 
   .get("/:id", async (c) => {
-    const { booking, allocations } = await operations.booking.get({ id: c.req.param("id") });
+    const { booking, allocations } = await operations.booking.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!booking) throw new NotFoundError("Booking not found");
     return c.json({ data: serializeBooking(booking, allocations) });
   })
@@ -38,6 +41,7 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   .post("/:id/confirm", idempotent(), async (c) => {
     const { booking, allocations, serverTime } = await operations.booking.confirm({
       id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
     });
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 200);
@@ -47,6 +51,7 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   .post("/:id/cancel", idempotent(), async (c) => {
     const { booking, allocations, serverTime } = await operations.booking.cancel({
       id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
     });
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 200);

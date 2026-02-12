@@ -14,6 +14,7 @@ export const createSchema = z.object({
 
 export const getSchema = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
 export const listSchema = z.object({
@@ -22,8 +23,10 @@ export const listSchema = z.object({
 
 export const confirmSchema = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
 export const cancelSchema = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

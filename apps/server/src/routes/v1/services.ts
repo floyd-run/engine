@@ -15,7 +15,10 @@ export const services = new Hono()
   })
 
   .get("/:id", async (c) => {
-    const { service, resourceIds } = await operations.service.get({ id: c.req.param("id") });
+    const { service, resourceIds } = await operations.service.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
     if (!service) throw new NotFoundError("Service not found");
     return c.json({ data: serializeService(service, resourceIds) });
   })
@@ -40,6 +43,6 @@ export const services = new Hono()
   })
 
   .delete("/:id", async (c) => {
-    await operations.service.remove({ id: c.req.param("id") });
+    await operations.service.remove({ id: c.req.param("id"), ledgerId: c.req.param("ledgerId")! });
     return c.body(null, 204);
   });

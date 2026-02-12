@@ -21,7 +21,7 @@ export default createOperation({
       SELECT resource_id, start_at, end_at
       FROM allocations
       WHERE ledger_id = ${ledgerId}
-        AND resource_id = ANY(${sql.raw(`ARRAY[${resourceIds.map((id) => `'${id}'`).join(",")}]::text[]`)})
+        AND resource_id = ANY(ARRAY[${sql.join(resourceIds.map((id) => sql`${id}`))}]::text[])
         AND active = true
         AND (expires_at IS NULL OR expires_at > clock_timestamp())
         AND start_at < ${endAt}

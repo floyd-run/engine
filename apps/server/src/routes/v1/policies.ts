@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Hono } from "hono";
 import { operations } from "operations";
 import { NotFoundError } from "lib/errors";

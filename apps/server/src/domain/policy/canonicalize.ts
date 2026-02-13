@@ -56,18 +56,18 @@ function canonicalizeValue(key: string, value: unknown): unknown {
     }
     if (key === "rules") {
       // Preserve order! Rules are semantic (first-match-wins)
-      return value.map((item) => {
+      return value.map((item): unknown => {
         if (typeof item === "object" && item !== null) {
           return canonicalizeObject(item as Record<string, unknown>);
         }
-        return item;
+        return item as unknown;
       });
     }
-    return value.map((item) => {
+    return value.map((item): unknown => {
       if (typeof item === "object" && item !== null) {
         return canonicalizeObject(item as Record<string, unknown>);
       }
-      return item;
+      return item as unknown;
     });
   }
 

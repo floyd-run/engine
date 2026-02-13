@@ -112,6 +112,7 @@ async function runWorker(): Promise<void> {
 
   logger.info("[expiration-worker] Starting expiration worker...");
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (isRunning) {
     try {
       const expiredCount = await processExpiredBookings();

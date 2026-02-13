@@ -99,7 +99,7 @@ export function resolveDay(
       }));
 
       // Step 4: Config resolution
-      const baseConfig = policy.config ?? {};
+      const baseConfig = policy.config;
       const ruleConfig = matchedRule.config ?? {};
       const resolvedRaw = { ...baseConfig, ...ruleConfig };
       const config: ResolvedConfig = {
@@ -122,7 +122,7 @@ export function resolveDay(
   }
 
   // Open 24h (matched rule without windows, or default "open" with no matching rule)
-  const baseConfig = policy.config ?? {};
+  const baseConfig = policy.config;
   const ruleConfig = matchedRule?.config ?? {};
   const resolvedRaw = { ...baseConfig, ...ruleConfig };
   const config: ResolvedConfig = {

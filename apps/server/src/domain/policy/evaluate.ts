@@ -358,7 +358,7 @@ export function evaluatePolicy(
 
     // ─── Step 4: Config resolution ─────────────────────────────────────────
 
-    const baseConfig = policy.config ?? {};
+    const baseConfig = policy.config;
     const ruleConfig = matchedRule?.config ?? {};
     const resolvedRaw = { ...baseConfig, ...ruleConfig };
     const resolved = {

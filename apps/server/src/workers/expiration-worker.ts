@@ -27,7 +27,7 @@ async function processExpiredBookings(): Promise<number> {
       return 0;
     }
 
-    const ids = expiredBookings.map((b) => b.id);
+    const bookingIds = expiredBookings.map((booking) => booking.id);
 
     // Update bookings to expired
     await trx
@@ -37,7 +37,7 @@ async function processExpiredBookings(): Promise<number> {
         expiresAt: null,
         updatedAt: serverTime,
       })
-      .where("id", "in", ids)
+      .where("id", "in", bookingIds)
       .execute();
 
     // Deactivate associated allocations
@@ -48,25 +48,30 @@ async function processExpiredBookings(): Promise<number> {
         expiresAt: null,
         updatedAt: serverTime,
       })
-      .where("bookingId", "in", ids)
+      .where("bookingId", "in", bookingIds)
       .execute();
+
+    // Fetch all allocations for expired bookings in one query
+    const allocations = await trx
+      .selectFrom("allocations")
+      .selectAll()
+      .where("bookingId", "in", bookingIds)
+      .execute();
+
+    const allocationsByBookingId = new Map<string, typeof allocations>();
+    for (const allocation of allocations) {
+      const group = allocationsByBookingId.get(allocation.bookingId!) ?? [];
+      group.push(allocation);
+      allocationsByBookingId.set(allocation.bookingId!, group);
+    }
 
     // Enqueue webhook events
     for (const booking of expiredBookings) {
-      const allocations = await trx
-        .selectFrom("allocations")
-        .selectAll()
-        .where("bookingId", "=", booking.id)
-        .execute();
-
-      const expiredBooking = {
-        ...booking,
-        status: "expired" as const,
-        expiresAt: null,
-        updatedAt: serverTime,
-      };
       await enqueueWebhookEvent(trx, "booking.expired", booking.ledgerId, {
-        booking: serializeBooking(expiredBooking, allocations),
+        booking: serializeBooking(
+          { ...booking, status: "expired" as const, expiresAt: null, updatedAt: serverTime },
+          allocationsByBookingId.get(booking.id) ?? [],
+        ),
       });
     }
 
@@ -79,7 +84,7 @@ async function cleanupExpiredRawAllocations(): Promise<number> {
     const serverTime = await getServerTime(trx);
 
     // Find expired raw allocations (no booking) and hard delete
-    const expired = await trx
+    const expiredAllocations = await trx
       .selectFrom("allocations")
       .select("id")
       .where("bookingId", "is", null)
@@ -90,14 +95,14 @@ async function cleanupExpiredRawAllocations(): Promise<number> {
       .skipLocked()
       .execute();
 
-    if (expired.length === 0) {
+    if (expiredAllocations.length === 0) {
       return 0;
     }
 
-    const ids = expired.map((a) => a.id);
-    await trx.deleteFrom("allocations").where("id", "in", ids).execute();
+    const allocationIds = expiredAllocations.map((allocation) => allocation.id);
+    await trx.deleteFrom("allocations").where("id", "in", allocationIds).execute();
 
-    return expired.length;
+    return expiredAllocations.length;
   });
 }
 
@@ -109,14 +114,14 @@ async function runWorker(): Promise<void> {
 
   while (isRunning) {
     try {
-      const expiredBookings = await processExpiredBookings();
-      if (expiredBookings > 0) {
-        logger.info(`[expiration-worker] Expired ${expiredBookings} booking holds`);
+      const expiredCount = await processExpiredBookings();
+      if (expiredCount > 0) {
+        logger.info(`[expiration-worker] Expired ${expiredCount} booking holds`);
       }
 
-      const cleanedAllocations = await cleanupExpiredRawAllocations();
-      if (cleanedAllocations > 0) {
-        logger.info(`[expiration-worker] Cleaned up ${cleanedAllocations} expired raw allocations`);
+      const cleanedCount = await cleanupExpiredRawAllocations();
+      if (cleanedCount > 0) {
+        logger.info(`[expiration-worker] Cleaned up ${cleanedCount} expired raw allocations`);
       }
     } catch (error) {
       logger.error(error, "[expiration-worker] Error processing expirations");

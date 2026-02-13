@@ -101,7 +101,7 @@ Both bookings and raw allocations share the same conflict detection. Only `activ
 
 - `active = true` and `expiresAt` is null → always blocks
 - `active = true` and `expiresAt > now()` → blocks until expiry
-- `active = false` → does not block (cancelled/expired booking allocations)
+- `active = false` → does not block (canceled/expired booking allocations)
 - `active = true` and `expiresAt <= now()` → does not block (expired)
 
 If two requests try to create overlapping allocations on the same resource at the same moment, **exactly one** will succeed.

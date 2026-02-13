@@ -264,7 +264,7 @@ A time slot is marked `busy` if it overlaps with an active, non-expired allocati
 
 These do **not** block time:
 
-- `active = false` (cancelled/expired booking allocations)
+- `active = false` (canceled/expired booking allocations)
 - Expired allocations (`expiresAt <= now()`)
 
 Both booking-owned and raw allocations are considered.

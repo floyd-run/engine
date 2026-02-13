@@ -697,11 +697,12 @@
                 "type": "object",
                 "properties": {
                   "timezone": {
-                    "type": ["string", "null"],
+                    "type": "string",
                     "description": "IANA timezone for the resource (e.g. America/New_York)",
                     "example": "America/New_York"
                   }
-                }
+                },
+                "required": ["timezone"]
               }
             }
           }

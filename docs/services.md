@@ -88,7 +88,7 @@ When a booking is created against a service:
 
 1. The resource must belong to the service
 2. If the service has a policy, the booking is evaluated against its rules
-3. The policy uses the resource's timezone for time-of-day rules (or UTC if no timezone is set)
+3. The policy uses the resource's timezone for time-of-day rules
 
 A resource can belong to multiple services. For example, "Room A" could be used by both "Yoga Class" and "Meeting Rental" services, each with different policies.
 

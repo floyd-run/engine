@@ -132,7 +132,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            timezone: z.string().nullable().optional().openapi({
+            timezone: z.string().openapi({
               description: "IANA timezone for the resource (e.g. America/New_York)",
               example: "America/New_York",
             }),

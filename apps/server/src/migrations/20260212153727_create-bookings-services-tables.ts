@@ -3,8 +3,11 @@ import { Kysely, sql } from "kysely";
 import { addUpdatedAtTrigger } from "./utils";
 
 export async function up(db: Kysely<Database>): Promise<void> {
-  // 1. Add timezone to resources
-  await db.schema.alterTable("resources").addColumn("timezone", "varchar(64)").execute();
+  // 1. Add timezone to resources (required, default UTC for existing rows)
+  await db.schema
+    .alterTable("resources")
+    .addColumn("timezone", "varchar(64)", (col) => col.notNull().defaultTo("UTC"))
+    .execute();
 
   // 2. Create services table
   await db.schema

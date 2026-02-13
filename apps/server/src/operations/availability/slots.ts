@@ -124,7 +124,7 @@ export default createOperation({
     // 7. Generate slots per resource
     const data = targetResourceIds.map((resourceId) => {
       const resource = resourceMap.get(resourceId);
-      const timezone = resource?.timezone ?? "UTC";
+      const timezone = resource!.timezone;
       const allocs = allocByResource.get(resourceId) ?? [];
 
       const resolvedDays = resolveServiceDays(policy, startTime, endTime, timezone);

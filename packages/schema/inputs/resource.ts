@@ -16,9 +16,7 @@ export const create = z.object({
         }
       },
       { message: "Invalid IANA timezone" },
-    )
-    .nullable()
-    .optional(),
+    ),
 });
 
 export const get = z.object({

@@ -208,9 +208,7 @@ If the service has no policy attached:
 
 ## Timezone handling
 
-Each resource has an optional `timezone` field. When set, schedule windows (e.g., "09:00–17:00") are interpreted in that timezone, including DST transitions. The resolved `timezone` is included in each resource's response entry.
-
-If a resource has no timezone set, UTC is used.
+Every resource has a required `timezone` field (IANA format, e.g., `"America/New_York"`). Schedule windows (e.g., "09:00–17:00") are interpreted in the resource's timezone, including DST transitions. The resolved `timezone` is included in each resource's response entry.
 
 ## Resource availability
 

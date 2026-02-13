@@ -14,7 +14,7 @@ export interface LedgersTable {
 export interface ResourcesTable {
   id: string;
   ledgerId: string;
-  timezone: string | null;
+  timezone: string;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }

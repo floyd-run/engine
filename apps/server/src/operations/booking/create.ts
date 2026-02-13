@@ -71,7 +71,7 @@ export default createOperation({
           .executeTakeFirst();
 
         if (policy) {
-          const timezone = resource.timezone ?? "UTC";
+          const timezone = resource.timezone;
           const result = evaluatePolicy(
             policy.config as unknown as PolicyConfig,
             { startTime: input.startTime, endTime: input.endTime },

@@ -474,10 +474,7 @@ export function computeWindows(
 
     const last = mergedSchedule[mergedSchedule.length - 1]!;
     // Merge if contiguous and same config
-    if (
-      last.end.getTime() === current.start.getTime() &&
-      haveSameConfig(last, current)
-    ) {
+    if (last.end.getTime() === current.start.getTime() && haveSameConfig(last, current)) {
       last.end = current.end; // Extend the last interval
     } else {
       mergedSchedule.push(current);

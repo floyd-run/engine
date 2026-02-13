@@ -128,7 +128,7 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
 
       expect(response.status).toBe(409);
       const body = (await response.json()) as { error: { code: string } };
-      expect(body.error.code).toBe("overlap_conflict");
+      expect(body.error.code).toBe("allocation.overlap");
     });
 
     it("returns 409 when overlapping with non-expired temporary allocation", async () => {

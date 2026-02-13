@@ -17,19 +17,19 @@ import {
 const registry = new OpenAPIRegistry();
 
 // Register schemas
-registry.register("Ledger", ledger.schema);
-registry.register("Resource", resource.schema);
-registry.register("Allocation", allocation.schema);
-registry.register("WebhookSubscription", webhook.subscriptionSchema);
-registry.register("AvailabilityItem", availability.itemSchema);
-registry.register("TimelineBlock", availability.timelineBlockSchema);
-registry.register("Slot", availability.slotSchema);
-registry.register("ResourceSlots", availability.resourceSlotsSchema);
-registry.register("Window", availability.windowSchema);
-registry.register("ResourceWindows", availability.resourceWindowsSchema);
-registry.register("Policy", policy.schema);
-registry.register("Service", service.schema);
-registry.register("Booking", booking.schema);
+registry.register("Ledger", ledger.base);
+registry.register("Resource", resource.base);
+registry.register("Allocation", allocation.base);
+registry.register("WebhookSubscription", webhook.subscription);
+registry.register("AvailabilityItem", availability.item);
+registry.register("TimelineBlock", availability.timelineBlock);
+registry.register("Slot", availability.slot);
+registry.register("ResourceSlots", availability.resourceSlots);
+registry.register("Window", availability.window);
+registry.register("ResourceWindows", availability.resourceWindows);
+registry.register("Policy", policy.base);
+registry.register("Service", service.base);
+registry.register("Booking", booking.base);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -41,7 +41,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of ledgers",
-      content: { "application/json": { schema: ledger.listSchema } },
+      content: { "application/json": { schema: ledger.list } },
     },
   },
 });
@@ -59,7 +59,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Ledger details",
-      content: { "application/json": { schema: ledger.getSchema } },
+      content: { "application/json": { schema: ledger.get } },
     },
     404: {
       description: "Ledger not found",
@@ -81,7 +81,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Ledger created",
-      content: { "application/json": { schema: ledger.getSchema } },
+      content: { "application/json": { schema: ledger.get } },
     },
   },
 });
@@ -96,7 +96,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of resources",
-      content: { "application/json": { schema: resource.listSchema } },
+      content: { "application/json": { schema: resource.list } },
     },
   },
 });
@@ -112,7 +112,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Resource details",
-      content: { "application/json": { schema: resource.getSchema } },
+      content: { "application/json": { schema: resource.get } },
     },
     404: {
       description: "Resource not found",
@@ -144,7 +144,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Resource created",
-      content: { "application/json": { schema: resource.getSchema } },
+      content: { "application/json": { schema: resource.get } },
     },
   },
 });
@@ -201,7 +201,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Availability timeline for each resource",
-      content: { "application/json": { schema: availability.querySchema } },
+      content: { "application/json": { schema: availability.query } },
     },
   },
 });
@@ -216,7 +216,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of allocations",
-      content: { "application/json": { schema: allocation.listSchema } },
+      content: { "application/json": { schema: allocation.list } },
     },
   },
 });
@@ -232,7 +232,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Allocation details",
-      content: { "application/json": { schema: allocation.getSchema } },
+      content: { "application/json": { schema: allocation.get } },
     },
     404: {
       description: "Allocation not found",
@@ -269,7 +269,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Allocation created",
-      content: { "application/json": { schema: allocation.getSchema } },
+      content: { "application/json": { schema: allocation.get } },
     },
     409: {
       description: "Allocation conflicts with existing allocation",
@@ -311,7 +311,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of services",
-      content: { "application/json": { schema: service.listSchema } },
+      content: { "application/json": { schema: service.list } },
     },
   },
 });
@@ -327,7 +327,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Service details",
-      content: { "application/json": { schema: service.getSchema } },
+      content: { "application/json": { schema: service.get } },
     },
     404: {
       description: "Service not found",
@@ -370,7 +370,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Service created",
-      content: { "application/json": { schema: service.getSchema } },
+      content: { "application/json": { schema: service.get } },
     },
     404: {
       description: "Policy or resource not found",
@@ -414,7 +414,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Service updated",
-      content: { "application/json": { schema: service.getSchema } },
+      content: { "application/json": { schema: service.get } },
     },
     404: {
       description: "Service, policy, or resource not found",
@@ -488,7 +488,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Available slots per resource",
-      content: { "application/json": { schema: availability.slotsResponseSchema } },
+      content: { "application/json": { schema: availability.slotsResponse } },
     },
     404: {
       description: "Service not found",
@@ -539,7 +539,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Available windows per resource",
-      content: { "application/json": { schema: availability.windowsResponseSchema } },
+      content: { "application/json": { schema: availability.windowsResponse } },
     },
     404: {
       description: "Service not found",
@@ -562,7 +562,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of bookings",
-      content: { "application/json": { schema: booking.listSchema } },
+      content: { "application/json": { schema: booking.list } },
     },
   },
 });
@@ -579,7 +579,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Booking details with allocations",
-      content: { "application/json": { schema: booking.getSchema } },
+      content: { "application/json": { schema: booking.get } },
     },
     404: {
       description: "Booking not found",
@@ -621,7 +621,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Booking created",
-      content: { "application/json": { schema: booking.getSchema } },
+      content: { "application/json": { schema: booking.get } },
     },
     404: {
       description: "Service or resource not found",
@@ -647,7 +647,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Booking confirmed",
-      content: { "application/json": { schema: booking.getSchema } },
+      content: { "application/json": { schema: booking.get } },
     },
     404: {
       description: "Booking not found",
@@ -666,21 +666,21 @@ registry.registerPath({
   tags: ["Bookings"],
   summary: "Cancel a booking",
   description:
-    "Cancels a booking in hold or confirmed status. Idempotent — cancelling an already cancelled booking returns success. Supports idempotency via the Idempotency-Key header.",
+    "Cancels a booking in hold or confirmed status. Idempotent — canceling an already canceled booking returns success. Supports idempotency via the Idempotency-Key header.",
   request: {
     params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
-      description: "Booking cancelled",
-      content: { "application/json": { schema: booking.getSchema } },
+      description: "Booking canceled",
+      content: { "application/json": { schema: booking.get } },
     },
     404: {
       description: "Booking not found",
       content: { "application/json": { schema: error.schema } },
     },
     409: {
-      description: "Booking cannot be cancelled (invalid state)",
+      description: "Booking cannot be canceled (invalid state)",
       content: { "application/json": { schema: error.schema } },
     },
   },
@@ -696,7 +696,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of webhook subscriptions",
-      content: { "application/json": { schema: webhook.listSubscriptionsSchema } },
+      content: { "application/json": { schema: webhook.listSubscriptions } },
     },
   },
 });
@@ -723,18 +723,18 @@ registry.registerPath({
   responses: {
     201: {
       description: "Webhook subscription created (includes secret)",
-      content: { "application/json": { schema: webhook.createSubscriptionSchema } },
+      content: { "application/json": { schema: webhook.createSubscription } },
     },
   },
 });
 
 registry.registerPath({
   method: "patch",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}",
+  path: "/v1/ledgers/{ledgerId}/webhooks/{id}",
   tags: ["Webhooks"],
   summary: "Update a webhook subscription",
   request: {
-    params: z.object({ ledgerId: z.string(), subscriptionId: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
     body: {
       content: {
         "application/json": {
@@ -748,7 +748,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Webhook subscription updated",
-      content: { "application/json": { schema: webhook.updateSubscriptionSchema } },
+      content: { "application/json": { schema: webhook.updateSubscription } },
     },
     404: {
       description: "Webhook subscription not found",
@@ -759,11 +759,11 @@ registry.registerPath({
 
 registry.registerPath({
   method: "delete",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}",
+  path: "/v1/ledgers/{ledgerId}/webhooks/{id}",
   tags: ["Webhooks"],
   summary: "Delete a webhook subscription",
   request: {
-    params: z.object({ ledgerId: z.string(), subscriptionId: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     204: { description: "Webhook subscription deleted" },
@@ -776,18 +776,18 @@ registry.registerPath({
 
 registry.registerPath({
   method: "post",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/rotate-secret",
+  path: "/v1/ledgers/{ledgerId}/webhooks/{id}/rotate-secret",
   tags: ["Webhooks"],
   summary: "Rotate webhook secret",
   description:
     "Generates a new secret for the webhook subscription. The old secret is invalidated immediately.",
   request: {
-    params: z.object({ ledgerId: z.string(), subscriptionId: z.string() }),
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
   responses: {
     200: {
       description: "New secret generated (includes secret)",
-      content: { "application/json": { schema: webhook.rotateSecretSchema } },
+      content: { "application/json": { schema: webhook.rotateSecret } },
     },
     404: {
       description: "Webhook subscription not found",
@@ -806,7 +806,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "List of policies",
-      content: { "application/json": { schema: policy.listSchema } },
+      content: { "application/json": { schema: policy.list } },
     },
   },
 });
@@ -822,7 +822,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Policy details",
-      content: { "application/json": { schema: policy.getSchema } },
+      content: { "application/json": { schema: policy.get } },
     },
     404: {
       description: "Policy not found",
@@ -861,7 +861,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Policy created (may include warnings)",
-      content: { "application/json": { schema: policy.getSchema } },
+      content: { "application/json": { schema: policy.get } },
     },
   },
 });
@@ -896,7 +896,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Policy updated (may include warnings)",
-      content: { "application/json": { schema: policy.getSchema } },
+      content: { "application/json": { schema: policy.get } },
     },
     404: {
       description: "Policy not found",

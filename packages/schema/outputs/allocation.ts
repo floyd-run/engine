@@ -1,6 +1,6 @@
 import { z } from "./zod";
 
-export const schema = z.object({
+export const base = z.object({
   id: z.string(),
   ledgerId: z.string(),
   resourceId: z.string(),
@@ -16,8 +16,8 @@ export const schema = z.object({
   updatedAt: z.string(),
 });
 
-export const getSchema = z.object({
-  data: schema,
+export const get = z.object({
+  data: base,
   meta: z
     .object({
       serverTime: z.string(),
@@ -25,6 +25,6 @@ export const getSchema = z.object({
     .optional(),
 });
 
-export const listSchema = z.object({
-  data: z.array(schema),
+export const list = z.object({
+  data: z.array(base),
 });

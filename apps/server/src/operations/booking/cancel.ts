@@ -26,8 +26,8 @@ export default createOperation({
       const serverTime = await getServerTime(trx);
 
       // 3. Validate state
-      if (existing.status === "cancelled") {
-        // Idempotent — already cancelled
+      if (existing.status === "canceled") {
+        // Idempotent — already canceled
         const allocations = await trx
           .selectFrom("allocations")
           .selectAll()
@@ -37,9 +37,9 @@ export default createOperation({
       }
 
       if (existing.status !== "hold" && existing.status !== "confirmed") {
-        throw new ConflictError("invalid_state_transition", {
+        throw new ConflictError("booking.invalid_transition", {
           currentStatus: existing.status,
-          requestedStatus: "cancelled",
+          requestedStatus: "canceled",
         });
       }
 
@@ -47,7 +47,7 @@ export default createOperation({
       const booking = await trx
         .updateTable("bookings")
         .set({
-          status: "cancelled",
+          status: "canceled",
           expiresAt: null,
           updatedAt: serverTime,
         })

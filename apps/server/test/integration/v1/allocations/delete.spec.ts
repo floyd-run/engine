@@ -45,6 +45,6 @@ describe("DELETE /v1/ledgers/:ledgerId/allocations/:id", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("booking_owned_allocation");
+    expect(body.error.code).toBe("allocation.managed_by_booking");
   });
 });

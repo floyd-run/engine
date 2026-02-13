@@ -1,6 +1,6 @@
 import z from "zod";
 import { isValidId } from "@floyd-run/utils";
-import { PolicyDefault } from "../constants";
+import { ScheduleDefault } from "../constants";
 
 // Time string: HH:MM (00:00-23:59) or 24:00 for end-of-day
 const timeStringSchema = z
@@ -146,7 +146,7 @@ const ruleSchema = z
 const policyConfigSchema = z
   .object({
     schema_version: z.literal(1),
-    default: z.enum([PolicyDefault.OPEN, PolicyDefault.CLOSED]),
+    default: z.enum([ScheduleDefault.OPEN, ScheduleDefault.CLOSED]),
     config: configAuthoringSchema,
     rules: z.array(ruleSchema).default([]),
     metadata: z.record(z.string(), z.unknown()).optional(),

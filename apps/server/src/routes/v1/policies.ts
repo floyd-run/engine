@@ -30,7 +30,7 @@ export const policies = new Hono()
 
     const responseBody: Record<string, unknown> = { data: serializePolicy(policy) };
     if (warnings.length > 0) {
-      responseBody["warnings"] = warnings;
+      responseBody["meta"] = { warnings };
     }
     return c.json(responseBody, 201);
   })
@@ -45,7 +45,7 @@ export const policies = new Hono()
 
     const responseBody: Record<string, unknown> = { data: serializePolicy(policy) };
     if (warnings.length > 0) {
-      responseBody["warnings"] = warnings;
+      responseBody["meta"] = { warnings };
     }
     return c.json(responseBody);
   })

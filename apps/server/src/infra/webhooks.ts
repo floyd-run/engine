@@ -10,7 +10,7 @@ export type WebhookEventType =
   | "allocation.deleted"
   | "booking.created"
   | "booking.confirmed"
-  | "booking.cancelled"
+  | "booking.canceled"
   | "booking.expired";
 
 export interface WebhookEvent {

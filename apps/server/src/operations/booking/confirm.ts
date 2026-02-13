@@ -37,7 +37,7 @@ export default createOperation({
       }
 
       if (existing.status !== "hold") {
-        throw new ConflictError("invalid_state_transition", {
+        throw new ConflictError("booking.invalid_transition", {
           currentStatus: existing.status,
           requestedStatus: "confirmed",
         });
@@ -45,7 +45,7 @@ export default createOperation({
 
       // 4. Check if hold has expired
       if (existing.expiresAt && serverTime >= existing.expiresAt) {
-        throw new ConflictError("hold_expired", {
+        throw new ConflictError("booking.hold_expired", {
           expiresAt: existing.expiresAt,
           serverTime,
         });

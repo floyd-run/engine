@@ -51,7 +51,7 @@ export default createOperation({
         .executeTakeFirst();
 
       if (!serviceResource) {
-        throw new ConflictError("resource_not_in_service", {
+        throw new ConflictError("service.resource_not_member", {
           serviceId: input.serviceId,
           resourceId: input.resourceId,
         });
@@ -79,7 +79,7 @@ export default createOperation({
           );
 
           if (!result.allowed) {
-            throw new ConflictError("policy_rejected", {
+            throw new ConflictError("policy.rejected", {
               code: result.code,
               message: result.message,
               ...("details" in result ? { details: result.details } : {}),

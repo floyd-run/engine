@@ -14,11 +14,11 @@ export const WebhookDeliveryStatus = {
 export const BookingStatus = {
   HOLD: "hold",
   CONFIRMED: "confirmed",
-  CANCELLED: "cancelled",
+  CANCELED: "canceled",
   EXPIRED: "expired",
 } as const;
 
-export const PolicyDefault = {
+export const ScheduleDefault = {
   OPEN: "open",
   CLOSED: "closed",
 } as const;

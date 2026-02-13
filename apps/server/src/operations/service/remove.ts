@@ -30,10 +30,10 @@ export default createOperation({
         .executeTakeFirst();
 
       if (activeBooking) {
-        throw new ConflictError("active_bookings_exist");
+        throw new ConflictError("resource.active_bookings");
       }
 
-      // 3. Clean up non-active bookings (cancelled/expired) and their allocations
+      // 3. Clean up non-active bookings (canceled/expired) and their allocations
       const staleBookings = await trx
         .selectFrom("bookings")
         .select("id")

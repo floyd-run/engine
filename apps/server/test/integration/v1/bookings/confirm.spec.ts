@@ -67,7 +67,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
     expect(response.status).toBe(404);
   });
 
-  it("returns 409 when confirming a cancelled booking", async () => {
+  it("returns 409 when confirming a canceled booking", async () => {
     const { ledger } = await createLedger();
     const holdBooking = await createHoldBooking(ledger.id);
 
@@ -84,6 +84,6 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("invalid_state_transition");
+    expect(body.error.code).toBe("booking.invalid_transition");
   });
 });

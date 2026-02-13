@@ -32,7 +32,7 @@ export async function insertAllocation(
     .execute();
 
   if (conflicting.length > 0) {
-    throw new ConflictError("overlap_conflict", {
+    throw new ConflictError("allocation.overlap", {
       conflictingAllocationIds: conflicting.map((a) => a.id),
     });
   }

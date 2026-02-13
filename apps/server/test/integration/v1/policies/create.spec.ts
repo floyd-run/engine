@@ -175,10 +175,10 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     expect(response.status).toBe(201);
     const body = (await response.json()) as {
       data: Policy;
-      warnings: Array<{ code: string; message: string }>;
+      meta: { warnings: Array<{ code: string; message: string }> };
     };
-    expect(body.warnings).toBeDefined();
-    expect(body.warnings.length).toBeGreaterThan(0);
-    expect(body.warnings[0]!.code).toBe("unreachable_weekly_rule");
+    expect(body.meta.warnings).toBeDefined();
+    expect(body.meta.warnings.length).toBeGreaterThan(0);
+    expect(body.meta.warnings[0]!.code).toBe("unreachable_weekly_rule");
   });
 });

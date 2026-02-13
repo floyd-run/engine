@@ -10,15 +10,15 @@
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export const REASON_CODES = {
-  BLACKOUT_WINDOW: "blackout_window",
-  CLOSED_BY_SCHEDULE: "closed_by_schedule",
-  OVERNIGHT_NOT_SUPPORTED: "overnight_not_supported",
-  INVALID_DURATION: "invalid_duration",
-  MISALIGNED_START_TIME: "misaligned_start_time",
-  LEAD_TIME_VIOLATION: "lead_time_violation",
-  HORIZON_EXCEEDED: "horizon_exceeded",
-  POLICY_INVALID_CONFIG: "policy_invalid_config",
-  POLICY_EVAL_ERROR: "policy_eval_error",
+  BLACKOUT_WINDOW: "policy.blackout",
+  CLOSED_BY_SCHEDULE: "policy.closed",
+  OVERNIGHT_NOT_SUPPORTED: "policy.overnight_not_supported",
+  INVALID_DURATION: "policy.invalid_duration",
+  MISALIGNED_START_TIME: "policy.misaligned_start",
+  LEAD_TIME_VIOLATION: "policy.lead_time_violation",
+  HORIZON_EXCEEDED: "policy.horizon_exceeded",
+  POLICY_INVALID_CONFIG: "policy.invalid_config",
+  POLICY_EVAL_ERROR: "policy.eval_error",
 } as const;
 
 export type ReasonCode = (typeof REASON_CODES)[keyof typeof REASON_CODES];

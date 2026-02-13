@@ -40,7 +40,7 @@ describe("DELETE /v1/ledgers/:ledgerId/resources/:id", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("resource_in_use");
+    expect(body.error.code).toBe("resource.in_use");
   });
 
   it("returns 409 when resource belongs to a service", async () => {
@@ -55,6 +55,6 @@ describe("DELETE /v1/ledgers/:ledgerId/resources/:id", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("resource_in_use");
+    expect(body.error.code).toBe("resource.in_use");
   });
 });

@@ -16,7 +16,7 @@ export default createOperation({
       return { deleted: result.numDeletedRows > 0n };
     } catch (err: unknown) {
       if (err instanceof Error && "code" in err && err.code === "23503") {
-        throw new ConflictError("policy_in_use", {
+        throw new ConflictError("policy.in_use", {
           message: "Policy is referenced by one or more services",
         });
       }

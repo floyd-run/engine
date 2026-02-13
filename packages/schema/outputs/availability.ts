@@ -1,52 +1,52 @@
 import { z } from "./zod";
 
-export const timelineBlockSchema = z.object({
+export const timelineBlock = z.object({
   startAt: z.string(),
   endAt: z.string(),
   status: z.enum(["free", "busy"]),
 });
 
-export const itemSchema = z.object({
+export const item = z.object({
   resourceId: z.string(),
-  timeline: z.array(timelineBlockSchema),
+  timeline: z.array(timelineBlock),
 });
 
-export const querySchema = z.object({
-  data: z.array(itemSchema),
+export const query = z.object({
+  data: z.array(item),
 });
 
 // ─── Service Availability ────────────────────────────────────────────────────
 
-export const slotSchema = z.object({
+export const slot = z.object({
   startAt: z.string(),
   endAt: z.string(),
   status: z.enum(["available", "unavailable"]).optional(),
 });
 
-export const resourceSlotsSchema = z.object({
+export const resourceSlots = z.object({
   resourceId: z.string(),
   timezone: z.string(),
-  slots: z.array(slotSchema),
+  slots: z.array(slot),
 });
 
-export const slotsResponseSchema = z.object({
-  data: z.array(resourceSlotsSchema),
+export const slotsResponse = z.object({
+  data: z.array(resourceSlots),
   meta: z.object({ serverTime: z.string() }),
 });
 
-export const windowSchema = z.object({
+export const window = z.object({
   startAt: z.string(),
   endAt: z.string(),
   status: z.enum(["available", "unavailable"]).optional(),
 });
 
-export const resourceWindowsSchema = z.object({
+export const resourceWindows = z.object({
   resourceId: z.string(),
   timezone: z.string(),
-  windows: z.array(windowSchema),
+  windows: z.array(window),
 });
 
-export const windowsResponseSchema = z.object({
-  data: z.array(resourceWindowsSchema),
+export const windowsResponse = z.object({
+  data: z.array(resourceWindows),
   meta: z.object({ serverTime: z.string() }),
 });

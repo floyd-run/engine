@@ -24,7 +24,7 @@ export default createOperation({
 
       // 2. Cannot delete booking-owned allocations
       if (existing.bookingId !== null) {
-        throw new ConflictError("booking_owned_allocation", {
+        throw new ConflictError("allocation.managed_by_booking", {
           bookingId: existing.bookingId,
         });
       }

@@ -8,7 +8,7 @@ export async function createBooking(overrides?: {
   ledgerId?: string;
   serviceId?: string;
   resourceId?: string;
-  status?: "hold" | "confirmed" | "cancelled" | "expired";
+  status?: "hold" | "confirmed" | "canceled" | "expired";
   expiresAt?: Date | null;
   metadata?: Record<string, unknown> | null;
   startAt?: Date;

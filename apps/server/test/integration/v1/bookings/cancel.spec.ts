@@ -21,7 +21,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/cancel", () => {
     return data;
   }
 
-  it("returns 200 when cancelling a hold booking", async () => {
+  it("returns 200 when canceling a hold booking", async () => {
     const { ledger } = await createLedger();
     const holdBooking = await createHoldBooking(ledger.id);
 
@@ -35,14 +35,14 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/cancel", () => {
       meta: { serverTime: string };
     };
     expect(data.id).toBe(holdBooking.id);
-    expect(data.status).toBe("cancelled");
+    expect(data.status).toBe("canceled");
     expect(data.expiresAt).toBeNull();
     expect(data.allocations).toHaveLength(1);
     expect(data.allocations[0]!.active).toBe(false);
     expect(meta.serverTime).toBeDefined();
   });
 
-  it("returns 200 when cancelling a confirmed booking", async () => {
+  it("returns 200 when canceling a confirmed booking", async () => {
     const { ledger } = await createLedger();
     const holdBooking = await createHoldBooking(ledger.id);
 
@@ -59,11 +59,11 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/cancel", () => {
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as { data: Booking };
-    expect(data.status).toBe("cancelled");
+    expect(data.status).toBe("canceled");
     expect(data.allocations[0]!.active).toBe(false);
   });
 
-  it("is idempotent — cancelling an already cancelled booking returns same data", async () => {
+  it("is idempotent — canceling an already canceled booking returns same data", async () => {
     const { ledger } = await createLedger();
     const holdBooking = await createHoldBooking(ledger.id);
 
@@ -76,7 +76,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/cancel", () => {
     expect(resp2.status).toBe(200);
     const { data } = (await resp2.json()) as { data: Booking };
     expect(data.id).toBe(holdBooking.id);
-    expect(data.status).toBe("cancelled");
+    expect(data.status).toBe("canceled");
   });
 
   it("returns 404 for non-existent booking", async () => {

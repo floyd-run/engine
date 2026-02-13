@@ -1,6 +1,6 @@
 import { z } from "./zod";
 
-export const subscriptionSchema = z.object({
+export const subscription = z.object({
   id: z.string(),
   ledgerId: z.string(),
   url: z.string(),
@@ -8,22 +8,22 @@ export const subscriptionSchema = z.object({
   updatedAt: z.string(),
 });
 
-export const subscriptionWithSecretSchema = subscriptionSchema.extend({
+export const subscriptionWithSecret = subscription.extend({
   secret: z.string(),
 });
 
-export const createSubscriptionSchema = z.object({
-  data: subscriptionWithSecretSchema,
+export const createSubscription = z.object({
+  data: subscriptionWithSecret,
 });
 
-export const listSubscriptionsSchema = z.object({
-  data: z.array(subscriptionSchema),
+export const listSubscriptions = z.object({
+  data: z.array(subscription),
 });
 
-export const updateSubscriptionSchema = z.object({
-  data: subscriptionSchema,
+export const updateSubscription = z.object({
+  data: subscription,
 });
 
-export const rotateSecretSchema = z.object({
-  data: subscriptionWithSecretSchema,
+export const rotateSecret = z.object({
+  data: subscriptionWithSecret,
 });

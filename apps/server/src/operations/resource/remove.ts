@@ -18,7 +18,7 @@ export default createOperation({
       }
     } catch (err: unknown) {
       if (err instanceof Error && "code" in err && err.code === "23503") {
-        throw new ConflictError("resource_in_use", {
+        throw new ConflictError("resource.in_use", {
           message: "Resource has active allocations or service associations",
         });
       }

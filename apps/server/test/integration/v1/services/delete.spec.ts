@@ -40,7 +40,7 @@ describe("DELETE /v1/ledgers/:ledgerId/services/:id", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("active_bookings_exist");
+    expect(body.error.code).toBe("resource.active_bookings");
   });
 
   it("returns 409 when service has confirmed bookings", async () => {
@@ -51,12 +51,12 @@ describe("DELETE /v1/ledgers/:ledgerId/services/:id", () => {
 
     expect(response.status).toBe(409);
     const body = (await response.json()) as { error: { code: string } };
-    expect(body.error.code).toBe("active_bookings_exist");
+    expect(body.error.code).toBe("resource.active_bookings");
   });
 
-  it("allows deletion when all bookings are cancelled", async () => {
+  it("allows deletion when all bookings are canceled", async () => {
     const { ledger } = await createLedger();
-    const { serviceId } = await createBooking({ ledgerId: ledger.id, status: "cancelled" });
+    const { serviceId } = await createBooking({ ledgerId: ledger.id, status: "canceled" });
 
     const response = await client.delete(`/v1/ledgers/${ledger.id}/services/${serviceId}`);
 

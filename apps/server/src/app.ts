@@ -19,17 +19,38 @@ app.route("/", routes);
 app.onError((err, c) => {
   if (err instanceof InputError) {
     return c.json(
-      { error: { code: "VALIDATION_ERROR", message: err.message, details: err.issues } },
+      { error: { code: "invalid_input", message: err.message, issues: err.issues } },
       422,
     );
   }
 
   if (err instanceof NotFoundError) {
-    return c.json({ error: err.message }, 404);
+    const details: Record<string, string> = {};
+    if (err.resourceType) details.resourceType = err.resourceType;
+    if (err.resourceId) details.resourceId = err.resourceId;
+    return c.json(
+      {
+        error: {
+          code: "not_found",
+          message: err.message,
+          ...(Object.keys(details).length > 0 ? { details } : {}),
+        },
+      },
+      404,
+    );
   }
 
   if (err instanceof ConflictError) {
-    return c.json({ error: { code: err.reasonCode, details: err.details } }, 409);
+    return c.json(
+      {
+        error: {
+          code: err.reasonCode,
+          message: err.message,
+          ...(err.details ? { details: err.details } : {}),
+        },
+      },
+      409,
+    );
   }
 
   if (err instanceof IdempotencyError) {
@@ -41,13 +62,13 @@ app.onError((err, c) => {
   }
 
   if (err.name === "SyntaxError") {
-    return c.json({ error: "Invalid JSON" }, 400);
+    return c.json({ error: { code: "invalid_json", message: "Invalid JSON" } }, 400);
   }
 
   logger.error(err);
 
   if (config.NODE_ENV === "production") {
-    return c.json({ message: "Internal server error" }, 500);
+    return c.json({ error: { code: "internal_error", message: "Internal server error" } }, 500);
   } else {
     return c.json([err, err.stack], 500);
   }

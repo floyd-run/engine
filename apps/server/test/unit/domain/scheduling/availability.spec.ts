@@ -52,6 +52,14 @@ describe("localToAbsolute", () => {
     );
   });
 
+  it("converts 01:30:30.250 UTC with seconds and milliseconds", () => {
+    // Regression test: ensure seconds/ms aren't double-counted
+    // 1h 30m 30s 250ms = 5430250ms
+    expect(localToAbsolute("2026-01-01", 5430250, "UTC").toISOString()).toBe(
+      "2026-01-01T01:30:30.250Z",
+    );
+  });
+
   it("handles 24:00 → next day 00:00", () => {
     expect(localToAbsolute("2026-03-16", 24 * HOUR, "UTC").toISOString()).toBe(
       "2026-03-17T00:00:00.000Z",

@@ -188,10 +188,11 @@ export function localToAbsolute(dateStr: string, msFromMidnight: number, timezon
 
   // Build an ISO-like string in the target timezone
   // Use Intl.DateTimeFormat to resolve the UTC offset for this local time
-  const localStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${String(ms).padStart(3, "0")}`;
+  // Create roughUtc with only hours:minutes to avoid double-counting seconds/ms
+  const roughUtcStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:00.000Z`;
 
   // Create a rough UTC estimate, then adjust for timezone offset
-  const roughUtc = new Date(`${localStr}Z`);
+  const roughUtc = new Date(roughUtcStr);
 
   // Get the timezone offset at this rough time
   const formatter = new Intl.DateTimeFormat("en-US", {
@@ -528,8 +529,21 @@ export function computeWindows(
     return true;
   });
 
+  // Post-trim validation: re-check min_ms since trimming may have shrunk windows
+  const validWindows = leadFiltered.filter((w) => {
+    const durationMs = w.end.getTime() - w.start.getTime();
+
+    // Discard zero-length windows
+    if (durationMs === 0) return false;
+
+    // Re-check duration constraints after trimming
+    const config = getConfigForTime(w.start.getTime());
+    const minMs = (config.duration as DurationConfig | undefined)?.min_ms;
+    return minMs === undefined || durationMs >= minMs;
+  });
+
   // Step 7: Merge contiguous windows
-  const sortedFiltered = [...leadFiltered].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const sortedFiltered = [...validWindows].sort((a, b) => a.start.getTime() - b.start.getTime());
   const finalWindows = mergeIntervals(sortedFiltered);
 
   // Build results

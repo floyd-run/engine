@@ -57,6 +57,39 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
     expect(data.status).toBe("confirmed");
   });
 
+  it("handles Idempotency-Key header with empty body", async () => {
+    const { ledger } = await createLedger();
+    const holdBooking = await createHoldBooking(ledger.id);
+
+    // Confirm with idempotency key but no body
+    const response = await client.post(
+      `/v1/ledgers/${ledger.id}/bookings/${holdBooking.id}/confirm`,
+      undefined,
+      {
+        headers: {
+          "Idempotency-Key": "test-confirm-empty-body-123",
+        },
+      },
+    );
+
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Booking };
+    expect(data.status).toBe("confirmed");
+
+    // Second request with same key returns cached response
+    const response2 = await client.post(
+      `/v1/ledgers/${ledger.id}/bookings/${holdBooking.id}/confirm`,
+      undefined,
+      {
+        headers: {
+          "Idempotency-Key": "test-confirm-empty-body-123",
+        },
+      },
+    );
+
+    expect(response2.status).toBe(200);
+  });
+
   it("returns 404 for non-existent booking", async () => {
     const { ledger } = await createLedger();
 

@@ -101,7 +101,15 @@ export function idempotent(options: IdempotencyOptions = {}) {
     const method = c.req.method;
 
     // Clone body for hashing (body can only be read once)
-    const body = await c.req.json();
+    // Handle empty bodies gracefully for body-less POST endpoints
+    let body = {};
+    const contentType = c.req.header("content-type");
+    if (contentType?.includes("application/json")) {
+      const text = await c.req.text();
+      if (text && text.trim()) {
+        body = JSON.parse(text);
+      }
+    }
     const payloadHash = computePayloadHash(body, significantFields);
 
     // Store body for later use by handler

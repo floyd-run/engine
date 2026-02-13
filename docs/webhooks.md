@@ -10,7 +10,7 @@ Floyd sends webhook notifications when booking and allocation events occur. Subs
 | ------------------- | ---------------------------- |
 | `booking.created`   | A new booking was created    |
 | `booking.confirmed` | A hold booking was confirmed |
-| `booking.cancelled` | A booking was cancelled      |
+| `booking.canceled`  | A booking was canceled       |
 | `booking.expired`   | A hold booking expired       |
 
 ### Allocation events
@@ -41,8 +41,8 @@ Floyd sends webhook notifications when booking and allocation events occur. Subs
         {
           "id": "alc_01jkl012...",
           "resourceId": "rsc_01mno345...",
-          "startAt": "2026-01-15T14:00:00Z",
-          "endAt": "2026-01-15T15:00:00Z",
+          "startTime": "2026-01-15T14:00:00Z",
+          "endTime": "2026-01-15T15:00:00Z",
           "active": true
         }
       ],
@@ -69,8 +69,9 @@ Floyd sends webhook notifications when booking and allocation events occur. Subs
       "resourceId": "rsc_01ghi789...",
       "bookingId": null,
       "active": true,
-      "startAt": "2026-01-15T14:00:00Z",
-      "endAt": "2026-01-15T15:00:00Z",
+      "startTime": "2026-01-15T14:00:00Z",
+      "endTime": "2026-01-15T15:00:00Z",
+      "buffer": { "beforeMs": 0, "afterMs": 0 },
       "expiresAt": null,
       "metadata": null,
       "createdAt": "2026-01-15T10:00:00Z",

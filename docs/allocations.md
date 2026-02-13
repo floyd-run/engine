@@ -23,8 +23,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Idempotency-Key: unique-request-id" \
   -d '{
     "resourceId": "rsc_01abc123...",
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T11:00:00Z",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T11:00:00Z",
     "metadata": { "reason": "maintenance" }
   }'
 ```
@@ -39,10 +39,9 @@ Response:
     "resourceId": "rsc_01abc123...",
     "bookingId": null,
     "active": true,
-    "startAt": "2026-01-04T10:00:00.000Z",
-    "endAt": "2026-01-04T11:00:00.000Z",
-    "bufferBeforeMs": 0,
-    "bufferAfterMs": 0,
+    "startTime": "2026-01-04T10:00:00.000Z",
+    "endTime": "2026-01-04T11:00:00.000Z",
+    "buffer": { "beforeMs": 0, "afterMs": 0 },
     "expiresAt": null,
     "metadata": { "reason": "maintenance" },
     "createdAt": "2026-01-04T10:00:00.000Z",
@@ -65,8 +64,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
   -H "Content-Type: application/json" \
   -d '{
     "resourceId": "rsc_...",
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T11:00:00Z",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T11:00:00Z",
     "expiresAt": "2026-01-04T10:30:00Z"
   }'
 ```
@@ -109,29 +108,28 @@ If two requests try to create overlapping allocations on the same resource at th
 
 ## Time overlap semantics
 
-Floyd uses **half-open intervals**: **[startAt, endAt)**
+Floyd uses **half-open intervals**: **[startTime, endTime)**
 
 - Back-to-back allocations are allowed: `[10:00, 10:30)` and `[10:30, 11:00)` do not overlap
 
 Overlap exists iff:
 
-- `allocation.startAt < query.endAt` **and**
-- `allocation.endAt > query.startAt`
+- `allocation.startTime < query.endTime` **and**
+- `allocation.endTime > query.startTime`
 
 ## Allocation fields
 
-| Field            | Type    | Description                                                                                          |
-| ---------------- | ------- | ---------------------------------------------------------------------------------------------------- |
-| `id`             | string  | Allocation ID (`alc_` prefix)                                                                        |
-| `ledgerId`       | string  | Ledger this allocation belongs to                                                                    |
-| `resourceId`     | string  | Resource being blocked                                                                               |
-| `bookingId`      | string  | Booking that owns this allocation, or `null` for raw blocks                                          |
-| `active`         | boolean | `true` = blocks time, `false` = historical record                                                    |
-| `startAt`        | string  | Start of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy. |
-| `endAt`          | string  | End of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy.   |
-| `bufferBeforeMs` | number  | Buffer time before the customer appointment (ms). `0` for raw allocations.                           |
-| `bufferAfterMs`  | number  | Buffer time after the customer appointment (ms). `0` for raw allocations.                            |
-| `expiresAt`      | string  | Expiration time, or `null` for permanent blocks                                                      |
-| `metadata`       | object  | Arbitrary key-value data                                                                             |
-| `createdAt`      | string  | Creation timestamp                                                                                   |
-| `updatedAt`      | string  | Last update timestamp                                                                                |
+| Field        | Type    | Description                                                                                          |
+| ------------ | ------- | ---------------------------------------------------------------------------------------------------- |
+| `id`         | string  | Allocation ID (`alc_` prefix)                                                                        |
+| `ledgerId`   | string  | Ledger this allocation belongs to                                                                    |
+| `resourceId` | string  | Resource being blocked                                                                               |
+| `bookingId`  | string  | Booking that owns this allocation, or `null` for raw blocks                                          |
+| `active`     | boolean | `true` = blocks time, `false` = historical record                                                    |
+| `startTime`  | string  | Start of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy. |
+| `endTime`    | string  | End of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy.   |
+| `buffer`     | object  | Buffer times: `{ beforeMs, afterMs }` in milliseconds. Both `0` for raw allocations.                 |
+| `expiresAt`  | string  | Expiration time, or `null` for permanent blocks                                                      |
+| `metadata`   | object  | Arbitrary key-value data                                                                             |
+| `createdAt`  | string  | Creation timestamp                                                                                   |
+| `updatedAt`  | string  | Last update timestamp                                                                                |

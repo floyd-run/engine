@@ -18,7 +18,7 @@ A booking moves through these states:
 
 - `hold` — temporary reservation with `expiresAt`. Blocks time.
 - `confirmed` — committed reservation. Blocks time.
-- `cancelled` — released. Does **not** block time.
+- `canceled` — released. Does **not** block time.
 - `expired` — expiration time elapsed. Does **not** block time.
 
 ### State transitions
@@ -28,9 +28,9 @@ A booking moves through these states:
 | (none)      | `hold`      | `POST /bookings`                            |
 | (none)      | `confirmed` | `POST /bookings` with `status: "confirmed"` |
 | `hold`      | `confirmed` | `POST /bookings/:id/confirm`                |
-| `hold`      | `cancelled` | `POST /bookings/:id/cancel`                 |
+| `hold`      | `canceled`  | `POST /bookings/:id/cancel`                 |
 | `hold`      | `expired`   | `expiresAt` elapsed (automatic)             |
-| `confirmed` | `cancelled` | `POST /bookings/:id/cancel`                 |
+| `confirmed` | `canceled`  | `POST /bookings/:id/cancel`                 |
 
 ## Creating a booking
 
@@ -41,8 +41,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
   -d '{
     "serviceId": "svc_...",
     "resourceId": "rsc_...",
-    "startAt": "2026-03-01T10:00:00Z",
-    "endAt": "2026-03-01T11:00:00Z",
+    "startTime": "2026-03-01T10:00:00Z",
+    "endTime": "2026-03-01T11:00:00Z",
     "metadata": { "customerName": "Alice" }
   }'
 ```
@@ -66,8 +66,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
   -d '{
     "serviceId": "svc_...",
     "resourceId": "rsc_...",
-    "startAt": "2026-03-01T10:00:00Z",
-    "endAt": "2026-03-01T11:00:00Z",
+    "startTime": "2026-03-01T10:00:00Z",
+    "endTime": "2026-03-01T11:00:00Z",
     "status": "confirmed"
   }'
 ```
@@ -101,10 +101,10 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/cancel"
 
 This:
 
-- Sets `status = cancelled`
+- Sets `status = canceled`
 - Deactivates allocations (`active = false`)
 
-Cancel works on both `hold` and `confirmed` bookings. It's safe to retry — cancelling an already cancelled booking returns the booking.
+Cancel works on both `hold` and `confirmed` bookings. It's safe to retry — canceling an already canceled booking returns the booking.
 
 ## Expiration
 
@@ -131,10 +131,12 @@ After expiration, the time slot is available for new bookings.
       {
         "id": "alc_...",
         "resourceId": "rsc_...",
-        "startAt": "2026-03-01T09:45:00.000Z",
-        "endAt": "2026-03-01T11:10:00.000Z",
-        "bufferBeforeMs": 900000,
-        "bufferAfterMs": 600000,
+        "startTime": "2026-03-01T09:45:00.000Z",
+        "endTime": "2026-03-01T11:10:00.000Z",
+        "buffer": {
+          "beforeMs": 900000,
+          "afterMs": 600000
+        },
         "active": true
       }
     ],
@@ -152,14 +154,14 @@ Mutating endpoints (`create`, `confirm`, `cancel`) return `meta.serverTime`.
 
 ## Buffers
 
-When a service's policy defines buffers (`before_ms` / `after_ms`), the allocation's `startAt` and `endAt` are expanded to include the buffer time. This is the actual blocked window on the resource.
+When a service's policy defines buffers (`before_ms` / `after_ms`), the allocation's `startTime` and `endTime` are expanded to include the buffer time. This is the actual blocked window on the resource.
 
 For example, a booking at 10:00–11:00 with a 15-minute before-buffer and 10-minute after-buffer creates an allocation blocking 09:45–11:10.
 
-The allocation includes `bufferBeforeMs` and `bufferAfterMs` so the original customer time is derivable:
+The allocation includes `buffer.beforeMs` and `buffer.afterMs` so the original customer time is derivable:
 
-- Customer start = `allocation.startAt` + `bufferBeforeMs`
-- Customer end = `allocation.endAt` - `bufferAfterMs`
+- Customer start = `allocation.startTime` + `buffer.beforeMs`
+- Customer end = `allocation.endTime` - `buffer.afterMs`
 
 When no policy or no buffers are configured, both values are `0` and the allocation times match the requested times exactly.
 
@@ -167,9 +169,9 @@ Conflict detection uses the buffer-expanded times, so adjacent customer appointm
 
 ## History
 
-Cancelled and expired bookings retain their allocations with `active: false`. This preserves the full record of what was booked — which resource, which time range — even after the booking is no longer blocking time.
+Canceled and expired bookings retain their allocations with `active: false`. This preserves the full record of what was booked — which resource, which time range — even after the booking is no longer blocking time.
 
-This is useful for AI agents that need context to make decisions (e.g., "the customer cancelled their 3pm — rebook at 4pm").
+This is useful for AI agents that need context to make decisions (e.g., "the customer canceled their 3pm — rebook at 4pm").
 
 ## The "physics" (what you can rely on)
 
@@ -180,6 +182,6 @@ For a single resource:
 
 ## Time overlap semantics
 
-Floyd uses **half-open intervals**: **[startAt, endAt)**
+Floyd uses **half-open intervals**: **[startTime, endTime)**
 
 - Back-to-back bookings are allowed: `[10:00, 10:30)` and `[10:30, 11:00)` do not overlap

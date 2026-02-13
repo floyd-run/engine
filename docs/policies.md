@@ -33,9 +33,9 @@ curl -X POST https://api.floyd.run/v1/ledgers/{ledgerId}/policies \
         "grid": {
           "interval_minutes": 30
         },
-        "booking_window": {
-          "min_lead_time_hours": 1,
-          "max_lead_time_days": 30
+        "lead_time": {
+          "min_hours": 1,
+          "max_days": 30
         },
         "buffers": {
           "before_minutes": 5,
@@ -88,14 +88,14 @@ Constrains start times to fixed intervals.
 | ------------- | ------------------------------------- |
 | `interval_ms` | Start times must be multiples of this |
 
-### Booking window
+### Lead time
 
 Controls how far in advance bookings can be made.
 
-| Field              | Description                                |
-| ------------------ | ------------------------------------------ |
-| `min_lead_time_ms` | Minimum time between now and booking start |
-| `max_lead_time_ms` | Maximum time between now and booking start |
+| Field    | Description                            |
+| -------- | -------------------------------------- |
+| `min_ms` | Minimum lead time before booking start |
+| `max_ms` | Maximum lead time before booking start |
 
 ### Buffers
 
@@ -218,7 +218,7 @@ Each policy config is canonicalized and hashed (SHA-256). The `configHash` field
   "config": {
     "duration": { "allowed_minutes": [15, 30] },
     "grid": { "interval_minutes": 15 },
-    "booking_window": { "min_lead_time_hours": 2 }
+    "lead_time": { "min_hours": 2 }
   },
   "rules": [
     {

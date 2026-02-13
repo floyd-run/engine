@@ -14,12 +14,12 @@ The key is scoped to your request. If you send the same key with the same signif
 
 ## Supported endpoints
 
-| Endpoint                     | Significant fields                                      |
-| ---------------------------- | ------------------------------------------------------- |
-| `POST /allocations`          | `resourceId`, `startAt`, `endAt`, `expiresAt`           |
-| `POST /bookings`             | `serviceId`, `resourceId`, `startAt`, `endAt`, `status` |
-| `POST /bookings/:id/confirm` | (none — scoped to booking ID)                           |
-| `POST /bookings/:id/cancel`  | (none — scoped to booking ID)                           |
+| Endpoint                     | Significant fields                                          |
+| ---------------------------- | ----------------------------------------------------------- |
+| `POST /allocations`          | `resourceId`, `startTime`, `endTime`, `expiresAt`           |
+| `POST /bookings`             | `serviceId`, `resourceId`, `startTime`, `endTime`, `status` |
+| `POST /bookings/:id/confirm` | (none — scoped to booking ID)                               |
+| `POST /bookings/:id/cancel`  | (none — scoped to booking ID)                               |
 
 ## Behavior
 
@@ -49,8 +49,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
   -d '{
     "serviceId": "svc_01abc123...",
     "resourceId": "rsc_01abc123...",
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T10:30:00Z"
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T10:30:00Z"
   }'
 ```
 
@@ -72,6 +72,6 @@ Examples:
 The `confirm` and `cancel` booking endpoints are idempotent by default:
 
 - Confirming an already confirmed booking returns the confirmed booking
-- Cancelling an already cancelled booking returns the cancelled booking
+- Canceling an already canceled booking returns the canceled booking
 
 You can still use `Idempotency-Key` header for additional safety on these endpoints.

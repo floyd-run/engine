@@ -16,8 +16,8 @@ Returns discrete, grid-aligned time positions where a booking of the given durat
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services/$SERVICE_ID/availability/slots" \
   -H "Content-Type: application/json" \
   -d '{
-    "startAt": "2026-03-16T00:00:00Z",
-    "endAt": "2026-03-16T23:59:59Z",
+    "startTime": "2026-03-16T00:00:00Z",
+    "endTime": "2026-03-16T23:59:59Z",
     "durationMs": 3600000
   }'
 ```
@@ -31,9 +31,9 @@ Response:
       "resourceId": "rsc_01abc123def456ghi789jkl012",
       "timezone": "America/New_York",
       "slots": [
-        { "startAt": "2026-03-16T13:00:00.000Z", "endAt": "2026-03-16T14:00:00.000Z" },
-        { "startAt": "2026-03-16T13:30:00.000Z", "endAt": "2026-03-16T14:30:00.000Z" },
-        { "startAt": "2026-03-16T14:00:00.000Z", "endAt": "2026-03-16T15:00:00.000Z" }
+        { "startTime": "2026-03-16T13:00:00.000Z", "endTime": "2026-03-16T14:00:00.000Z" },
+        { "startTime": "2026-03-16T13:30:00.000Z", "endTime": "2026-03-16T14:30:00.000Z" },
+        { "startTime": "2026-03-16T14:00:00.000Z", "endTime": "2026-03-16T15:00:00.000Z" }
       ]
     }
   ],
@@ -47,8 +47,8 @@ Response:
 
 | Field                | Type     | Required | Description                                                                   |
 | -------------------- | -------- | -------- | ----------------------------------------------------------------------------- |
-| `startAt`            | string   | Yes      | Start of query window (ISO 8601)                                              |
-| `endAt`              | string   | Yes      | End of query window (ISO 8601). Max 7 days from `startAt`.                    |
+| `startTime`          | string   | Yes      | Start of query window (ISO 8601)                                              |
+| `endTime`            | string   | Yes      | End of query window (ISO 8601). Max 7 days from `startTime`.                  |
 | `durationMs`         | number   | Yes      | Desired booking duration in milliseconds                                      |
 | `resourceIds`        | string[] | No       | Filter to specific resources. Defaults to all resources in the service.       |
 | `includeUnavailable` | boolean  | No       | When `true`, returns all grid positions with `status` field. Default `false`. |
@@ -59,7 +59,7 @@ Response:
 2. **Grid alignment**: Within each day's open windows, candidate positions are placed at grid intervals (from `config.grid.interval_ms`). If no grid is configured, the step defaults to `durationMs`.
 3. **Duration validation**: If the day's config restricts durations (`allowed_ms`, `min_ms`, `max_ms`) and `durationMs` doesn't pass, the entire day is skipped.
 4. **Conflict check**: Each candidate is expanded by buffer times (`before_ms` / `after_ms`) and checked against existing allocations. Overlapping candidates are excluded.
-5. **Lead time / horizon**: Candidates too close to `serverTime` (below `min_lead_time_ms`) or too far out (beyond `max_lead_time_ms`) are excluded.
+5. **Lead time / horizon**: Candidates too close to `serverTime` (below `min_ms`) or too far out (beyond `max_ms`) are excluded.
 
 ### Overlapping slots
 
@@ -78,9 +78,9 @@ By default, only available slots are returned (no `status` field). With `include
 ```json
 {
   "slots": [
-    { "startAt": "...", "endAt": "...", "status": "available" },
-    { "startAt": "...", "endAt": "...", "status": "unavailable" },
-    { "startAt": "...", "endAt": "...", "status": "available" }
+    { "startTime": "...", "endTime": "...", "status": "available" },
+    { "startTime": "...", "endTime": "...", "status": "unavailable" },
+    { "startTime": "...", "endTime": "...", "status": "available" }
   ]
 }
 ```
@@ -95,8 +95,8 @@ Returns continuous available time ranges after subtracting existing allocations 
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services/$SERVICE_ID/availability/windows" \
   -H "Content-Type: application/json" \
   -d '{
-    "startAt": "2026-03-16T00:00:00Z",
-    "endAt": "2026-03-20T00:00:00Z"
+    "startTime": "2026-03-16T00:00:00Z",
+    "endTime": "2026-03-20T00:00:00Z"
   }'
 ```
 
@@ -109,9 +109,9 @@ Response:
       "resourceId": "rsc_01abc123def456ghi789jkl012",
       "timezone": "America/New_York",
       "windows": [
-        { "startAt": "2026-03-16T13:00:00.000Z", "endAt": "2026-03-16T22:00:00.000Z" },
-        { "startAt": "2026-03-17T13:00:00.000Z", "endAt": "2026-03-17T16:00:00.000Z" },
-        { "startAt": "2026-03-17T18:00:00.000Z", "endAt": "2026-03-17T22:00:00.000Z" }
+        { "startTime": "2026-03-16T13:00:00.000Z", "endTime": "2026-03-16T22:00:00.000Z" },
+        { "startTime": "2026-03-17T13:00:00.000Z", "endTime": "2026-03-17T16:00:00.000Z" },
+        { "startTime": "2026-03-17T18:00:00.000Z", "endTime": "2026-03-17T22:00:00.000Z" }
       ]
     }
   ],
@@ -125,8 +125,8 @@ Response:
 
 | Field                | Type     | Required | Description                                                                             |
 | -------------------- | -------- | -------- | --------------------------------------------------------------------------------------- |
-| `startAt`            | string   | Yes      | Start of query window (ISO 8601)                                                        |
-| `endAt`              | string   | Yes      | End of query window (ISO 8601). Max 31 days from `startAt`.                             |
+| `startTime`          | string   | Yes      | Start of query window (ISO 8601)                                                        |
+| `endTime`            | string   | Yes      | End of query window (ISO 8601). Max 31 days from `startTime`.                           |
 | `resourceIds`        | string[] | No       | Filter to specific resources. Defaults to all resources in the service.                 |
 | `includeUnavailable` | boolean  | No       | When `true`, also returns allocation times as `"unavailable"` windows. Default `false`. |
 
@@ -140,7 +140,7 @@ Response:
    - Gap end touches an allocation → shrink end by `after_ms`
    - Gap start/end at a schedule boundary → no shrinkage (buffers extend outside schedule)
 5. **Minimum duration filter**: Windows shorter than `config.duration.min_ms` are discarded.
-6. **Lead time / horizon**: Windows outside the booking window are filtered.
+6. **Lead time / horizon**: Windows outside the lead time range are filtered.
 7. **Merge**: Adjacent windows are merged into single ranges.
 
 ### Buffer shrinkage example
@@ -173,9 +173,9 @@ With `includeUnavailable: true`, allocation times within schedule hours are also
 ```json
 {
   "windows": [
-    { "startAt": "...", "endAt": "...", "status": "available" },
-    { "startAt": "...", "endAt": "...", "status": "unavailable" },
-    { "startAt": "...", "endAt": "...", "status": "available" }
+    { "startTime": "...", "endTime": "...", "status": "available" },
+    { "startTime": "...", "endTime": "...", "status": "unavailable" },
+    { "startTime": "...", "endTime": "...", "status": "available" }
   ]
 }
 ```
@@ -188,8 +188,8 @@ Both slots and windows accept an optional `resourceIds` array to query specific 
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services/$SERVICE_ID/availability/slots" \
   -H "Content-Type: application/json" \
   -d '{
-    "startAt": "2026-03-16T00:00:00Z",
-    "endAt": "2026-03-16T23:59:59Z",
+    "startTime": "2026-03-16T00:00:00Z",
+    "endTime": "2026-03-16T23:59:59Z",
     "durationMs": 3600000,
     "resourceIds": ["rsc_01abc123def456ghi789jkl012"]
   }'
@@ -221,8 +221,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/availability" \
   -H "Content-Type: application/json" \
   -d '{
     "resourceIds": ["rsc_01abc123def456ghi789jkl012"],
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T18:00:00Z"
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T18:00:00Z"
   }'
 ```
 
@@ -235,18 +235,18 @@ Response:
       "resourceId": "rsc_01abc123def456ghi789jkl012",
       "timeline": [
         {
-          "startAt": "2026-01-04T10:00:00.000Z",
-          "endAt": "2026-01-04T11:00:00.000Z",
+          "startTime": "2026-01-04T10:00:00.000Z",
+          "endTime": "2026-01-04T11:00:00.000Z",
           "status": "free"
         },
         {
-          "startAt": "2026-01-04T11:00:00.000Z",
-          "endAt": "2026-01-04T12:00:00.000Z",
+          "startTime": "2026-01-04T11:00:00.000Z",
+          "endTime": "2026-01-04T12:00:00.000Z",
           "status": "busy"
         },
         {
-          "startAt": "2026-01-04T12:00:00.000Z",
-          "endAt": "2026-01-04T18:00:00.000Z",
+          "startTime": "2026-01-04T12:00:00.000Z",
+          "endTime": "2026-01-04T18:00:00.000Z",
           "status": "free"
         }
       ]
@@ -285,7 +285,7 @@ const { data, meta } = await fetch(
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ startAt, endAt, durationMs: 3600000 }),
+    body: JSON.stringify({ startTime, endTime, durationMs: 3600000 }),
   },
 ).then((r) => r.json());
 
@@ -293,7 +293,7 @@ const { data, meta } = await fetch(
 for (const resource of data) {
   if (resource.slots.length > 0) {
     const slot = resource.slots[0];
-    console.log(`Book ${resource.resourceId} at ${slot.startAt}`);
+    console.log(`Book ${resource.resourceId} at ${slot.startTime}`);
     break;
   }
 }
@@ -307,7 +307,7 @@ const { data } = await fetch(
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ startAt, endAt }),
+    body: JSON.stringify({ startTime, endTime }),
   },
 ).then((r) => r.json());
 
@@ -315,11 +315,11 @@ const { data } = await fetch(
 const minDuration = 4 * 60 * 60 * 1000; // 4 hours
 for (const resource of data) {
   const suitable = resource.windows.find((w) => {
-    const duration = new Date(w.endAt) - new Date(w.startAt);
+    const duration = new Date(w.endTime) - new Date(w.startTime);
     return duration >= minDuration;
   });
   if (suitable) {
-    console.log(`Rent ${resource.resourceId}: ${suitable.startAt} to ${suitable.endAt}`);
+    console.log(`Rent ${resource.resourceId}: ${suitable.startTime} to ${suitable.endTime}`);
     break;
   }
 }

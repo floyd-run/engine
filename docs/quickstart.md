@@ -166,8 +166,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
   -d '{
     "serviceId": "svc_01abc123def456ghi789jkl012",
     "resourceId": "rsc_01abc123def456ghi789jkl012",
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T10:30:00Z",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T10:30:00Z",
     "metadata": { "source": "quickstart" }
   }'
 ```
@@ -186,8 +186,8 @@ Response:
       {
         "id": "alc_01abc123def456ghi789jkl012",
         "resourceId": "rsc_01abc123def456ghi789jkl012",
-        "startAt": "2026-01-04T10:00:00.000Z",
-        "endAt": "2026-01-04T10:30:00.000Z",
+        "startTime": "2026-01-04T10:00:00.000Z",
+        "endTime": "2026-01-04T10:30:00.000Z",
         "active": true
       }
     ],
@@ -229,8 +229,8 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/cancel"
 
 Expected:
 
-- `200 OK` with status `cancelled` and allocations deactivated (`active: false`)
-- Safe to retry (cancelling an already cancelled booking returns the booking)
+- `200 OK` with status `canceled` and allocations deactivated (`active: false`)
+- Safe to retry (canceling an already canceled booking returns the booking)
 
 ## 6) Get a booking
 

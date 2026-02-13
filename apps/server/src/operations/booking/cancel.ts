@@ -69,7 +69,7 @@ export default createOperation({
         .execute();
 
       // 6. Enqueue webhook
-      await enqueueWebhookEvent(trx, "booking.cancelled", booking.ledgerId, {
+      await enqueueWebhookEvent(trx, "booking.canceled", booking.ledgerId, {
         booking: serializeBooking(booking, allocations),
       });
 

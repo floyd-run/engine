@@ -9,6 +9,11 @@
 import {
   type PolicyConfig,
   type ResolvedConfig,
+  type DurationConfig,
+  type GridConfig,
+  type LeadTimeConfig,
+  type BuffersConfig,
+  type HoldConfig,
   matchesCondition,
   timeToMs,
   toLocalDate,
@@ -16,28 +21,6 @@ import {
   dateRange,
 } from "domain/policy/evaluate";
 import { mergeIntervals, type Interval } from "./timeline";
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface DurationConfig {
-  min_ms?: number;
-  max_ms?: number;
-  allowed_ms?: number[];
-}
-
-interface GridConfig {
-  interval_ms: number;
-}
-
-interface LeadTimeConfig {
-  min_ms?: number;
-  max_ms?: number;
-}
-
-interface BuffersConfig {
-  before_ms?: number;
-  after_ms?: number;
-}
 
 export interface ResolvedDay {
   date: string;
@@ -124,6 +107,7 @@ export function resolveDay(
         grid: resolvedRaw["grid"] as GridConfig | undefined,
         lead_time: resolvedRaw["lead_time"] as LeadTimeConfig | undefined,
         buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
+        hold: resolvedRaw["hold"] as HoldConfig | undefined,
       };
 
       return { date: dateStr, windows, config };
@@ -146,6 +130,7 @@ export function resolveDay(
     grid: resolvedRaw["grid"] as GridConfig | undefined,
     lead_time: resolvedRaw["lead_time"] as LeadTimeConfig | undefined,
     buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
+    hold: resolvedRaw["hold"] as HoldConfig | undefined,
   };
 
   return {

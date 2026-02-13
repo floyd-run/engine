@@ -88,6 +88,14 @@ const buffersAuthoringSchema = z
   })
   .passthrough();
 
+// Hold section (authoring)
+const holdAuthoringSchema = z
+  .object({
+    duration_ms: z.number().int().positive().optional(),
+    duration_minutes: z.number().positive().optional(),
+  })
+  .passthrough();
+
 // Config section (authoring)
 const configAuthoringSchema = z
   .object({
@@ -95,6 +103,7 @@ const configAuthoringSchema = z
     grid: gridAuthoringSchema.optional(),
     lead_time: leadTimeAuthoringSchema.optional(),
     buffers: buffersAuthoringSchema.optional(),
+    hold: holdAuthoringSchema.optional(),
   })
   .passthrough();
 

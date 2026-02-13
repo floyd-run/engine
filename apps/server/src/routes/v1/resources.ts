@@ -25,7 +25,7 @@ export const resources = new Hono()
     const body = await c.req.json();
     const { resource } = await operations.resource.create({
       ...body,
-      ledgerId: c.req.param("ledgerId"),
+      ledgerId: c.req.param("ledgerId")!,
     });
     return c.json({ data: serializeResource(resource) }, 201);
   })

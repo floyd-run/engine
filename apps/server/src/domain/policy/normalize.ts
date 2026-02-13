@@ -93,7 +93,11 @@ function normalizeConfigSection(config: Record<string, unknown>): Record<string,
 
   for (const [key, value] of Object.entries(config)) {
     if (
-      (key === "duration" || key === "grid" || key === "lead_time" || key === "buffers") &&
+      (key === "duration" ||
+        key === "grid" ||
+        key === "lead_time" ||
+        key === "buffers" ||
+        key === "hold") &&
       typeof value === "object" &&
       value !== null
     ) {

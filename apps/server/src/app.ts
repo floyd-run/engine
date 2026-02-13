@@ -26,8 +26,8 @@ app.onError((err, c) => {
 
   if (err instanceof NotFoundError) {
     const details: Record<string, string> = {};
-    if (err.resourceType) details.resourceType = err.resourceType;
-    if (err.resourceId) details.resourceId = err.resourceId;
+    if (err["resourceType"]) details["resourceType"] = err["resourceType"];
+    if (err["resourceId"]) details["resourceId"] = err["resourceId"];
     return c.json(
       {
         error: {

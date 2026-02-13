@@ -100,8 +100,8 @@ Trying to delete a service that has bookings in `hold` or `confirmed` status.
 ```json
 {
   "error": {
-    "code": "active_bookings_exist",
-    "message": "Service has active bookings"
+    "code": "service.active_bookings",
+    "message": "Conflict"
   }
 }
 ```

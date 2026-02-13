@@ -34,27 +34,27 @@ export interface EvaluationContext {
   skipPolicy?: boolean;
 }
 
-interface DurationConfig {
+export interface DurationConfig {
   min_ms?: number;
   max_ms?: number;
   allowed_ms?: number[];
 }
 
-interface GridConfig {
+export interface GridConfig {
   interval_ms: number;
 }
 
-interface LeadTimeConfig {
+export interface LeadTimeConfig {
   min_ms?: number;
   max_ms?: number;
 }
 
-interface BuffersConfig {
+export interface BuffersConfig {
   before_ms?: number;
   after_ms?: number;
 }
 
-interface HoldConfig {
+export interface HoldConfig {
   duration_ms?: number;
 }
 

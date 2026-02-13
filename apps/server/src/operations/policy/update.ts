@@ -7,35 +7,38 @@ import { preparePolicyConfig } from "domain/policy";
 export default createOperation({
   input: policyInput.update,
   execute: async (input) => {
-    // 1. Verify policy exists
-    const existing = await db
-      .selectFrom("policies")
-      .selectAll()
-      .where("id", "=", input.id)
-      .where("ledgerId", "=", input.ledgerId)
-      .executeTakeFirst();
+    return await db.transaction().execute(async (trx) => {
+      // 1. Verify policy exists (with row lock)
+      const existing = await trx
+        .selectFrom("policies")
+        .selectAll()
+        .where("id", "=", input.id)
+        .where("ledgerId", "=", input.ledgerId)
+        .forUpdate()
+        .executeTakeFirst();
 
-    if (!existing) {
-      throw new NotFoundError("Policy not found");
-    }
+      if (!existing) {
+        throw new NotFoundError("Policy not found");
+      }
 
-    // 2. Normalize, validate, canonicalize, hash
-    const { normalized, configHash, warnings } = preparePolicyConfig(
-      input.config as unknown as Record<string, unknown>,
-    );
+      // 2. Normalize, validate, canonicalize, hash
+      const { normalized, configHash, warnings } = preparePolicyConfig(
+        input.config as unknown as Record<string, unknown>,
+      );
 
-    // 3. Update
-    const row = await db
-      .updateTable("policies")
-      .set({
-        config: normalized,
-        configHash,
-      })
-      .where("id", "=", input.id)
-      .where("ledgerId", "=", input.ledgerId)
-      .returningAll()
-      .executeTakeFirstOrThrow();
+      // 3. Update
+      const row = await trx
+        .updateTable("policies")
+        .set({
+          config: normalized,
+          configHash,
+        })
+        .where("id", "=", input.id)
+        .where("ledgerId", "=", input.ledgerId)
+        .returningAll()
+        .executeTakeFirstOrThrow();
 
-    return { policy: row, warnings };
+      return { policy: row, warnings };
+    });
   },
 });

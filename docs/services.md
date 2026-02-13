@@ -67,8 +67,8 @@ curl -X DELETE "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services/$SERVICE_ID"
 ```
 
 - Returns `204 No Content` on success
-- Returns `409 Conflict` with code `active_bookings_exist` if the service has bookings in `hold` or `confirmed` status
-- Cancelled and expired bookings do not block deletion
+- Returns `409 Conflict` with code `service.active_bookings` if the service has bookings in `hold` or `confirmed` status
+- Canceled and expired bookings do not block deletion
 
 ## Getting a service
 

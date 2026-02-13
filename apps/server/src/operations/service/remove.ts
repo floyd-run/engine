@@ -30,7 +30,7 @@ export default createOperation({
         .executeTakeFirst();
 
       if (activeBooking) {
-        throw new ConflictError("resource.active_bookings");
+        throw new ConflictError("service.active_bookings");
       }
 
       // 3. Clean up non-active bookings (canceled/expired) and their allocations

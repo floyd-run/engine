@@ -1,4 +1,4 @@
-import {
+import type {
   AllocationRow,
   ResourceRow,
   LedgerRow,
@@ -7,7 +7,14 @@ import {
   ServiceRow,
   BookingRow,
 } from "database/schema";
-import { Allocation, Resource, Ledger, Policy, Service, Booking } from "@floyd-run/schema/types";
+import type {
+  Allocation,
+  Resource,
+  Ledger,
+  Policy,
+  Service,
+  Booking,
+} from "@floyd-run/schema/types";
 
 export function serializeResource(resource: ResourceRow): Resource {
   return {
@@ -69,7 +76,7 @@ export function serializePolicy(policy: PolicyRow): Policy {
   return {
     id: policy.id,
     ledgerId: policy.ledgerId,
-    config: policy.config as Record<string, unknown>,
+    config: policy.config,
     configHash: policy.configHash,
     createdAt: policy.createdAt.toISOString(),
     updatedAt: policy.updatedAt.toISOString(),

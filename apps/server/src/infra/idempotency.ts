@@ -1,4 +1,4 @@
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 import { createHash } from "crypto";
 import { db } from "database";
 

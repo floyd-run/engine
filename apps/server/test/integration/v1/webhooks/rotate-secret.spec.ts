@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createLedger, createWebhookSubscription } from "../../setup/factories";
-import { WebhookSubscription } from "routes/v1/serializers";
+import type { WebhookSubscription } from "routes/v1/serializers";
 
 describe("POST /v1/ledgers/:ledgerId/webhooks/:subscriptionId/rotate-secret", () => {
   it("returns 200 with new secret", async () => {

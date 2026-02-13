@@ -33,4 +33,6 @@ async function main() {
   process.on("SIGINT", shutdown);
 }
 
-main().catch((err) => logger.error(err));
+main().catch((err: unknown) => {
+  logger.error(err);
+});

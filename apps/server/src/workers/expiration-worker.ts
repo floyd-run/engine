@@ -137,7 +137,7 @@ export function stopExpirationWorker(): void {
 }
 
 export function startExpirationWorker(): void {
-  runWorker().catch((error) => {
+  runWorker().catch((error: unknown) => {
     logger.error(error, "[expiration-worker] Fatal error");
   });
 }

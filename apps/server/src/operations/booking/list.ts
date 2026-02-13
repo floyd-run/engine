@@ -42,7 +42,7 @@ export default createOperation({
     return {
       bookings: bookings.map((booking) => ({
         booking,
-        allocations: allocationsByBooking.get(booking.id) || [],
+        allocations: allocationsByBooking.get(booking.id) ?? [],
       })),
     };
   },

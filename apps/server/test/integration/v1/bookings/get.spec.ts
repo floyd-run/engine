@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { createLedger, createResource, createService, createBooking } from "../../setup/factories";
+import { createLedger, createBooking } from "../../setup/factories";
 import type { Booking } from "@floyd-run/schema/types";
 
 describe("GET /v1/ledgers/:ledgerId/bookings/:id", () => {

@@ -39,7 +39,7 @@ export default createOperation({
     return {
       services: services.map((s) => ({
         service: s,
-        resourceIds: resourceIdsByService.get(s.id) || [],
+        resourceIds: resourceIdsByService.get(s.id) ?? [],
       })),
     };
   },

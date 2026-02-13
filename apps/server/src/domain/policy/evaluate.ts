@@ -169,8 +169,8 @@ export function getDayOfWeek(
 ): "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday" {
   // Parse as UTC to avoid timezone issues with the date itself
   const [year, month, day] = dateStr.split("-").map(Number);
-  const d = new Date(Date.UTC(year!, month! - 1, day!));
-  return DAY_NAMES[d.getUTCDay()]! as ReturnType<typeof getDayOfWeek>;
+  const d = new Date(Date.UTC(year!, month! - 1, day));
+  return DAY_NAMES[d.getUTCDay()]!;
 }
 
 /**
@@ -180,8 +180,8 @@ export function dateRange(from: string, to: string): string[] {
   const dates: string[] = [];
   const [fy, fm, fd] = from.split("-").map(Number);
   const [ty, tm, td] = to.split("-").map(Number);
-  const current = new Date(Date.UTC(fy!, fm! - 1, fd!));
-  const end = new Date(Date.UTC(ty!, tm! - 1, td!));
+  const current = new Date(Date.UTC(fy!, fm! - 1, fd));
+  const end = new Date(Date.UTC(ty!, tm! - 1, td));
 
   while (current <= end) {
     dates.push(
@@ -358,8 +358,8 @@ export function evaluatePolicy(
 
     // ─── Step 4: Config resolution ─────────────────────────────────────────
 
-    const baseConfig = (policy.config ?? {}) as Record<string, unknown>;
-    const ruleConfig = (matchedRule?.config ?? {}) as Record<string, unknown>;
+    const baseConfig = policy.config ?? {};
+    const ruleConfig = matchedRule?.config ?? {};
     const resolvedRaw = { ...baseConfig, ...ruleConfig };
     const resolved = {
       duration: resolvedRaw["duration"] as DurationConfig | undefined,

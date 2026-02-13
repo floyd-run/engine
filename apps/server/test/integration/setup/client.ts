@@ -1,5 +1,3 @@
-import type { Hono } from "hono";
-
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
@@ -35,7 +33,7 @@ export const createClient = async (): Promise<Client> => {
         body !== undefined ? JSON.stringify(body) : (undefined as unknown as RequestInit["body"]),
     } as RequestInit);
 
-    return (app as Hono).request(request as Request);
+    return app.request(request as Request);
   };
 
   return {

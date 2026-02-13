@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createAllocation, createLedger } from "../../setup/factories";
-import { Allocation } from "@floyd-run/schema/types";
+import type { Allocation } from "@floyd-run/schema/types";
 
 describe("GET /v1/ledgers/:ledgerId/allocations", () => {
   it("returns 200 with empty array when no allocations", async () => {

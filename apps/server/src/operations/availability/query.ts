@@ -43,7 +43,7 @@ export default createOperation({
 
     // Build timeline for each resource
     const items: AvailabilityItem[] = resourceIds.map((resourceId) => {
-      const allocations = allocationsByResource.get(resourceId) || [];
+      const allocations = allocationsByResource.get(resourceId) ?? [];
 
       // Clamp allocations to window, merge overlaps, build timeline
       const clamped = allocations.map((a) =>

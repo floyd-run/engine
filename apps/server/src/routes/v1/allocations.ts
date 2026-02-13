@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { operations } from "operations";
 import { NotFoundError } from "lib/errors";
-import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infra/idempotency";
+import { idempotent, storeIdempotencyResponse, type IdempotencyVariables } from "infra/idempotency";
 import { serializeAllocation } from "./serializers";
 
 // Significant fields for allocation create idempotency hash
@@ -26,10 +26,10 @@ export const allocations = new Hono<{ Variables: IdempotencyVariables }>()
   })
 
   .post("/", idempotent({ significantFields: ALLOCATION_SIGNIFICANT_FIELDS }), async (c) => {
-    const body = c.get("parsedBody") || (await c.req.json());
+    const body = c.get("parsedBody") ?? (await c.req.json());
     const { allocation, serverTime } = await operations.allocation.create({
       ...(body as object),
-      ledgerId: c.req.param("ledgerId")!,
+      ledgerId: c.req.param("ledgerId"),
     } as Parameters<typeof operations.allocation.create>[0]);
     const responseBody = { data: serializeAllocation(allocation), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 201);

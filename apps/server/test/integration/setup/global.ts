@@ -4,7 +4,7 @@ dotenv.config({ path: ".env.test" });
 
 import { execSync } from "child_process";
 
-export default async function setup() {
+export default function setup() {
   console.log("Running migrations...");
   execSync("npx tsx src/scripts/migrate.ts", {
     env: process.env,

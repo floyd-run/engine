@@ -1,4 +1,4 @@
-import { db, getServerTime } from "database";
+import { db } from "database";
 import { createOperation } from "lib/operation";
 import { allocationInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";

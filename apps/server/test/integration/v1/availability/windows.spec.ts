@@ -42,10 +42,10 @@ async function setupKayak(overrides?: { policyConfig?: Record<string, unknown> }
   });
   const { service } = await createService({
     ledgerId: ledger.id,
-    policyId: policy!.id,
+    policyId: policy.id,
     resourceIds: [resource.id],
   });
-  return { ledger, resource, policy: policy!, service };
+  return { ledger, resource, policy: policy, service };
 }
 
 describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
@@ -140,7 +140,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
 
     const { service } = await createService({
       ledgerId: ledger.id,
-      policyId: policy!.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -234,7 +234,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
 
     const { service } = await createService({
       ledgerId: ledger.id,
-      policyId: policy!.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -300,7 +300,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const { policy } = await createPolicy({ ledgerId: ledger.id, config: KAYAK_POLICY });
     const { service } = await createService({
       ledgerId: ledger.id,
-      policyId: policy!.id,
+      policyId: policy.id,
       resourceIds: [r1.id, r2.id],
     });
 
@@ -413,7 +413,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const { policy } = await createPolicy({ ledgerId: ledger.id, config: KAYAK_POLICY });
     const { service } = await createService({
       ledgerId: ledger.id,
-      policyId: policy!.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 

@@ -43,7 +43,7 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
 
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Policy };
-    const config = data.config as Record<string, unknown>;
+    const config = data.config;
     const duration = config["config"] as Record<string, Record<string, unknown>>;
 
     // allowed_minutes: [30, 60] -> allowed_ms: [1800000, 3600000]
@@ -55,9 +55,9 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     expect(duration["grid"]!["interval_minutes"]).toBeUndefined();
 
     // weekdays -> expanded day names
-    const rules = config["rules"] as Array<{
+    const rules = config["rules"] as {
       match: { days: string[] };
-    }>;
+    }[];
     expect(rules[0]!.match.days).toEqual(["monday", "tuesday", "wednesday", "thursday", "friday"]);
   });
 
@@ -175,7 +175,7 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     expect(response.status).toBe(201);
     const body = (await response.json()) as {
       data: Policy;
-      meta: { warnings: Array<{ code: string; message: string }> };
+      meta: { warnings: { code: string; message: string }[] };
     };
     expect(body.meta.warnings).toBeDefined();
     expect(body.meta.warnings.length).toBeGreaterThan(0);

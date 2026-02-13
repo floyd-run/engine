@@ -99,8 +99,8 @@ export function resolveDay(
       }));
 
       // Step 4: Config resolution
-      const baseConfig = (policy.config ?? {}) as Record<string, unknown>;
-      const ruleConfig = (matchedRule.config ?? {}) as Record<string, unknown>;
+      const baseConfig = policy.config ?? {};
+      const ruleConfig = matchedRule.config ?? {};
       const resolvedRaw = { ...baseConfig, ...ruleConfig };
       const config: ResolvedConfig = {
         duration: resolvedRaw["duration"] as DurationConfig | undefined,
@@ -122,8 +122,8 @@ export function resolveDay(
   }
 
   // Open 24h (matched rule without windows, or default "open" with no matching rule)
-  const baseConfig = (policy.config ?? {}) as Record<string, unknown>;
-  const ruleConfig = (matchedRule?.config ?? {}) as Record<string, unknown>;
+  const baseConfig = policy.config ?? {};
+  const ruleConfig = matchedRule?.config ?? {};
   const resolvedRaw = { ...baseConfig, ...ruleConfig };
   const config: ResolvedConfig = {
     duration: resolvedRaw["duration"] as DurationConfig | undefined,
@@ -222,7 +222,7 @@ export function localToAbsolute(dateStr: string, msFromMidnight: number, timezon
   let dayDiffMs = 0;
   if (localDay !== day || localMonth !== month) {
     // Rough UTC landed on a different local day — calculate day offset
-    const wantedDate = new Date(Date.UTC(year!, month! - 1, day!));
+    const wantedDate = new Date(Date.UTC(year!, month! - 1, day));
     const gotDate = new Date(Date.UTC(roughUtc.getUTCFullYear(), localMonth - 1, localDay));
     dayDiffMs = wantedDate.getTime() - gotDate.getTime();
   }
@@ -234,7 +234,7 @@ export function localToAbsolute(dateStr: string, msFromMidnight: number, timezon
 // ─── Slot Generation ─────────────────────────────────────────────────────────
 
 function isDurationValid(durationMs: number, config: ResolvedConfig): boolean {
-  const dur = config.duration as DurationConfig | undefined;
+  const dur = config.duration;
   if (!dur) return true;
 
   if (dur.allowed_ms && dur.allowed_ms.length > 0) {
@@ -286,11 +286,11 @@ export function generateSlots(
     // Skip day if duration is invalid for this day's config
     if (!isDurationValid(durationMs, day.config)) continue;
 
-    const gridInterval = (day.config.grid as GridConfig | undefined)?.interval_ms ?? durationMs;
-    const beforeMs = (day.config.buffers as BuffersConfig | undefined)?.before_ms ?? 0;
-    const afterMs = (day.config.buffers as BuffersConfig | undefined)?.after_ms ?? 0;
-    const minLeadMs = (day.config.lead_time as LeadTimeConfig | undefined)?.min_ms;
-    const maxLeadMs = (day.config.lead_time as LeadTimeConfig | undefined)?.max_ms;
+    const gridInterval = day.config.grid?.interval_ms ?? durationMs;
+    const beforeMs = day.config.buffers?.before_ms ?? 0;
+    const afterMs = day.config.buffers?.after_ms ?? 0;
+    const minLeadMs = day.config.lead_time?.min_ms;
+    const maxLeadMs = day.config.lead_time?.max_ms;
 
     for (const window of day.windows) {
       // Generate candidates at grid steps within this window
@@ -465,8 +465,8 @@ export function computeWindows(
   const availableWindows: Interval[] = [];
   for (const gap of gapIntervals) {
     const config = getConfigForTime(gap.start.getTime());
-    const beforeMs = (config.buffers as BuffersConfig | undefined)?.before_ms ?? 0;
-    const afterMs = (config.buffers as BuffersConfig | undefined)?.after_ms ?? 0;
+    const beforeMs = config.buffers?.before_ms ?? 0;
+    const afterMs = config.buffers?.after_ms ?? 0;
 
     let shrunkStart = gap.start.getTime();
     let shrunkEnd = gap.end.getTime();
@@ -494,7 +494,7 @@ export function computeWindows(
   // Step 5: Discard windows shorter than min_ms
   const filteredWindows = availableWindows.filter((w) => {
     const config = getConfigForTime(w.start.getTime());
-    const minMs = (config.duration as DurationConfig | undefined)?.min_ms;
+    const minMs = config.duration?.min_ms;
     if (minMs === undefined) return true;
     return w.end.getTime() - w.start.getTime() >= minMs;
   });
@@ -502,7 +502,7 @@ export function computeWindows(
   // Step 6: Filter by lead time and horizon
   const leadFiltered = filteredWindows.filter((w) => {
     const config = getConfigForTime(w.start.getTime());
-    const ltConfig = config.lead_time as LeadTimeConfig | undefined;
+    const ltConfig = config.lead_time;
 
     // For windows, we check if the window START is within the lead time window
     const leadTime = w.start.getTime() - serverTimeMs;
@@ -538,7 +538,7 @@ export function computeWindows(
 
     // Re-check duration constraints after trimming
     const config = getConfigForTime(w.start.getTime());
-    const minMs = (config.duration as DurationConfig | undefined)?.min_ms;
+    const minMs = config.duration?.min_ms;
     return minMs === undefined || durationMs >= minMs;
   });
 

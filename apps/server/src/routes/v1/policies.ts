@@ -39,7 +39,7 @@ export const policies = new Hono()
     const body = await c.req.json();
     const { policy, warnings } = await operations.policy.update({
       ...(body as object),
-      id: c.req.param("id")!,
+      id: c.req.param("id"),
       ledgerId: c.req.param("ledgerId")!,
     } as Parameters<typeof operations.policy.update>[0]);
 

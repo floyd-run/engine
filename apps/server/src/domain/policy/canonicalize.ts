@@ -26,7 +26,7 @@ function sortDays(days: string[]): string[] {
   return [...days].sort((a, b) => (CANONICAL_DAY_ORDER[a] ?? 99) - (CANONICAL_DAY_ORDER[b] ?? 99));
 }
 
-function sortWindows(windows: Array<{ start: string; end: string }>): typeof windows {
+function sortWindows(windows: { start: string; end: string }[]): typeof windows {
   return [...windows].sort((a, b) => {
     const cmp = a.start.localeCompare(b.start);
     if (cmp !== 0) return cmp;
@@ -47,7 +47,7 @@ function canonicalizeValue(key: string, value: unknown): unknown {
       return sortDays(value as string[]);
     }
     if (key === "windows") {
-      return sortWindows(value as Array<{ start: string; end: string }>).map((w) =>
+      return sortWindows(value as { start: string; end: string }[]).map((w) =>
         canonicalizeObject(w),
       );
     }

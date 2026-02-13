@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { operations } from "operations";
 import { NotFoundError } from "lib/errors";
-import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infra/idempotency";
+import { idempotent, storeIdempotencyResponse, type IdempotencyVariables } from "infra/idempotency";
 import { serializeBooking } from "./serializers";
 
 // Significant fields for booking create idempotency hash
@@ -28,10 +28,10 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   })
 
   .post("/", idempotent({ significantFields: BOOKING_SIGNIFICANT_FIELDS }), async (c) => {
-    const body = c.get("parsedBody") || (await c.req.json());
+    const body = c.get("parsedBody") ?? (await c.req.json());
     const { booking, allocations, serverTime } = await operations.booking.create({
       ...(body as object),
-      ledgerId: c.req.param("ledgerId")!,
+      ledgerId: c.req.param("ledgerId"),
     } as Parameters<typeof operations.booking.create>[0]);
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 201);
@@ -41,7 +41,7 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   .post("/:id/confirm", idempotent(), async (c) => {
     const { booking, allocations, serverTime } = await operations.booking.confirm({
       id: c.req.param("id"),
-      ledgerId: c.req.param("ledgerId")!,
+      ledgerId: c.req.param("ledgerId"),
     });
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 200);
@@ -51,7 +51,7 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
   .post("/:id/cancel", idempotent(), async (c) => {
     const { booking, allocations, serverTime } = await operations.booking.cancel({
       id: c.req.param("id"),
-      ledgerId: c.req.param("ledgerId")!,
+      ledgerId: c.req.param("ledgerId"),
     });
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 200);

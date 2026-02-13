@@ -22,7 +22,7 @@ interface RuleMatch {
 interface Rule {
   match: RuleMatch;
   closed?: true;
-  windows?: Array<{ start: string; end: string }>;
+  windows?: { start: string; end: string }[];
   config?: Record<string, unknown>;
 }
 

@@ -1,4 +1,4 @@
-import { z, ZodError } from "zod";
+import { type z, ZodError } from "zod";
 import { InputError } from "./errors";
 
 export function createOperation<T extends z.ZodType, R>(config: {

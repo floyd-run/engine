@@ -61,7 +61,7 @@ describe("PUT /v1/ledgers/:ledgerId/policies/:id", () => {
     const { data } = (await response.json()) as { data: Policy };
 
     // Config should reflect the updated values (normalized)
-    const config = data.config as Record<string, unknown>;
+    const config = data.config;
     expect(config["default"] as string).toBe("open");
 
     // Hash should be recalculated and differ from original

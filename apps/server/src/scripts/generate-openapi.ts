@@ -185,11 +185,11 @@ registry.registerPath({
               description: "Resource IDs to query",
               example: ["rsc_01abc123def456ghi789jkl012"],
             }),
-            startTime: z.string().datetime().openapi({
+            startTime: z.iso.datetime().openapi({
               description: "Start of the time window (ISO 8601)",
               example: "2026-01-04T10:00:00Z",
             }),
-            endTime: z.string().datetime().openapi({
+            endTime: z.iso.datetime().openapi({
               description: "End of the time window (ISO 8601)",
               example: "2026-01-04T18:00:00Z",
             }),
@@ -255,9 +255,9 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
-            startTime: z.string().datetime(),
-            endTime: z.string().datetime(),
-            expiresAt: z.string().datetime().nullable().optional().openapi({
+            startTime: z.iso.datetime(),
+            endTime: z.iso.datetime(),
+            expiresAt: z.iso.datetime().nullable().optional().openapi({
               description: "If set, the allocation auto-expires after this time",
             }),
             metadata: z.record(z.string(), z.unknown()).nullable().optional(),
@@ -461,11 +461,11 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            startTime: z.string().datetime().openapi({
+            startTime: z.iso.datetime().openapi({
               description: "Start of the query window (ISO 8601)",
               example: "2026-03-02T00:00:00Z",
             }),
-            endTime: z.string().datetime().openapi({
+            endTime: z.iso.datetime().openapi({
               description: "End of the query window (ISO 8601). Max 7 days from startTime.",
               example: "2026-03-07T00:00:00Z",
             }),
@@ -516,11 +516,11 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            startTime: z.string().datetime().openapi({
+            startTime: z.iso.datetime().openapi({
               description: "Start of the query window (ISO 8601)",
               example: "2026-03-02T00:00:00Z",
             }),
-            endTime: z.string().datetime().openapi({
+            endTime: z.iso.datetime().openapi({
               description: "End of the query window (ISO 8601). Max 31 days from startTime.",
               example: "2026-03-07T00:00:00Z",
             }),
@@ -606,8 +606,8 @@ registry.registerPath({
           schema: z.object({
             serviceId: z.string().openapi({ example: "svc_01abc123def456ghi789jkl012" }),
             resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
-            startTime: z.string().datetime().openapi({ example: "2026-01-15T10:00:00Z" }),
-            endTime: z.string().datetime().openapi({ example: "2026-01-15T11:00:00Z" }),
+            startTime: z.iso.datetime().openapi({ example: "2026-01-15T10:00:00Z" }),
+            endTime: z.iso.datetime().openapi({ example: "2026-01-15T11:00:00Z" }),
             status: z
               .enum(["hold", "confirmed"])
               .default("hold")
@@ -714,7 +714,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            url: z.string().url().openapi({ example: "https://example.com/webhook" }),
+            url: z.url().openapi({ example: "https://example.com/webhook" }),
           }),
         },
       },
@@ -739,7 +739,7 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            url: z.string().url().optional(),
+            url: z.url().optional(),
           }),
         },
       },
@@ -848,10 +848,10 @@ registry.registerPath({
               .object({
                 schema_version: z.literal(1),
                 default: z.enum(["open", "closed"]),
-                config: z.object({}).passthrough(),
-                rules: z.array(z.object({}).passthrough()).optional(),
+                config: z.object({}).loose(),
+                rules: z.array(z.object({}).loose()).optional(),
               })
-              .passthrough()
+              .loose()
               .openapi({ description: "Policy configuration in authoring format" }),
           }),
         },
@@ -883,10 +883,10 @@ registry.registerPath({
               .object({
                 schema_version: z.literal(1),
                 default: z.enum(["open", "closed"]),
-                config: z.object({}).passthrough(),
-                rules: z.array(z.object({}).passthrough()).optional(),
+                config: z.object({}).loose(),
+                rules: z.array(z.object({}).loose()).optional(),
               })
-              .passthrough()
+              .loose()
               .openapi({ description: "Policy configuration in authoring format" }),
           }),
         },

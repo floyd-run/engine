@@ -32,7 +32,7 @@ export function stopWebhookWorker(): void {
 }
 
 export function startWebhookWorker(): void {
-  runWorker().catch((error) => {
+  runWorker().catch((error: unknown) => {
     logger.error(error, "[webhook-worker] Fatal error");
   });
 }

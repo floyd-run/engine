@@ -185,11 +185,11 @@ registry.registerPath({
               description: "Resource IDs to query",
               example: ["rsc_01abc123def456ghi789jkl012"],
             }),
-            startAt: z.string().datetime().openapi({
+            startTime: z.string().datetime().openapi({
               description: "Start of the time window (ISO 8601)",
               example: "2026-01-04T10:00:00Z",
             }),
-            endAt: z.string().datetime().openapi({
+            endTime: z.string().datetime().openapi({
               description: "End of the time window (ISO 8601)",
               example: "2026-01-04T18:00:00Z",
             }),
@@ -255,8 +255,8 @@ registry.registerPath({
         "application/json": {
           schema: z.object({
             resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
-            startAt: z.string().datetime(),
-            endAt: z.string().datetime(),
+            startTime: z.string().datetime(),
+            endTime: z.string().datetime(),
             expiresAt: z.string().datetime().nullable().optional().openapi({
               description: "If set, the allocation auto-expires after this time",
             }),
@@ -461,12 +461,12 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            startAt: z.string().datetime().openapi({
+            startTime: z.string().datetime().openapi({
               description: "Start of the query window (ISO 8601)",
               example: "2026-03-02T00:00:00Z",
             }),
-            endAt: z.string().datetime().openapi({
-              description: "End of the query window (ISO 8601). Max 7 days from startAt.",
+            endTime: z.string().datetime().openapi({
+              description: "End of the query window (ISO 8601). Max 7 days from startTime.",
               example: "2026-03-07T00:00:00Z",
             }),
             durationMs: z.number().int().positive().openapi({
@@ -516,12 +516,12 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            startAt: z.string().datetime().openapi({
+            startTime: z.string().datetime().openapi({
               description: "Start of the query window (ISO 8601)",
               example: "2026-03-02T00:00:00Z",
             }),
-            endAt: z.string().datetime().openapi({
-              description: "End of the query window (ISO 8601). Max 31 days from startAt.",
+            endTime: z.string().datetime().openapi({
+              description: "End of the query window (ISO 8601). Max 31 days from startTime.",
               example: "2026-03-07T00:00:00Z",
             }),
             resourceIds: z.array(z.string()).optional().openapi({
@@ -595,8 +595,8 @@ registry.registerPath({
   summary: "Create a new booking",
   description:
     "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. " +
-    "When the policy defines buffers, the allocation's startAt/endAt represent the buffer-expanded blocked window. " +
-    "The original customer time can be derived using bufferBeforeMs and bufferAfterMs on the allocation. " +
+    "When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. " +
+    "The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. " +
     "Supports idempotency via the Idempotency-Key header.",
   request: {
     params: z.object({ ledgerId: z.string() }),
@@ -606,8 +606,8 @@ registry.registerPath({
           schema: z.object({
             serviceId: z.string().openapi({ example: "svc_01abc123def456ghi789jkl012" }),
             resourceId: z.string().openapi({ example: "rsc_01abc123def456ghi789jkl012" }),
-            startAt: z.string().datetime().openapi({ example: "2026-01-15T10:00:00Z" }),
-            endAt: z.string().datetime().openapi({ example: "2026-01-15T11:00:00Z" }),
+            startTime: z.string().datetime().openapi({ example: "2026-01-15T10:00:00Z" }),
+            endTime: z.string().datetime().openapi({ example: "2026-01-15T11:00:00Z" }),
             status: z
               .enum(["hold", "confirmed"])
               .default("hold")

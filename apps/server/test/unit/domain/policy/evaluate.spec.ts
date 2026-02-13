@@ -32,8 +32,8 @@ function makePolicy(overrides: Partial<PolicyConfig> = {}): PolicyConfig {
 /** Shorthand for a booking request. */
 function makeRequest(startISO: string, endISO: string): EvaluationInput {
   return {
-    startAt: new Date(startISO),
-    endAt: new Date(endISO),
+    startTime: new Date(startISO),
+    endTime: new Date(endISO),
   };
 }
 
@@ -877,7 +877,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
   it("booking within lead time is rejected", () => {
     const policy = makePolicy({
       config: {
-        booking_window: { min_lead_time_ms: 2 * HOUR },
+        lead_time: { min_ms: 2 * HOUR },
       },
     });
     // Decision at 08:00, booking at 09:00, only 1h lead time, need 2h
@@ -887,13 +887,13 @@ describe("Steps 7-8: Lead time + horizon", () => {
     const result = evaluatePolicy(policy, request, context);
     expectDenied(result, REASON_CODES.LEAD_TIME_VIOLATION);
     expect(result.details?.["leadTimeMs"]).toBe(1 * HOUR);
-    expect(result.details?.["min_lead_time_ms"]).toBe(2 * HOUR);
+    expect(result.details?.["min_ms"]).toBe(2 * HOUR);
   });
 
   it("booking beyond horizon is rejected", () => {
     const policy = makePolicy({
       config: {
-        booking_window: { max_lead_time_ms: 7 * 24 * HOUR },
+        lead_time: { max_ms: 7 * 24 * HOUR },
       },
     });
     // Decision at 08:00 on Mar 16, booking at Mar 30 (14 days away), horizon is 7 days
@@ -907,9 +907,9 @@ describe("Steps 7-8: Lead time + horizon", () => {
   it("booking within both lead time and horizon is allowed", () => {
     const policy = makePolicy({
       config: {
-        booking_window: {
-          min_lead_time_ms: 1 * HOUR,
-          max_lead_time_ms: 30 * 24 * HOUR,
+        lead_time: {
+          min_ms: 1 * HOUR,
+          max_ms: 30 * 24 * HOUR,
         },
       },
     });
@@ -924,7 +924,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
   it("booking exactly at min_lead_time boundary is allowed", () => {
     const policy = makePolicy({
       config: {
-        booking_window: { min_lead_time_ms: 2 * HOUR },
+        lead_time: { min_ms: 2 * HOUR },
       },
     });
     // Decision at 08:00, booking at 10:00, exactly 2h lead time
@@ -938,7 +938,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
   it("booking exactly at max_lead_time boundary is allowed", () => {
     const policy = makePolicy({
       config: {
-        booking_window: { max_lead_time_ms: 7 * 24 * HOUR },
+        lead_time: { max_ms: 7 * 24 * HOUR },
       },
     });
     // Decision at 08:00 on Mar 16, booking at exactly 7 days later
@@ -949,7 +949,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
     expectAllowed(result);
   });
 
-  it("no booking_window config means no lead time or horizon enforcement", () => {
+  it("no lead_time config means no lead time or horizon enforcement", () => {
     const policy = makePolicy({ config: {} });
     // Booking 1 minute in the future
     const request = makeRequest("2026-03-16T08:01:00Z", "2026-03-16T09:00:00Z");
@@ -962,9 +962,9 @@ describe("Steps 7-8: Lead time + horizon", () => {
   it("lead time check runs before horizon check (correct order)", () => {
     const policy = makePolicy({
       config: {
-        booking_window: {
-          min_lead_time_ms: 2 * HOUR,
-          max_lead_time_ms: 7 * 24 * HOUR,
+        lead_time: {
+          min_ms: 2 * HOUR,
+          max_ms: 7 * 24 * HOUR,
         },
       },
     });
@@ -996,8 +996,8 @@ describe("Step 9: Buffers", () => {
 
     expect(result.bufferBeforeMs).toBe(10 * MINUTE);
     expect(result.bufferAfterMs).toBe(15 * MINUTE);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T08:50:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:15:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T08:50:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:15:00.000Z");
   });
 
   it("no buffers means effective equals original", () => {
@@ -1010,8 +1010,8 @@ describe("Step 9: Buffers", () => {
 
     expect(result.bufferBeforeMs).toBe(0);
     expect(result.bufferAfterMs).toBe(0);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T09:00:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:00:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T09:00:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:00:00.000Z");
   });
 
   it("only buffer_before_ms is set", () => {
@@ -1028,8 +1028,8 @@ describe("Step 9: Buffers", () => {
 
     expect(result.bufferBeforeMs).toBe(5 * MINUTE);
     expect(result.bufferAfterMs).toBe(0);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T08:55:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:00:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T08:55:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:00:00.000Z");
   });
 
   it("only buffer_after_ms is set", () => {
@@ -1046,8 +1046,8 @@ describe("Step 9: Buffers", () => {
 
     expect(result.bufferBeforeMs).toBe(0);
     expect(result.bufferAfterMs).toBe(10 * MINUTE);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T09:00:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:10:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T09:00:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:10:00.000Z");
   });
 });
 
@@ -1063,9 +1063,9 @@ describe("Common patterns", () => {
       config: {
         duration: { allowed_ms: [30 * MINUTE, 60 * MINUTE] },
         grid: { interval_ms: 30 * MINUTE },
-        booking_window: {
-          min_lead_time_ms: 1 * HOUR,
-          max_lead_time_ms: 14 * 24 * HOUR,
+        lead_time: {
+          min_ms: 1 * HOUR,
+          max_ms: 14 * 24 * HOUR,
         },
         buffers: { before_ms: 0, after_ms: 10 * MINUTE },
       },
@@ -1084,7 +1084,7 @@ describe("Common patterns", () => {
       const result = evaluatePolicy(salonPolicy, request, context);
       expectAllowed(result);
       expect(result.bufferAfterMs).toBe(10 * MINUTE);
-      expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:40:00.000Z");
+      expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:40:00.000Z");
     });
 
     it("allows 60-min appointment at 09:30 on Wednesday", () => {
@@ -1211,7 +1211,7 @@ describe("Common patterns", () => {
       default: "open",
       config: {
         duration: { min_ms: 24 * HOUR, max_ms: 7 * 24 * HOUR },
-        booking_window: { min_lead_time_ms: 24 * HOUR },
+        lead_time: { min_ms: 24 * HOUR },
       },
       rules: [
         {
@@ -1254,9 +1254,9 @@ describe("Common patterns", () => {
         duration: { allowed_ms: [60 * MINUTE] },
         grid: { interval_ms: 90 * MINUTE },
         buffers: { before_ms: 15 * MINUTE, after_ms: 15 * MINUTE },
-        booking_window: {
-          min_lead_time_ms: 2 * HOUR,
-          max_lead_time_ms: 30 * 24 * HOUR,
+        lead_time: {
+          min_ms: 2 * HOUR,
+          max_ms: 30 * 24 * HOUR,
         },
       },
       rules: [
@@ -1284,8 +1284,8 @@ describe("Common patterns", () => {
 
       expect(result.bufferBeforeMs).toBe(15 * MINUTE);
       expect(result.bufferAfterMs).toBe(15 * MINUTE);
-      expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T10:15:00.000Z");
-      expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T11:45:00.000Z");
+      expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T10:15:00.000Z");
+      expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T11:45:00.000Z");
     });
 
     it("rejects 90-min booking (only 60 min allowed)", () => {
@@ -1327,7 +1327,7 @@ describe("Admin override (skipPolicy)", () => {
       config: {
         duration: { allowed_ms: [60 * MINUTE] },
         grid: { interval_ms: 30 * MINUTE },
-        booking_window: { min_lead_time_ms: 24 * HOUR },
+        lead_time: { min_ms: 24 * HOUR },
       },
       rules: [
         {
@@ -1362,8 +1362,8 @@ describe("Admin override (skipPolicy)", () => {
 
     expect(result.bufferBeforeMs).toBe(10 * MINUTE);
     expect(result.bufferAfterMs).toBe(5 * MINUTE);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T08:50:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:05:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T08:50:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:05:00.000Z");
   });
 
   it("skipPolicy: true with no buffers returns zero buffers", () => {
@@ -1376,8 +1376,8 @@ describe("Admin override (skipPolicy)", () => {
 
     expect(result.bufferBeforeMs).toBe(0);
     expect(result.bufferAfterMs).toBe(0);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T09:00:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:00:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T09:00:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:00:00.000Z");
   });
 
   it("skipPolicy: false behaves normally (checks enforced)", () => {
@@ -1541,7 +1541,7 @@ describe("Edge cases", () => {
     const policy = makePolicy({
       config: {
         grid: { interval_ms: 60 * MINUTE },
-        booking_window: { min_lead_time_ms: 24 * HOUR },
+        lead_time: { min_ms: 24 * HOUR },
       },
     });
     // Misaligned start (09:15) and too soon -- should get misaligned_start_time
@@ -1574,8 +1574,8 @@ describe("Edge cases", () => {
 
     expect(result.bufferBeforeMs).toBe(30 * MINUTE);
     expect(result.bufferAfterMs).toBe(0);
-    expect(result.effectiveStartAt.toISOString()).toBe("2026-03-16T08:30:00.000Z");
-    expect(result.effectiveEndAt.toISOString()).toBe("2026-03-16T10:00:00.000Z");
+    expect(result.effectiveStartTime.toISOString()).toBe("2026-03-16T08:30:00.000Z");
+    expect(result.effectiveEndTime.toISOString()).toBe("2026-03-16T10:00:00.000Z");
   });
 
   it("closed rule is skipped in Step 2 (rule resolution)", () => {
@@ -1671,12 +1671,12 @@ describe("Edge cases", () => {
     expectAllowed(result);
   });
 
-  // ─── hold_duration_ms resolution ─────────────────────────────────────────
+  // ─── hold resolution ─────────────────────────────────────────────────────
 
-  it("resolvedConfig includes hold_duration_ms from base config", () => {
+  it("resolvedConfig includes hold from base config", () => {
     const policy = makePolicy({
       config: {
-        hold_duration_ms: 5 * MINUTE,
+        hold: { duration_ms: 5 * MINUTE },
       },
     });
 
@@ -1684,20 +1684,20 @@ describe("Edge cases", () => {
     const result = evaluatePolicy(policy, request, makeContext());
 
     expectAllowed(result);
-    expect(result.resolvedConfig.hold_duration_ms).toBe(5 * MINUTE);
+    expect(result.resolvedConfig.hold).toEqual({ duration_ms: 5 * MINUTE });
   });
 
-  it("resolvedConfig hold_duration_ms is overridden by matching rule config", () => {
+  it("resolvedConfig hold is overridden by matching rule config", () => {
     const policy = makePolicy({
       default: "open",
       config: {
-        hold_duration_ms: 5 * MINUTE,
+        hold: { duration_ms: 5 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
           config: {
-            hold_duration_ms: 10 * MINUTE,
+            hold: { duration_ms: 10 * MINUTE },
           },
         },
       ],
@@ -1708,16 +1708,16 @@ describe("Edge cases", () => {
     const result = evaluatePolicy(policy, request, makeContext());
 
     expectAllowed(result);
-    expect(result.resolvedConfig.hold_duration_ms).toBe(10 * MINUTE);
+    expect(result.resolvedConfig.hold).toEqual({ duration_ms: 10 * MINUTE });
   });
 
-  it("resolvedConfig hold_duration_ms is undefined when not configured", () => {
+  it("resolvedConfig hold is undefined when not configured", () => {
     const policy = makePolicy({ config: {} });
 
     const request = makeRequest("2026-03-16T10:00:00Z", "2026-03-16T11:00:00Z");
     const result = evaluatePolicy(policy, request, makeContext());
 
     expectAllowed(result);
-    expect(result.resolvedConfig.hold_duration_ms).toBeUndefined();
+    expect(result.resolvedConfig.hold).toBeUndefined();
   });
 });

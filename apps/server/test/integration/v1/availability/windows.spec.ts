@@ -13,7 +13,7 @@ interface WindowsResponse {
   data: {
     resourceId: string;
     timezone: string;
-    windows: { startAt: string; endAt: string; status?: "available" | "unavailable" }[];
+    windows: { startTime: string; endTime: string; status?: "available" | "unavailable" }[];
   }[];
   meta: { serverTime: string };
 }
@@ -56,8 +56,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -71,8 +71,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     // Full day open 09:00-17:00, no allocations
     const windows = body.data[0]!.windows;
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-02T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-02T17:00:00.000Z");
     expect(windows[0]).not.toHaveProperty("status");
   });
 
@@ -84,15 +84,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T13:30:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T13:30:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -110,8 +110,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     //   Gap end at schedule boundary → no shrinkage: 17:00
     //   Available: 13:30-17:00 (3.5 hours) → valid (>= 2h min)
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-02T13:30:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-02T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-02T13:30:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-02T17:00:00.000Z");
   });
 
   it("asymmetric buffer shrinkage at allocation boundaries", async () => {
@@ -149,15 +149,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T09:45:00Z"),
-      endAt: new Date("2026-03-02T11:10:00Z"),
+      startTime: new Date("2026-03-02T09:45:00Z"),
+      endTime: new Date("2026-03-02T11:10:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -174,10 +174,10 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     //   End at schedule boundary → no shrinkage: 17:00
     //   Available: [11:25, 17:00)
     expect(windows).toHaveLength(2);
-    expect(windows[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-02T09:35:00.000Z");
-    expect(windows[1]!.startAt).toBe("2026-03-02T11:25:00.000Z");
-    expect(windows[1]!.endAt).toBe("2026-03-02T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-02T09:35:00.000Z");
+    expect(windows[1]!.startTime).toBe("2026-03-02T11:25:00.000Z");
+    expect(windows[1]!.endTime).toBe("2026-03-02T17:00:00.000Z");
   });
 
   it("sub-minimum filtering: gaps shorter than min_ms are discarded", async () => {
@@ -188,22 +188,22 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T09:00:00Z"),
-      endAt: new Date("2026-03-02T12:00:00Z"),
+      startTime: new Date("2026-03-02T09:00:00Z"),
+      endTime: new Date("2026-03-02T12:00:00Z"),
     });
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T13:00:00Z"),
-      endAt: new Date("2026-03-02T17:00:00Z"),
+      startTime: new Date("2026-03-02T13:00:00Z"),
+      endTime: new Date("2026-03-02T17:00:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -241,8 +241,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-04T00:00:00Z", // 2 days
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-04T00:00:00Z", // 2 days
       },
     );
 
@@ -252,8 +252,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
 
     // Should be one contiguous 48-hour window
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-02T00:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-04T00:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-02T00:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-04T00:00:00.000Z");
   });
 
   it("includeUnavailable: returns allocation times within schedule as unavailable", async () => {
@@ -263,15 +263,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T13:30:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T13:30:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         includeUnavailable: true,
       },
     );
@@ -288,8 +288,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     // Should see unavailable window for the allocation within schedule hours
     const unavailable = windows.filter((w) => w.status === "unavailable");
     expect(unavailable.length).toBeGreaterThan(0);
-    expect(unavailable[0]!.startAt).toBe("2026-03-02T10:00:00.000Z");
-    expect(unavailable[0]!.endAt).toBe("2026-03-02T13:30:00.000Z");
+    expect(unavailable[0]!.startTime).toBe("2026-03-02T10:00:00.000Z");
+    expect(unavailable[0]!.endTime).toBe("2026-03-02T13:30:00.000Z");
   });
 
   it("multiple resources: independent windows per resource", async () => {
@@ -309,15 +309,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: r1.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T15:00:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T15:00:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -329,8 +329,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
 
     // r2 should have full 09:00-17:00 window
     expect(r2Data.windows).toHaveLength(1);
-    expect(r2Data.windows[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(r2Data.windows[0]!.endAt).toBe("2026-03-02T17:00:00.000Z");
+    expect(r2Data.windows[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(r2Data.windows[0]!.endTime).toBe("2026-03-02T17:00:00.000Z");
 
     // r1 should have restricted windows (allocation carved out)
     expect(r1Data.windows.length).toBeLessThan(r2Data.windows.length + 1);
@@ -349,15 +349,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T12:00:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T12:00:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T08:00:00Z",
-        endAt: "2026-03-02T16:00:00Z",
+        startTime: "2026-03-02T08:00:00Z",
+        endTime: "2026-03-02T16:00:00Z",
       },
     );
 
@@ -367,10 +367,10 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
 
     // Two windows: 08:00-10:00 and 12:00-16:00
     expect(windows).toHaveLength(2);
-    expect(windows[0]!.startAt).toBe("2026-03-02T08:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-02T10:00:00.000Z");
-    expect(windows[1]!.startAt).toBe("2026-03-02T12:00:00.000Z");
-    expect(windows[1]!.endAt).toBe("2026-03-02T16:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-02T08:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-02T10:00:00.000Z");
+    expect(windows[1]!.startTime).toBe("2026-03-02T12:00:00.000Z");
+    expect(windows[1]!.endTime).toBe("2026-03-02T16:00:00.000Z");
   });
 
   it("rejects query range > 31 days", async () => {
@@ -379,8 +379,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-01T00:00:00Z",
-        endAt: "2026-04-02T00:00:00Z", // 32 days
+        startTime: "2026-03-01T00:00:00Z",
+        endTime: "2026-04-02T00:00:00Z", // 32 days
       },
     );
 
@@ -393,8 +393,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -420,8 +420,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 
@@ -437,8 +437,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${fakeServiceId}/availability/windows`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
       },
     );
 

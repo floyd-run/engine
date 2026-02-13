@@ -7,8 +7,8 @@ interface InsertAllocationParams {
   ledgerId: string;
   resourceId: string;
   bookingId: string | null;
-  startAt: Date;
-  endAt: Date;
+  startTime: Date;
+  endTime: Date;
   bufferBeforeMs: number;
   bufferAfterMs: number;
   expiresAt: Date | null;
@@ -27,8 +27,8 @@ export async function insertAllocation(
     .where("resourceId", "=", params.resourceId)
     .where("active", "=", true)
     .where((eb) => eb.or([eb("expiresAt", "is", null), eb("expiresAt", ">", params.serverTime)]))
-    .where("startAt", "<", params.endAt)
-    .where("endAt", ">", params.startAt)
+    .where("startTime", "<", params.endTime)
+    .where("endTime", ">", params.startTime)
     .execute();
 
   if (conflicting.length > 0) {
@@ -46,8 +46,8 @@ export async function insertAllocation(
       resourceId: params.resourceId,
       bookingId: params.bookingId,
       active: true,
-      startAt: params.startAt,
-      endAt: params.endAt,
+      startTime: params.startTime,
+      endTime: params.endTime,
       bufferBeforeMs: params.bufferBeforeMs,
       bufferAfterMs: params.bufferAfterMs,
       expiresAt: params.expiresAt,

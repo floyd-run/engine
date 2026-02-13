@@ -11,8 +11,8 @@ export async function createBooking(overrides?: {
   status?: "hold" | "confirmed" | "canceled" | "expired";
   expiresAt?: Date | null;
   metadata?: Record<string, unknown> | null;
-  startAt?: Date;
-  endAt?: Date;
+  startTime?: Date;
+  endTime?: Date;
 }) {
   let ledgerId = overrides?.ledgerId;
   let serviceId = overrides?.serviceId;
@@ -46,8 +46,8 @@ export async function createBooking(overrides?: {
     ledgerId = service.ledgerId;
   }
 
-  const startAt = overrides?.startAt ?? faker.date.future();
-  const endAt = overrides?.endAt ?? new Date(startAt.getTime() + 60 * 60 * 1000);
+  const startTime = overrides?.startTime ?? faker.date.future();
+  const endTime = overrides?.endTime ?? new Date(startTime.getTime() + 60 * 60 * 1000);
   const status = overrides?.status ?? "hold";
 
   // Respect DB constraint: hold requires expiresAt, others require null
@@ -79,8 +79,8 @@ export async function createBooking(overrides?: {
       resourceId,
       bookingId: booking.id,
       active: status === "hold" || status === "confirmed",
-      startAt,
-      endAt,
+      startTime,
+      endTime,
       bufferBeforeMs: 0,
       bufferAfterMs: 0,
       expiresAt,

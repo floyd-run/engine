@@ -64,17 +64,17 @@ const gridAuthoringSchema = z
   })
   .passthrough();
 
-// Booking window section (authoring)
-const bookingWindowAuthoringSchema = z
+// Lead time section (authoring)
+const leadTimeAuthoringSchema = z
   .object({
-    min_lead_time_ms: z.number().int().nonnegative().optional(),
-    max_lead_time_ms: z.number().int().nonnegative().optional(),
-    min_lead_time_minutes: z.number().nonnegative().optional(),
-    max_lead_time_minutes: z.number().nonnegative().optional(),
-    min_lead_time_hours: z.number().nonnegative().optional(),
-    max_lead_time_hours: z.number().nonnegative().optional(),
-    min_lead_time_days: z.number().nonnegative().optional(),
-    max_lead_time_days: z.number().nonnegative().optional(),
+    min_ms: z.number().int().nonnegative().optional(),
+    max_ms: z.number().int().nonnegative().optional(),
+    min_minutes: z.number().nonnegative().optional(),
+    max_minutes: z.number().nonnegative().optional(),
+    min_hours: z.number().nonnegative().optional(),
+    max_hours: z.number().nonnegative().optional(),
+    min_days: z.number().nonnegative().optional(),
+    max_days: z.number().nonnegative().optional(),
   })
   .passthrough();
 
@@ -93,7 +93,7 @@ const configAuthoringSchema = z
   .object({
     duration: durationAuthoringSchema.optional(),
     grid: gridAuthoringSchema.optional(),
-    booking_window: bookingWindowAuthoringSchema.optional(),
+    lead_time: leadTimeAuthoringSchema.optional(),
     buffers: buffersAuthoringSchema.optional(),
   })
   .passthrough();

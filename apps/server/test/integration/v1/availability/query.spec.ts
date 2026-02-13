@@ -8,13 +8,13 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
@@ -22,7 +22,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
 
     expect(data).toHaveLength(1);
     expect(data[0]!.resourceId).toBe(resource.id);
-    expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
+    expect(data[0]!.timeline).toEqual([{ startTime, endTime, status: "free" }]);
   });
 
   it("returns busy block for active allocation", async () => {
@@ -36,26 +36,38 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: allocStart,
-      endAt: allocEnd,
+      startTime: allocStart,
+      endTime: allocEnd,
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
     expect(data[0]!.timeline).toEqual([
-      { startAt: "2026-01-01T10:00:00.000Z", endAt: "2026-01-01T10:30:00.000Z", status: "free" },
-      { startAt: "2026-01-01T10:30:00.000Z", endAt: "2026-01-01T11:00:00.000Z", status: "busy" },
-      { startAt: "2026-01-01T11:00:00.000Z", endAt: "2026-01-01T12:00:00.000Z", status: "free" },
+      {
+        startTime: "2026-01-01T10:00:00.000Z",
+        endTime: "2026-01-01T10:30:00.000Z",
+        status: "free",
+      },
+      {
+        startTime: "2026-01-01T10:30:00.000Z",
+        endTime: "2026-01-01T11:00:00.000Z",
+        status: "busy",
+      },
+      {
+        startTime: "2026-01-01T11:00:00.000Z",
+        endTime: "2026-01-01T12:00:00.000Z",
+        status: "free",
+      },
     ]);
   });
 
@@ -71,18 +83,18 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: allocStart,
-      endAt: allocEnd,
+      startTime: allocStart,
+      endTime: allocEnd,
       expiresAt,
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
@@ -104,25 +116,25 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: allocStart,
-      endAt: allocEnd,
+      startTime: allocStart,
+      endTime: allocEnd,
       expiresAt,
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
     // Expired allocation should not block - entire window is free
-    expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
+    expect(data[0]!.timeline).toEqual([{ startTime, endTime, status: "free" }]);
   });
 
   it("ignores inactive allocations", async () => {
@@ -133,23 +145,23 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: false,
-      startAt: new Date("2026-01-01T10:30:00.000Z"),
-      endAt: new Date("2026-01-01T11:00:00.000Z"),
+      startTime: new Date("2026-01-01T10:30:00.000Z"),
+      endTime: new Date("2026-01-01T11:00:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
-    expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
+    expect(data[0]!.timeline).toEqual([{ startTime, endTime, status: "free" }]);
   });
 
   it("merges overlapping allocations", async () => {
@@ -161,24 +173,24 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T10:30:00.000Z"),
-      endAt: new Date("2026-01-01T11:00:00.000Z"),
+      startTime: new Date("2026-01-01T10:30:00.000Z"),
+      endTime: new Date("2026-01-01T11:00:00.000Z"),
     });
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T10:45:00.000Z"),
-      endAt: new Date("2026-01-01T11:15:00.000Z"),
+      startTime: new Date("2026-01-01T10:45:00.000Z"),
+      endTime: new Date("2026-01-01T11:15:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
@@ -186,9 +198,21 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
 
     // Should be merged into single busy block 10:30-11:15
     expect(data[0]!.timeline).toEqual([
-      { startAt: "2026-01-01T10:00:00.000Z", endAt: "2026-01-01T10:30:00.000Z", status: "free" },
-      { startAt: "2026-01-01T10:30:00.000Z", endAt: "2026-01-01T11:15:00.000Z", status: "busy" },
-      { startAt: "2026-01-01T11:15:00.000Z", endAt: "2026-01-01T12:00:00.000Z", status: "free" },
+      {
+        startTime: "2026-01-01T10:00:00.000Z",
+        endTime: "2026-01-01T10:30:00.000Z",
+        status: "free",
+      },
+      {
+        startTime: "2026-01-01T10:30:00.000Z",
+        endTime: "2026-01-01T11:15:00.000Z",
+        status: "busy",
+      },
+      {
+        startTime: "2026-01-01T11:15:00.000Z",
+        endTime: "2026-01-01T12:00:00.000Z",
+        status: "free",
+      },
     ]);
   });
 
@@ -201,24 +225,24 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T10:30:00.000Z"),
-      endAt: new Date("2026-01-01T11:00:00.000Z"),
+      startTime: new Date("2026-01-01T10:30:00.000Z"),
+      endTime: new Date("2026-01-01T11:00:00.000Z"),
     });
     await createAllocation({
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T11:00:00.000Z"),
-      endAt: new Date("2026-01-01T11:30:00.000Z"),
+      startTime: new Date("2026-01-01T11:00:00.000Z"),
+      endTime: new Date("2026-01-01T11:30:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
@@ -226,9 +250,21 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
 
     // Should be merged into single busy block 10:30-11:30
     expect(data[0]!.timeline).toEqual([
-      { startAt: "2026-01-01T10:00:00.000Z", endAt: "2026-01-01T10:30:00.000Z", status: "free" },
-      { startAt: "2026-01-01T10:30:00.000Z", endAt: "2026-01-01T11:30:00.000Z", status: "busy" },
-      { startAt: "2026-01-01T11:30:00.000Z", endAt: "2026-01-01T12:00:00.000Z", status: "free" },
+      {
+        startTime: "2026-01-01T10:00:00.000Z",
+        endTime: "2026-01-01T10:30:00.000Z",
+        status: "free",
+      },
+      {
+        startTime: "2026-01-01T10:30:00.000Z",
+        endTime: "2026-01-01T11:30:00.000Z",
+        status: "busy",
+      },
+      {
+        startTime: "2026-01-01T11:30:00.000Z",
+        endTime: "2026-01-01T12:00:00.000Z",
+        status: "free",
+      },
     ]);
   });
 
@@ -241,24 +277,24 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T09:00:00.000Z"),
-      endAt: new Date("2026-01-01T13:00:00.000Z"),
+      startTime: new Date("2026-01-01T09:00:00.000Z"),
+      endTime: new Date("2026-01-01T13:00:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
     // Should be clamped to query window
-    expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "busy" }]);
+    expect(data[0]!.timeline).toEqual([{ startTime, endTime, status: "busy" }]);
   });
 
   it("handles multiple resources", async () => {
@@ -271,17 +307,17 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource1.id,
       active: true,
-      startAt: new Date("2026-01-01T10:30:00.000Z"),
-      endAt: new Date("2026-01-01T11:00:00.000Z"),
+      startTime: new Date("2026-01-01T10:30:00.000Z"),
+      endTime: new Date("2026-01-01T11:00:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource1.id, resource2.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
@@ -295,7 +331,7 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
     expect(item1.timeline).toHaveLength(3);
     expect(item1.timeline[1]!.status).toBe("busy");
 
-    expect(item2.timeline).toEqual([{ startAt, endAt, status: "free" }]);
+    expect(item2.timeline).toEqual([{ startTime, endTime, status: "free" }]);
   });
 
   it("excludes allocations outside query window", async () => {
@@ -307,22 +343,22 @@ describe("POST /v1/ledgers/:ledgerId/availability", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-01-01T08:00:00.000Z"),
-      endAt: new Date("2026-01-01T09:00:00.000Z"),
+      startTime: new Date("2026-01-01T08:00:00.000Z"),
+      endTime: new Date("2026-01-01T09:00:00.000Z"),
     });
 
-    const startAt = "2026-01-01T10:00:00.000Z";
-    const endAt = "2026-01-01T12:00:00.000Z";
+    const startTime = "2026-01-01T10:00:00.000Z";
+    const endTime = "2026-01-01T12:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/availability`, {
       resourceIds: [resource.id],
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(200);
     const { data } = (await response.json()) as AvailabilityResponse;
 
-    expect(data[0]!.timeline).toEqual([{ startAt, endAt, status: "free" }]);
+    expect(data[0]!.timeline).toEqual([{ startTime, endTime, status: "free" }]);
   });
 });

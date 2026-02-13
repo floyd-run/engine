@@ -11,8 +11,8 @@ describe("Idempotency", () => {
 
       const body = {
         resourceId: resource.id,
-        startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-        endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+        startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+        endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
       };
 
       // First request
@@ -42,8 +42,8 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-          endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+          startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+          endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
         },
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -54,8 +54,8 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          startAt: new Date("2026-02-01T11:00:00Z").toISOString(), // Different time
-          endAt: new Date("2026-02-01T12:00:00Z").toISOString(),
+          startTime: new Date("2026-02-01T11:00:00Z").toISOString(), // Different time
+          endTime: new Date("2026-02-01T12:00:00Z").toISOString(),
         },
         { headers: { "Idempotency-Key": idempotencyKey } },
       );
@@ -73,8 +73,8 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-          endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+          startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+          endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
         },
         { headers: { "Idempotency-Key": `key1-${Date.now()}` } },
       );
@@ -86,8 +86,8 @@ describe("Idempotency", () => {
         `/v1/ledgers/${ledgerId}/allocations`,
         {
           resourceId: resource.id,
-          startAt: new Date("2026-02-01T12:00:00Z").toISOString(),
-          endAt: new Date("2026-02-01T13:00:00Z").toISOString(),
+          startTime: new Date("2026-02-01T12:00:00Z").toISOString(),
+          endTime: new Date("2026-02-01T13:00:00Z").toISOString(),
         },
         { headers: { "Idempotency-Key": `key2-${Date.now()}` } },
       );
@@ -104,8 +104,8 @@ describe("Idempotency", () => {
 
       const basePayload = {
         resourceId: resource.id,
-        startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-        endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+        startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+        endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
       };
 
       // First request without metadata
@@ -133,8 +133,8 @@ describe("Idempotency", () => {
 
       const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
         resourceId: resource.id,
-        startAt: new Date("2026-02-01T10:00:00Z").toISOString(),
-        endAt: new Date("2026-02-01T11:00:00Z").toISOString(),
+        startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+        endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
       });
 
       expect(response.status).toBe(201);

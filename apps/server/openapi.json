@@ -73,17 +73,23 @@
           "active": {
             "type": "boolean"
           },
-          "startAt": {
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
           },
-          "bufferBeforeMs": {
-            "type": "number"
-          },
-          "bufferAfterMs": {
-            "type": "number"
+          "buffer": {
+            "type": "object",
+            "properties": {
+              "beforeMs": {
+                "type": "number"
+              },
+              "afterMs": {
+                "type": "number"
+              }
+            },
+            "required": ["beforeMs", "afterMs"]
           },
           "expiresAt": {
             "type": ["string", "null"]
@@ -105,10 +111,9 @@
           "resourceId",
           "bookingId",
           "active",
-          "startAt",
-          "endAt",
-          "bufferBeforeMs",
-          "bufferAfterMs",
+          "startTime",
+          "endTime",
+          "buffer",
           "expiresAt",
           "metadata",
           "createdAt",
@@ -147,10 +152,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "startAt": {
+                "startTime": {
                   "type": "string"
                 },
-                "endAt": {
+                "endTime": {
                   "type": "string"
                 },
                 "status": {
@@ -158,7 +163,7 @@
                   "enum": ["free", "busy"]
                 }
               },
-              "required": ["startAt", "endAt", "status"]
+              "required": ["startTime", "endTime", "status"]
             }
           }
         },
@@ -167,10 +172,10 @@
       "TimelineBlock": {
         "type": "object",
         "properties": {
-          "startAt": {
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
           },
           "status": {
@@ -178,15 +183,15 @@
             "enum": ["free", "busy"]
           }
         },
-        "required": ["startAt", "endAt", "status"]
+        "required": ["startTime", "endTime", "status"]
       },
       "Slot": {
         "type": "object",
         "properties": {
-          "startAt": {
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
           },
           "status": {
@@ -194,7 +199,7 @@
             "enum": ["available", "unavailable"]
           }
         },
-        "required": ["startAt", "endAt"]
+        "required": ["startTime", "endTime"]
       },
       "ResourceSlots": {
         "type": "object",
@@ -210,10 +215,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "startAt": {
+                "startTime": {
                   "type": "string"
                 },
-                "endAt": {
+                "endTime": {
                   "type": "string"
                 },
                 "status": {
@@ -221,7 +226,7 @@
                   "enum": ["available", "unavailable"]
                 }
               },
-              "required": ["startAt", "endAt"]
+              "required": ["startTime", "endTime"]
             }
           }
         },
@@ -230,10 +235,10 @@
       "Window": {
         "type": "object",
         "properties": {
-          "startAt": {
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
           },
           "status": {
@@ -241,7 +246,7 @@
             "enum": ["available", "unavailable"]
           }
         },
-        "required": ["startAt", "endAt"]
+        "required": ["startTime", "endTime"]
       },
       "ResourceWindows": {
         "type": "object",
@@ -257,10 +262,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "startAt": {
+                "startTime": {
                   "type": "string"
                 },
-                "endAt": {
+                "endTime": {
                   "type": "string"
                 },
                 "status": {
@@ -268,7 +273,7 @@
                   "enum": ["available", "unavailable"]
                 }
               },
-              "required": ["startAt", "endAt"]
+              "required": ["startTime", "endTime"]
             }
           }
         },
@@ -354,9 +359,12 @@
           "serviceId": {
             "type": "string"
           },
+          "policyId": {
+            "type": ["string", "null"]
+          },
           "status": {
             "type": "string",
-            "enum": ["hold", "confirmed", "cancelled", "expired"]
+            "enum": ["hold", "confirmed", "canceled", "expired"]
           },
           "expiresAt": {
             "type": ["string", "null"]
@@ -372,31 +380,29 @@
                 "resourceId": {
                   "type": "string"
                 },
-                "startAt": {
+                "startTime": {
                   "type": "string"
                 },
-                "endAt": {
+                "endTime": {
                   "type": "string"
                 },
-                "bufferBeforeMs": {
-                  "type": "number"
-                },
-                "bufferAfterMs": {
-                  "type": "number"
+                "buffer": {
+                  "type": "object",
+                  "properties": {
+                    "beforeMs": {
+                      "type": "number"
+                    },
+                    "afterMs": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["beforeMs", "afterMs"]
                 },
                 "active": {
                   "type": "boolean"
                 }
               },
-              "required": [
-                "id",
-                "resourceId",
-                "startAt",
-                "endAt",
-                "bufferBeforeMs",
-                "bufferAfterMs",
-                "active"
-              ]
+              "required": ["id", "resourceId", "startTime", "endTime", "buffer", "active"]
             }
           },
           "metadata": {
@@ -414,6 +420,7 @@
           "id",
           "ledgerId",
           "serviceId",
+          "policyId",
           "status",
           "expiresAt",
           "allocations",
@@ -426,27 +433,24 @@
         "type": "object",
         "properties": {
           "error": {
-            "anyOf": [
-              {
+            "type": "object",
+            "properties": {
+              "code": {
                 "type": "string"
               },
-              {
+              "message": {
+                "type": "string"
+              },
+              "details": {
                 "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string"
-                  },
-                  "message": {
-                    "type": "string"
-                  },
-                  "details": {
-                    "type": "object",
-                    "additionalProperties": {}
-                  }
-                },
-                "required": ["code"]
+                "additionalProperties": {}
+              },
+              "issues": {
+                "type": "array",
+                "items": {}
               }
-            ]
+            },
+            "required": ["code", "message"]
           }
         },
         "required": ["error"]
@@ -591,27 +595,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -808,27 +809,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -871,27 +869,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -931,20 +926,20 @@
                     "description": "Resource IDs to query",
                     "example": ["rsc_01abc123def456ghi789jkl012"]
                   },
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "Start of the time window (ISO 8601)",
                     "example": "2026-01-04T10:00:00Z"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "End of the time window (ISO 8601)",
                     "example": "2026-01-04T18:00:00Z"
                   }
                 },
-                "required": ["resourceIds", "startAt", "endAt"]
+                "required": ["resourceIds", "startTime", "endTime"]
               }
             }
           }
@@ -970,10 +965,10 @@
                             "items": {
                               "type": "object",
                               "properties": {
-                                "startAt": {
+                                "startTime": {
                                   "type": "string"
                                 },
-                                "endAt": {
+                                "endTime": {
                                   "type": "string"
                                 },
                                 "status": {
@@ -981,7 +976,7 @@
                                   "enum": ["free", "busy"]
                                 }
                               },
-                              "required": ["startAt", "endAt", "status"]
+                              "required": ["startTime", "endTime", "status"]
                             }
                           }
                         },
@@ -1039,17 +1034,23 @@
                           "active": {
                             "type": "boolean"
                           },
-                          "startAt": {
+                          "startTime": {
                             "type": "string"
                           },
-                          "endAt": {
+                          "endTime": {
                             "type": "string"
                           },
-                          "bufferBeforeMs": {
-                            "type": "number"
-                          },
-                          "bufferAfterMs": {
-                            "type": "number"
+                          "buffer": {
+                            "type": "object",
+                            "properties": {
+                              "beforeMs": {
+                                "type": "number"
+                              },
+                              "afterMs": {
+                                "type": "number"
+                              }
+                            },
+                            "required": ["beforeMs", "afterMs"]
                           },
                           "expiresAt": {
                             "type": ["string", "null"]
@@ -1071,10 +1072,9 @@
                           "resourceId",
                           "bookingId",
                           "active",
-                          "startAt",
-                          "endAt",
-                          "bufferBeforeMs",
-                          "bufferAfterMs",
+                          "startTime",
+                          "endTime",
+                          "buffer",
                           "expiresAt",
                           "metadata",
                           "createdAt",
@@ -1114,11 +1114,11 @@
                     "type": "string",
                     "example": "rsc_01abc123def456ghi789jkl012"
                   },
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time"
                   },
@@ -1132,7 +1132,7 @@
                     "additionalProperties": {}
                   }
                 },
-                "required": ["resourceId", "startAt", "endAt"]
+                "required": ["resourceId", "startTime", "endTime"]
               }
             }
           }
@@ -1163,17 +1163,23 @@
                         "active": {
                           "type": "boolean"
                         },
-                        "startAt": {
+                        "startTime": {
                           "type": "string"
                         },
-                        "endAt": {
+                        "endTime": {
                           "type": "string"
                         },
-                        "bufferBeforeMs": {
-                          "type": "number"
-                        },
-                        "bufferAfterMs": {
-                          "type": "number"
+                        "buffer": {
+                          "type": "object",
+                          "properties": {
+                            "beforeMs": {
+                              "type": "number"
+                            },
+                            "afterMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["beforeMs", "afterMs"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -1195,10 +1201,9 @@
                         "resourceId",
                         "bookingId",
                         "active",
-                        "startAt",
-                        "endAt",
-                        "bufferBeforeMs",
-                        "bufferAfterMs",
+                        "startTime",
+                        "endTime",
+                        "buffer",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -1228,27 +1233,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1307,17 +1309,23 @@
                         "active": {
                           "type": "boolean"
                         },
-                        "startAt": {
+                        "startTime": {
                           "type": "string"
                         },
-                        "endAt": {
+                        "endTime": {
                           "type": "string"
                         },
-                        "bufferBeforeMs": {
-                          "type": "number"
-                        },
-                        "bufferAfterMs": {
-                          "type": "number"
+                        "buffer": {
+                          "type": "object",
+                          "properties": {
+                            "beforeMs": {
+                              "type": "number"
+                            },
+                            "afterMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["beforeMs", "afterMs"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -1339,10 +1347,9 @@
                         "resourceId",
                         "bookingId",
                         "active",
-                        "startAt",
-                        "endAt",
-                        "bufferBeforeMs",
-                        "bufferAfterMs",
+                        "startTime",
+                        "endTime",
+                        "buffer",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -1372,27 +1379,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1436,27 +1440,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1472,27 +1473,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1691,27 +1689,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1809,27 +1804,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1959,27 +1951,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2023,27 +2012,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2059,27 +2045,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2119,16 +2102,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "Start of the query window (ISO 8601)",
                     "example": "2026-03-02T00:00:00Z"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time",
-                    "description": "End of the query window (ISO 8601). Max 7 days from startAt.",
+                    "description": "End of the query window (ISO 8601). Max 7 days from startTime.",
                     "example": "2026-03-07T00:00:00Z"
                   },
                   "durationMs": {
@@ -2149,7 +2132,7 @@
                     "description": "Return all grid positions with status. Defaults to false."
                   }
                 },
-                "required": ["startAt", "endAt", "durationMs"]
+                "required": ["startTime", "endTime", "durationMs"]
               }
             }
           }
@@ -2178,10 +2161,10 @@
                             "items": {
                               "type": "object",
                               "properties": {
-                                "startAt": {
+                                "startTime": {
                                   "type": "string"
                                 },
-                                "endAt": {
+                                "endTime": {
                                   "type": "string"
                                 },
                                 "status": {
@@ -2189,7 +2172,7 @@
                                   "enum": ["available", "unavailable"]
                                 }
                               },
-                              "required": ["startAt", "endAt"]
+                              "required": ["startTime", "endTime"]
                             }
                           }
                         },
@@ -2219,27 +2202,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2255,27 +2235,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2315,16 +2292,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "Start of the query window (ISO 8601)",
                     "example": "2026-03-02T00:00:00Z"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time",
-                    "description": "End of the query window (ISO 8601). Max 31 days from startAt.",
+                    "description": "End of the query window (ISO 8601). Max 31 days from startTime.",
                     "example": "2026-03-07T00:00:00Z"
                   },
                   "resourceIds": {
@@ -2339,7 +2316,7 @@
                     "description": "Return full schedule with status. Defaults to false."
                   }
                 },
-                "required": ["startAt", "endAt"]
+                "required": ["startTime", "endTime"]
               }
             }
           }
@@ -2368,10 +2345,10 @@
                             "items": {
                               "type": "object",
                               "properties": {
-                                "startAt": {
+                                "startTime": {
                                   "type": "string"
                                 },
-                                "endAt": {
+                                "endTime": {
                                   "type": "string"
                                 },
                                 "status": {
@@ -2379,7 +2356,7 @@
                                   "enum": ["available", "unavailable"]
                                 }
                               },
-                              "required": ["startAt", "endAt"]
+                              "required": ["startTime", "endTime"]
                             }
                           }
                         },
@@ -2409,27 +2386,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2445,27 +2419,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2512,9 +2483,12 @@
                           "serviceId": {
                             "type": "string"
                           },
+                          "policyId": {
+                            "type": ["string", "null"]
+                          },
                           "status": {
                             "type": "string",
-                            "enum": ["hold", "confirmed", "cancelled", "expired"]
+                            "enum": ["hold", "confirmed", "canceled", "expired"]
                           },
                           "expiresAt": {
                             "type": ["string", "null"]
@@ -2530,17 +2504,23 @@
                                 "resourceId": {
                                   "type": "string"
                                 },
-                                "startAt": {
+                                "startTime": {
                                   "type": "string"
                                 },
-                                "endAt": {
+                                "endTime": {
                                   "type": "string"
                                 },
-                                "bufferBeforeMs": {
-                                  "type": "number"
-                                },
-                                "bufferAfterMs": {
-                                  "type": "number"
+                                "buffer": {
+                                  "type": "object",
+                                  "properties": {
+                                    "beforeMs": {
+                                      "type": "number"
+                                    },
+                                    "afterMs": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": ["beforeMs", "afterMs"]
                                 },
                                 "active": {
                                   "type": "boolean"
@@ -2549,10 +2529,9 @@
                               "required": [
                                 "id",
                                 "resourceId",
-                                "startAt",
-                                "endAt",
-                                "bufferBeforeMs",
-                                "bufferAfterMs",
+                                "startTime",
+                                "endTime",
+                                "buffer",
                                 "active"
                               ]
                             }
@@ -2572,6 +2551,7 @@
                           "id",
                           "ledgerId",
                           "serviceId",
+                          "policyId",
                           "status",
                           "expiresAt",
                           "allocations",
@@ -2592,7 +2572,7 @@
       "post": {
         "tags": ["Bookings"],
         "summary": "Create a new booking",
-        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. When the policy defines buffers, the allocation's startAt/endAt represent the buffer-expanded blocked window. The original customer time can be derived using bufferBeforeMs and bufferAfterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
+        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
           {
             "schema": {
@@ -2617,12 +2597,12 @@
                     "type": "string",
                     "example": "rsc_01abc123def456ghi789jkl012"
                   },
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-01-15T10:00:00Z"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time",
                     "example": "2026-01-15T11:00:00Z"
@@ -2638,7 +2618,7 @@
                     "additionalProperties": {}
                   }
                 },
-                "required": ["serviceId", "resourceId", "startAt", "endAt"]
+                "required": ["serviceId", "resourceId", "startTime", "endTime"]
               }
             }
           }
@@ -2663,9 +2643,12 @@
                         "serviceId": {
                           "type": "string"
                         },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
                         "status": {
                           "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -2681,17 +2664,23 @@
                               "resourceId": {
                                 "type": "string"
                               },
-                              "startAt": {
+                              "startTime": {
                                 "type": "string"
                               },
-                              "endAt": {
+                              "endTime": {
                                 "type": "string"
                               },
-                              "bufferBeforeMs": {
-                                "type": "number"
-                              },
-                              "bufferAfterMs": {
-                                "type": "number"
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
                               },
                               "active": {
                                 "type": "boolean"
@@ -2700,10 +2689,9 @@
                             "required": [
                               "id",
                               "resourceId",
-                              "startAt",
-                              "endAt",
-                              "bufferBeforeMs",
-                              "bufferAfterMs",
+                              "startTime",
+                              "endTime",
+                              "buffer",
                               "active"
                             ]
                           }
@@ -2723,6 +2711,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
+                        "policyId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -2754,27 +2743,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2790,27 +2776,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -2864,9 +2847,12 @@
                         "serviceId": {
                           "type": "string"
                         },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
                         "status": {
                           "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -2882,17 +2868,23 @@
                               "resourceId": {
                                 "type": "string"
                               },
-                              "startAt": {
+                              "startTime": {
                                 "type": "string"
                               },
-                              "endAt": {
+                              "endTime": {
                                 "type": "string"
                               },
-                              "bufferBeforeMs": {
-                                "type": "number"
-                              },
-                              "bufferAfterMs": {
-                                "type": "number"
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
                               },
                               "active": {
                                 "type": "boolean"
@@ -2901,10 +2893,9 @@
                             "required": [
                               "id",
                               "resourceId",
-                              "startAt",
-                              "endAt",
-                              "bufferBeforeMs",
-                              "bufferAfterMs",
+                              "startTime",
+                              "endTime",
+                              "buffer",
                               "active"
                             ]
                           }
@@ -2924,6 +2915,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
+                        "policyId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -2955,27 +2947,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3029,9 +3018,12 @@
                         "serviceId": {
                           "type": "string"
                         },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
                         "status": {
                           "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -3047,17 +3039,23 @@
                               "resourceId": {
                                 "type": "string"
                               },
-                              "startAt": {
+                              "startTime": {
                                 "type": "string"
                               },
-                              "endAt": {
+                              "endTime": {
                                 "type": "string"
                               },
-                              "bufferBeforeMs": {
-                                "type": "number"
-                              },
-                              "bufferAfterMs": {
-                                "type": "number"
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
                               },
                               "active": {
                                 "type": "boolean"
@@ -3066,10 +3064,9 @@
                             "required": [
                               "id",
                               "resourceId",
-                              "startAt",
-                              "endAt",
-                              "bufferBeforeMs",
-                              "bufferAfterMs",
+                              "startTime",
+                              "endTime",
+                              "buffer",
                               "active"
                             ]
                           }
@@ -3089,6 +3086,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
+                        "policyId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -3120,27 +3118,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3156,27 +3151,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3191,7 +3183,7 @@
       "post": {
         "tags": ["Bookings"],
         "summary": "Cancel a booking",
-        "description": "Cancels a booking in hold or confirmed status. Idempotent — cancelling an already cancelled booking returns success. Supports idempotency via the Idempotency-Key header.",
+        "description": "Cancels a booking in hold or confirmed status. Idempotent — canceling an already canceled booking returns success. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
           {
             "schema": {
@@ -3212,7 +3204,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Booking cancelled",
+            "description": "Booking canceled",
             "content": {
               "application/json": {
                 "schema": {
@@ -3230,9 +3222,12 @@
                         "serviceId": {
                           "type": "string"
                         },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
                         "status": {
                           "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -3248,17 +3243,23 @@
                               "resourceId": {
                                 "type": "string"
                               },
-                              "startAt": {
+                              "startTime": {
                                 "type": "string"
                               },
-                              "endAt": {
+                              "endTime": {
                                 "type": "string"
                               },
-                              "bufferBeforeMs": {
-                                "type": "number"
-                              },
-                              "bufferAfterMs": {
-                                "type": "number"
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
                               },
                               "active": {
                                 "type": "boolean"
@@ -3267,10 +3268,9 @@
                             "required": [
                               "id",
                               "resourceId",
-                              "startAt",
-                              "endAt",
-                              "bufferBeforeMs",
-                              "bufferAfterMs",
+                              "startTime",
+                              "endTime",
+                              "buffer",
                               "active"
                             ]
                           }
@@ -3290,6 +3290,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
+                        "policyId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -3321,27 +3322,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3350,34 +3348,31 @@
             }
           },
           "409": {
-            "description": "Booking cannot be cancelled (invalid state)",
+            "description": "Booking cannot be canceled (invalid state)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3514,7 +3509,7 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}": {
+    "/v1/ledgers/{ledgerId}/webhooks/{id}": {
       "patch": {
         "tags": ["Webhooks"],
         "summary": "Update a webhook subscription",
@@ -3532,7 +3527,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -3594,27 +3589,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3641,7 +3633,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -3657,27 +3649,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -3688,7 +3677,7 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/rotate-secret": {
+    "/v1/ledgers/{ledgerId}/webhooks/{id}/rotate-secret": {
       "post": {
         "tags": ["Webhooks"],
         "summary": "Rotate webhook secret",
@@ -3707,7 +3696,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -3757,27 +3746,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -4033,27 +4019,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -4180,27 +4163,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -4243,27 +4223,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]

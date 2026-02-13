@@ -46,12 +46,12 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .addColumn("service_id", "varchar(32)", (col) => col.notNull().references("services.id"))
     .addColumn("policy_id", "varchar(32)", (col) => col.references("policies.id"))
     .addColumn("status", "varchar(50)", (col) =>
-      col.notNull().check(sql`status IN ('hold', 'confirmed', 'cancelled', 'expired')`),
+      col.notNull().check(sql`status IN ('hold', 'confirmed', 'canceled', 'expired')`),
     )
     .addColumn("expires_at", "timestamptz")
     .addCheckConstraint(
       "bookings_expires_at_consistency",
-      sql`(status = 'hold' AND expires_at IS NOT NULL) OR (status IN ('confirmed', 'cancelled', 'expired') AND expires_at IS NULL)`,
+      sql`(status = 'hold' AND expires_at IS NOT NULL) OR (status IN ('confirmed', 'canceled', 'expired') AND expires_at IS NULL)`,
     )
     .addColumn("metadata", "jsonb")
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))
@@ -74,6 +74,15 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await addUpdatedAtTrigger(db, "bookings");
 
   // 5. Modify allocations table
+  // Rename time columns: start_at → start_time, end_at → end_time
+  await sql`DROP INDEX IF EXISTS idx_allocations_time_range`.execute(db);
+  await sql`ALTER TABLE allocations DROP CONSTRAINT IF EXISTS allocations_time_order`.execute(db);
+  await db.schema.alterTable("allocations").renameColumn("start_at", "start_time").execute();
+  await db.schema.alterTable("allocations").renameColumn("end_at", "end_time").execute();
+  await sql`ALTER TABLE allocations ADD CONSTRAINT allocations_time_order CHECK (start_time < end_time)`.execute(
+    db,
+  );
+
   // Add new columns
   await db.schema
     .alterTable("allocations")
@@ -108,12 +117,11 @@ export async function up(db: Kysely<Database>): Promise<void> {
 
   // Drop old indexes
   await db.schema.dropIndex("idx_allocations_status").ifExists().execute();
-  await db.schema.dropIndex("idx_allocations_time_range").ifExists().execute();
 
   // Add new indexes
   await sql`
     CREATE INDEX idx_allocations_active
-    ON allocations(resource_id, start_at, end_at)
+    ON allocations(resource_id, start_time, end_time)
     WHERE active = true
   `.execute(db);
 
@@ -158,11 +166,6 @@ export async function down(db: Kysely<Database>): Promise<void> {
     .column("status")
     .execute();
 
-  await sql`
-    CREATE INDEX idx_allocations_time_range ON allocations
-    USING GIST (resource_id, tstzrange(start_at, end_at, '[)'))
-  `.execute(db);
-
   // Drop new columns
   await db.schema.alterTable("allocations").dropColumn("buffer_after_ms").execute();
   await db.schema.alterTable("allocations").dropColumn("buffer_before_ms").execute();
@@ -173,6 +176,18 @@ export async function down(db: Kysely<Database>): Promise<void> {
   await db.schema.dropTable("bookings").execute();
   await db.schema.dropTable("service_resources").execute();
   await db.schema.dropTable("services").execute();
+
+  // Reverse column renames: start_time → start_at, end_time → end_at
+  await sql`ALTER TABLE allocations DROP CONSTRAINT IF EXISTS allocations_time_order`.execute(db);
+  await db.schema.alterTable("allocations").renameColumn("start_time", "start_at").execute();
+  await db.schema.alterTable("allocations").renameColumn("end_time", "end_at").execute();
+  await sql`ALTER TABLE allocations ADD CONSTRAINT allocations_time_order CHECK (start_at < end_at)`.execute(
+    db,
+  );
+  await sql`
+    CREATE INDEX idx_allocations_time_range ON allocations
+    USING GIST (resource_id, tstzrange(start_at, end_at, '[)'))
+  `.execute(db);
 
   // Remove timezone from resources
   await db.schema.alterTable("resources").dropColumn("timezone").execute();

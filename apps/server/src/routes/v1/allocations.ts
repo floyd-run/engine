@@ -5,7 +5,7 @@ import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infr
 import { serializeAllocation } from "./serializers";
 
 // Significant fields for allocation create idempotency hash
-const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startAt", "endAt", "expiresAt"];
+const ALLOCATION_SIGNIFICANT_FIELDS = ["resourceId", "startTime", "endTime", "expiresAt"];
 
 // Nested under /v1/ledgers/:ledgerId/allocations
 export const allocations = new Hono<{ Variables: IdempotencyVariables }>()

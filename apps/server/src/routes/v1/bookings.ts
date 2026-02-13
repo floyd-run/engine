@@ -5,7 +5,7 @@ import { idempotent, storeIdempotencyResponse, IdempotencyVariables } from "infr
 import { serializeBooking } from "./serializers";
 
 // Significant fields for booking create idempotency hash
-const BOOKING_SIGNIFICANT_FIELDS = ["serviceId", "resourceId", "startAt", "endAt", "status"];
+const BOOKING_SIGNIFICANT_FIELDS = ["serviceId", "resourceId", "startTime", "endTime", "status"];
 
 // Nested under /v1/ledgers/:ledgerId/bookings
 export const bookings = new Hono<{ Variables: IdempotencyVariables }>()

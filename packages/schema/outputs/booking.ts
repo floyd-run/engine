@@ -4,10 +4,12 @@ import { BookingStatus } from "../constants";
 const bookingAllocationSchema = z.object({
   id: z.string(),
   resourceId: z.string(),
-  startAt: z.string(),
-  endAt: z.string(),
-  bufferBeforeMs: z.number(),
-  bufferAfterMs: z.number(),
+  startTime: z.string(),
+  endTime: z.string(),
+  buffer: z.object({
+    beforeMs: z.number(),
+    afterMs: z.number(),
+  }),
   active: z.boolean(),
 });
 

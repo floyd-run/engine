@@ -59,8 +59,8 @@ export default createOperation({
 
       // 5. Policy evaluation (if service has a policy)
       let holdDurationMs = DEFAULT_HOLD_DURATION_MS;
-      let startAt = input.startAt;
-      let endAt = input.endAt;
+      let startTime = input.startTime;
+      let endTime = input.endTime;
       let bufferBeforeMs = 0;
       let bufferAfterMs = 0;
       if (service.policyId) {
@@ -74,7 +74,7 @@ export default createOperation({
           const timezone = resource.timezone ?? "UTC";
           const result = evaluatePolicy(
             policy.config as unknown as PolicyConfig,
-            { startAt: input.startAt, endAt: input.endAt },
+            { startTime: input.startTime, endTime: input.endTime },
             { decisionTime: serverTime, timezone },
           );
 
@@ -87,14 +87,14 @@ export default createOperation({
           }
 
           // Use buffer-expanded times as the allocation's blocked window
-          startAt = result.effectiveStartAt;
-          endAt = result.effectiveEndAt;
+          startTime = result.effectiveStartTime;
+          endTime = result.effectiveEndTime;
           bufferBeforeMs = result.bufferBeforeMs;
           bufferAfterMs = result.bufferAfterMs;
 
           // Use resolved hold_duration (respects per-rule overrides)
-          if (result.resolvedConfig.hold_duration_ms !== undefined) {
-            holdDurationMs = result.resolvedConfig.hold_duration_ms;
+          if (result.resolvedConfig.hold?.duration_ms !== undefined) {
+            holdDurationMs = result.resolvedConfig.hold.duration_ms;
           }
         }
       }
@@ -118,13 +118,13 @@ export default createOperation({
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      // 8. Conflict check + insert allocation (startAt/endAt = blocked window including buffers)
+      // 8. Conflict check + insert allocation (startTime/endTime = blocked window including buffers)
       const allocation = await insertAllocation(trx, {
         ledgerId: input.ledgerId,
         resourceId: input.resourceId,
         bookingId: booking.id,
-        startAt,
-        endAt,
+        startTime,
+        endTime,
         bufferBeforeMs,
         bufferAfterMs,
         expiresAt,

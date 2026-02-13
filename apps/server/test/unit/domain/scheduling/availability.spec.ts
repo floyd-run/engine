@@ -344,9 +344,9 @@ describe("generateSlots", () => {
 
     // 60min slots at 30min grid on 09:00-12:00: 09:00, 09:30, 10:00, 10:30, 11:00
     expect(slots).toHaveLength(5);
-    expect(slots[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(slots[4]!.startAt).toBe("2026-03-16T11:00:00.000Z");
-    expect(slots[4]!.endAt).toBe("2026-03-16T12:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(slots[4]!.startTime).toBe("2026-03-16T11:00:00.000Z");
+    expect(slots[4]!.endTime).toBe("2026-03-16T12:00:00.000Z");
   });
 
   it("no grid → step = durationMs (non-overlapping)", () => {
@@ -354,8 +354,8 @@ describe("generateSlots", () => {
     const slots = generateSlots([day], [], HOUR, PAST, "UTC", false, Q.start, Q.end);
 
     expect(slots).toHaveLength(4);
-    expect(slots[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(slots[3]!.startAt).toBe("2026-03-16T12:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(slots[3]!.startTime).toBe("2026-03-16T12:00:00.000Z");
   });
 
   it("skips day where duration not in allowed_ms", () => {
@@ -382,12 +382,12 @@ describe("generateSlots", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T10:00:00Z"),
-        endAt: new Date("2026-03-16T11:00:00Z"),
+        startTime: new Date("2026-03-16T10:00:00Z"),
+        endTime: new Date("2026-03-16T11:00:00Z"),
       },
     ];
     const slots = generateSlots([day], allocs, HOUR, PAST, "UTC", false, Q.start, Q.end);
-    const starts = slots.map((s) => s.startAt);
+    const starts = slots.map((s) => s.startTime);
 
     expect(starts).toContain("2026-03-16T09:00:00.000Z");
     expect(starts).not.toContain("2026-03-16T10:00:00.000Z");
@@ -402,12 +402,12 @@ describe("generateSlots", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T10:00:00Z"),
-        endAt: new Date("2026-03-16T11:00:00Z"),
+        startTime: new Date("2026-03-16T10:00:00Z"),
+        endTime: new Date("2026-03-16T11:00:00Z"),
       },
     ];
     const slots = generateSlots([day], allocs, HOUR, PAST, "UTC", false, Q.start, Q.end);
-    const starts = slots.map((s) => s.startAt);
+    const starts = slots.map((s) => s.startTime);
 
     // Slot at 09:00: effective [09:00, 10:10) overlaps [10:00, 11:00) → excluded
     expect(starts).not.toContain("2026-03-16T09:00:00.000Z");
@@ -423,12 +423,12 @@ describe("generateSlots", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T09:50:00Z"),
-        endAt: new Date("2026-03-16T10:00:00Z"),
+        startTime: new Date("2026-03-16T09:50:00Z"),
+        endTime: new Date("2026-03-16T10:00:00Z"),
       },
     ];
     const slots = generateSlots([day], allocs, HOUR, PAST, "UTC", false, Q.start, Q.end);
-    const starts = slots.map((s) => s.startAt);
+    const starts = slots.map((s) => s.startTime);
 
     // Slot at 10:00: effective start = 10:00 - 15min = 09:45. Overlaps [09:50, 10:00) → excluded
     expect(starts).not.toContain("2026-03-16T10:00:00.000Z");
@@ -438,7 +438,7 @@ describe("generateSlots", () => {
 
   it("lead time filtering excludes too-close slots", () => {
     const day = makeDay("2026-03-16", [[9 * HOUR, 12 * HOUR]], {
-      booking_window: { min_lead_time_ms: 2 * HOUR },
+      lead_time: { min_ms: 2 * HOUR },
     });
     const serverTime = new Date("2026-03-16T09:30:00Z");
     const slots = generateSlots([day], [], HOUR, serverTime, "UTC", false, Q.start, Q.end);
@@ -449,11 +449,11 @@ describe("generateSlots", () => {
 
   it("horizon filtering excludes too-far slots", () => {
     const day = makeDay("2026-03-16", [[9 * HOUR, 13 * HOUR]], {
-      booking_window: { max_lead_time_ms: 2 * HOUR },
+      lead_time: { max_ms: 2 * HOUR },
     });
     const serverTime = new Date("2026-03-16T09:00:00Z");
     const slots = generateSlots([day], [], HOUR, serverTime, "UTC", false, Q.start, Q.end);
-    const starts = slots.map((s) => s.startAt);
+    const starts = slots.map((s) => s.startTime);
 
     expect(starts).toContain("2026-03-16T09:00:00.000Z"); // 0h ≤ 2h
     expect(starts).toContain("2026-03-16T10:00:00.000Z"); // 1h ≤ 2h
@@ -466,8 +466,8 @@ describe("generateSlots", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T10:00:00Z"),
-        endAt: new Date("2026-03-16T11:00:00Z"),
+        startTime: new Date("2026-03-16T10:00:00Z"),
+        endTime: new Date("2026-03-16T11:00:00Z"),
       },
     ];
     const slots = generateSlots([day], allocs, HOUR, PAST, "UTC", true, Q.start, Q.end);
@@ -483,8 +483,8 @@ describe("generateSlots", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T10:00:00Z"),
-        endAt: new Date("2026-03-16T11:00:00Z"),
+        startTime: new Date("2026-03-16T10:00:00Z"),
+        endTime: new Date("2026-03-16T11:00:00Z"),
       },
     ];
     const slots = generateSlots([day], allocs, HOUR, PAST, "UTC", false, Q.start, Q.end);
@@ -502,8 +502,8 @@ describe("generateSlots", () => {
 
     // Only 10:00-11:00 and 11:00-12:00 fit
     expect(slots).toHaveLength(2);
-    expect(slots[0]!.startAt).toBe("2026-03-16T10:00:00.000Z");
-    expect(slots[1]!.startAt).toBe("2026-03-16T11:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-16T10:00:00.000Z");
+    expect(slots[1]!.startTime).toBe("2026-03-16T11:00:00.000Z");
   });
 
   it("multiple days: generates slots across days", () => {
@@ -515,8 +515,8 @@ describe("generateSlots", () => {
     const slots = generateSlots(days, [], HOUR, PAST, "UTC", false, Q.start, qEnd);
 
     expect(slots).toHaveLength(4);
-    expect(slots[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(slots[2]!.startAt).toBe("2026-03-17T09:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(slots[2]!.startTime).toBe("2026-03-17T09:00:00.000Z");
   });
 
   it("per-day config variation: different grids per day", () => {
@@ -527,8 +527,8 @@ describe("generateSlots", () => {
     const qEnd = new Date("2026-03-18T00:00:00Z");
     const slots = generateSlots(days, [], HOUR, PAST, "UTC", false, Q.start, qEnd);
 
-    const day1 = slots.filter((s) => s.startAt.startsWith("2026-03-16"));
-    const day2 = slots.filter((s) => s.startAt.startsWith("2026-03-17"));
+    const day1 = slots.filter((s) => s.startTime.startsWith("2026-03-16"));
+    const day2 = slots.filter((s) => s.startTime.startsWith("2026-03-17"));
 
     // Day 1: 30min grid, 60min duration → 09:00, 09:30, 10:00 = 3 slots
     expect(day1).toHaveLength(3);
@@ -549,8 +549,8 @@ describe("computeWindows", () => {
     const windows = computeWindows([day], [], PAST, "UTC", false, Q.start, Q.end);
 
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 
   it("allocation subtraction carves out time", () => {
@@ -558,17 +558,17 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T12:00:00Z"),
-        endAt: new Date("2026-03-16T13:00:00Z"),
+        startTime: new Date("2026-03-16T12:00:00Z"),
+        endTime: new Date("2026-03-16T13:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
 
     expect(windows).toHaveLength(2);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T12:00:00.000Z");
-    expect(windows[1]!.startAt).toBe("2026-03-16T13:00:00.000Z");
-    expect(windows[1]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T12:00:00.000Z");
+    expect(windows[1]!.startTime).toBe("2026-03-16T13:00:00.000Z");
+    expect(windows[1]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 
   it("asymmetric buffer shrinkage at allocation boundaries", () => {
@@ -578,8 +578,8 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T09:45:00Z"),
-        endAt: new Date("2026-03-16T11:10:00Z"),
+        startTime: new Date("2026-03-16T09:45:00Z"),
+        endTime: new Date("2026-03-16T11:10:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
@@ -587,10 +587,10 @@ describe("computeWindows", () => {
     // Gap before: [09:00, 09:45) → end adjacent to alloc → shrink by after_ms(10min) → [09:00, 09:35)
     // Gap after: [11:10, 17:00) → start adjacent to alloc → shrink by before_ms(15min) → [11:25, 17:00)
     expect(windows).toHaveLength(2);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T09:35:00.000Z");
-    expect(windows[1]!.startAt).toBe("2026-03-16T11:25:00.000Z");
-    expect(windows[1]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T09:35:00.000Z");
+    expect(windows[1]!.startTime).toBe("2026-03-16T11:25:00.000Z");
+    expect(windows[1]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 
   it("schedule boundaries do not shrink", () => {
@@ -601,8 +601,8 @@ describe("computeWindows", () => {
 
     // No allocations → no adjacent allocations → no shrinkage
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 
   it("gap between two allocations shrinks from both sides", () => {
@@ -612,13 +612,13 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T09:00:00Z"),
-        endAt: new Date("2026-03-16T11:00:00Z"),
+        startTime: new Date("2026-03-16T09:00:00Z"),
+        endTime: new Date("2026-03-16T11:00:00Z"),
       },
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T14:00:00Z"),
-        endAt: new Date("2026-03-16T17:00:00Z"),
+        startTime: new Date("2026-03-16T14:00:00Z"),
+        endTime: new Date("2026-03-16T17:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
@@ -627,8 +627,8 @@ describe("computeWindows", () => {
     //   start adjacent to alloc1 end → +before_ms(15min) → 11:15
     //   end adjacent to alloc2 start → -after_ms(10min) → 13:50
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T11:15:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T13:50:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T11:15:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T13:50:00.000Z");
   });
 
   it("buffer shrinkage eliminates gap entirely", () => {
@@ -638,13 +638,13 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T09:00:00Z"),
-        endAt: new Date("2026-03-16T12:00:00Z"),
+        startTime: new Date("2026-03-16T09:00:00Z"),
+        endTime: new Date("2026-03-16T12:00:00Z"),
       },
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T12:30:00Z"),
-        endAt: new Date("2026-03-16T17:00:00Z"),
+        startTime: new Date("2026-03-16T12:30:00Z"),
+        endTime: new Date("2026-03-16T17:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
@@ -658,13 +658,13 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T09:00:00Z"),
-        endAt: new Date("2026-03-16T12:00:00Z"),
+        startTime: new Date("2026-03-16T09:00:00Z"),
+        endTime: new Date("2026-03-16T12:00:00Z"),
       },
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T13:00:00Z"),
-        endAt: new Date("2026-03-16T17:00:00Z"),
+        startTime: new Date("2026-03-16T13:00:00Z"),
+        endTime: new Date("2026-03-16T17:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
@@ -679,8 +679,8 @@ describe("computeWindows", () => {
     const windows = computeWindows(days, [], PAST, "UTC", false, Q.start, qEnd);
 
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T00:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-18T00:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T00:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-18T00:00:00.000Z");
   });
 
   it("includeUnavailable: returns both available and unavailable", () => {
@@ -688,8 +688,8 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T12:00:00Z"),
-        endAt: new Date("2026-03-16T13:00:00Z"),
+        startTime: new Date("2026-03-16T12:00:00Z"),
+        endTime: new Date("2026-03-16T13:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", true, Q.start, Q.end);
@@ -699,8 +699,8 @@ describe("computeWindows", () => {
 
     expect(available).toHaveLength(2);
     expect(unavailable).toHaveLength(1);
-    expect(unavailable[0]!.startAt).toBe("2026-03-16T12:00:00.000Z");
-    expect(unavailable[0]!.endAt).toBe("2026-03-16T13:00:00.000Z");
+    expect(unavailable[0]!.startTime).toBe("2026-03-16T12:00:00.000Z");
+    expect(unavailable[0]!.endTime).toBe("2026-03-16T13:00:00.000Z");
 
     for (const w of windows) {
       expect(w.status).toMatch(/^(available|unavailable)$/);
@@ -722,8 +722,8 @@ describe("computeWindows", () => {
     const windows = computeWindows([day], [], PAST, "UTC", false, qStart, qEnd);
 
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T10:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T14:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T10:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T14:00:00.000Z");
   });
 
   it("multiple schedule windows on same day", () => {
@@ -734,10 +734,10 @@ describe("computeWindows", () => {
     const windows = computeWindows([day], [], PAST, "UTC", false, Q.start, Q.end);
 
     expect(windows).toHaveLength(2);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T12:00:00.000Z");
-    expect(windows[1]!.startAt).toBe("2026-03-16T14:00:00.000Z");
-    expect(windows[1]!.endAt).toBe("2026-03-16T18:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T12:00:00.000Z");
+    expect(windows[1]!.startTime).toBe("2026-03-16T14:00:00.000Z");
+    expect(windows[1]!.endTime).toBe("2026-03-16T18:00:00.000Z");
   });
 
   it("allocation fully outside schedule has no effect", () => {
@@ -745,15 +745,15 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T07:00:00Z"),
-        endAt: new Date("2026-03-16T08:00:00Z"),
+        startTime: new Date("2026-03-16T07:00:00Z"),
+        endTime: new Date("2026-03-16T08:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
 
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T09:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T09:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 
   it("allocation partially overlapping schedule start", () => {
@@ -761,14 +761,14 @@ describe("computeWindows", () => {
     const allocs: BlockingAllocation[] = [
       {
         resourceId: "r",
-        startAt: new Date("2026-03-16T08:00:00Z"),
-        endAt: new Date("2026-03-16T10:00:00Z"),
+        startTime: new Date("2026-03-16T08:00:00Z"),
+        endTime: new Date("2026-03-16T10:00:00Z"),
       },
     ];
     const windows = computeWindows([day], allocs, PAST, "UTC", false, Q.start, Q.end);
 
     expect(windows).toHaveLength(1);
-    expect(windows[0]!.startAt).toBe("2026-03-16T10:00:00.000Z");
-    expect(windows[0]!.endAt).toBe("2026-03-16T17:00:00.000Z");
+    expect(windows[0]!.startTime).toBe("2026-03-16T10:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T17:00:00.000Z");
   });
 });

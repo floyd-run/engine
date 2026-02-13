@@ -59,16 +59,16 @@ export function buildTimeline(
     // Add free block before this busy interval (if gap exists)
     if (busy.start > cursor) {
       timeline.push({
-        startAt: cursor.toISOString(),
-        endAt: busy.start.toISOString(),
+        startTime: cursor.toISOString(),
+        endTime: busy.start.toISOString(),
         status: "free",
       });
     }
 
     // Add busy block
     timeline.push({
-      startAt: busy.start.toISOString(),
-      endAt: busy.end.toISOString(),
+      startTime: busy.start.toISOString(),
+      endTime: busy.end.toISOString(),
       status: "busy",
     });
 
@@ -78,8 +78,8 @@ export function buildTimeline(
   // Add trailing free block if window extends past last busy
   if (cursor < windowEnd) {
     timeline.push({
-      startAt: cursor.toISOString(),
-      endAt: windowEnd.toISOString(),
+      startTime: cursor.toISOString(),
+      endTime: windowEnd.toISOString(),
       status: "free",
     });
   }

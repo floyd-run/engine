@@ -13,7 +13,7 @@ interface SlotsResponse {
   data: {
     resourceId: string;
     timezone: string;
-    slots: { startAt: string; endAt: string; status?: "available" | "unavailable" }[];
+    slots: { startTime: string; endTime: string; status?: "available" | "unavailable" }[];
   }[];
   meta: { serverTime: string };
 }
@@ -58,8 +58,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 3600000, // 60 min
       },
     );
@@ -75,10 +75,10 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     // Slots at 09:00, 09:30, 10:00, ..., 16:00 (last where start + 60min <= 17:00)
     const slots = body.data[0]!.slots;
     expect(slots.length).toBe(15); // 09:00 through 16:00 at 30min intervals
-    expect(slots[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(slots[0]!.endAt).toBe("2026-03-02T10:00:00.000Z");
-    expect(slots[slots.length - 1]!.startAt).toBe("2026-03-02T16:00:00.000Z");
-    expect(slots[slots.length - 1]!.endAt).toBe("2026-03-02T17:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(slots[0]!.endTime).toBe("2026-03-02T10:00:00.000Z");
+    expect(slots[slots.length - 1]!.startTime).toBe("2026-03-02T16:00:00.000Z");
+    expect(slots[slots.length - 1]!.endTime).toBe("2026-03-02T17:00:00.000Z");
 
     // No status field when includeUnavailable is false
     expect(slots[0]).not.toHaveProperty("status");
@@ -91,8 +91,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 5400000, // 90 min
       },
     );
@@ -102,13 +102,13 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const slots = body.data[0]!.slots;
 
     // First slot 09:00-10:30, second 09:30-11:00 — they overlap
-    expect(slots[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(slots[0]!.endAt).toBe("2026-03-02T10:30:00.000Z");
-    expect(slots[1]!.startAt).toBe("2026-03-02T09:30:00.000Z");
-    expect(slots[1]!.endAt).toBe("2026-03-02T11:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(slots[0]!.endTime).toBe("2026-03-02T10:30:00.000Z");
+    expect(slots[1]!.startTime).toBe("2026-03-02T09:30:00.000Z");
+    expect(slots[1]!.endTime).toBe("2026-03-02T11:00:00.000Z");
 
     // Last slot at 15:30 (15:30 + 90min = 17:00)
-    expect(slots[slots.length - 1]!.startAt).toBe("2026-03-02T15:30:00.000Z");
+    expect(slots[slots.length - 1]!.startTime).toBe("2026-03-02T15:30:00.000Z");
   });
 
   it("no grid: step defaults to durationMs, non-overlapping", async () => {
@@ -143,8 +143,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z", // Monday
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z", // Monday
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 3600000, // 60 min
       },
     );
@@ -155,10 +155,10 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
 
     // No grid → step = durationMs = 60min. Slots at 09:00, 10:00, 11:00, 12:00
     expect(slots).toHaveLength(4);
-    expect(slots[0]!.startAt).toBe("2026-03-02T09:00:00.000Z");
-    expect(slots[1]!.startAt).toBe("2026-03-02T10:00:00.000Z");
-    expect(slots[2]!.startAt).toBe("2026-03-02T11:00:00.000Z");
-    expect(slots[3]!.startAt).toBe("2026-03-02T12:00:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-02T09:00:00.000Z");
+    expect(slots[1]!.startTime).toBe("2026-03-02T10:00:00.000Z");
+    expect(slots[2]!.startTime).toBe("2026-03-02T11:00:00.000Z");
+    expect(slots[3]!.startTime).toBe("2026-03-02T12:00:00.000Z");
   });
 
   it("skips days where duration is invalid", async () => {
@@ -203,8 +203,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-06T00:00:00Z",
-        endAt: "2026-03-08T00:00:00Z",
+        startTime: "2026-03-06T00:00:00Z",
+        endTime: "2026-03-08T00:00:00Z",
         durationMs: 5400000, // 90 min
       },
     );
@@ -214,8 +214,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const slots = body.data[0]!.slots;
 
     // Friday should have slots, Saturday should have none (90min not in [30, 60])
-    const fridaySlots = slots.filter((s) => s.startAt.startsWith("2026-03-06"));
-    const saturdaySlots = slots.filter((s) => s.startAt.startsWith("2026-03-07"));
+    const fridaySlots = slots.filter((s) => s.startTime.startsWith("2026-03-06"));
+    const saturdaySlots = slots.filter((s) => s.startTime.startsWith("2026-03-07"));
 
     expect(fridaySlots.length).toBeGreaterThan(0);
     expect(saturdaySlots).toHaveLength(0);
@@ -229,15 +229,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T11:10:00Z"), // buffer-expanded
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T11:10:00Z"), // buffer-expanded
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000, // 30 min
       },
     );
@@ -252,7 +252,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     // Slot at 10:30 → effective [10:30, 11:10) overlaps → excluded
     // Slot at 11:00 → effective [11:00, 11:40) overlaps (start 11:00 < 11:10) → excluded
     // Slot at 11:30 → effective [11:30, 12:10) does NOT overlap → included
-    const slotStarts = slots.map((s) => s.startAt);
+    const slotStarts = slots.map((s) => s.startTime);
     expect(slotStarts).not.toContain("2026-03-02T10:00:00.000Z");
     expect(slotStarts).not.toContain("2026-03-02T10:30:00.000Z");
     expect(slotStarts).not.toContain("2026-03-02T11:00:00.000Z");
@@ -268,15 +268,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
       ledgerId: ledger.id,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T11:10:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T11:10:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
         includeUnavailable: true,
       },
@@ -292,12 +292,12 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     }
 
     // Conflicting slots should be unavailable
-    const slot1000 = slots.find((s) => s.startAt === "2026-03-02T10:00:00.000Z");
+    const slot1000 = slots.find((s) => s.startTime === "2026-03-02T10:00:00.000Z");
     expect(slot1000).toBeDefined();
     expect(slot1000!.status).toBe("unavailable");
 
     // Non-conflicting should be available
-    const slot0900 = slots.find((s) => s.startAt === "2026-03-02T09:00:00.000Z");
+    const slot0900 = slots.find((s) => s.startTime === "2026-03-02T09:00:00.000Z");
     expect(slot0900).toBeDefined();
     expect(slot0900!.status).toBe("available");
   });
@@ -319,15 +319,15 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
       ledgerId: ledger.id,
       resourceId: r1.id,
       active: true,
-      startAt: new Date("2026-03-02T10:00:00Z"),
-      endAt: new Date("2026-03-02T11:10:00Z"),
+      startTime: new Date("2026-03-02T10:00:00Z"),
+      endTime: new Date("2026-03-02T11:10:00Z"),
     });
 
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
       },
     );
@@ -358,8 +358,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
         resourceIds: [r1.id],
       },
@@ -379,8 +379,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
         resourceIds: [outsideResource.id],
       },
@@ -402,8 +402,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T10:00:00Z",
-        endAt: "2026-03-02T12:00:00Z",
+        startTime: "2026-03-02T10:00:00Z",
+        endTime: "2026-03-02T12:00:00Z",
         durationMs: 1800000, // 30 min
       },
     );
@@ -414,8 +414,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
 
     // No grid → step = 30min. Window 10:00-12:00 → 4 slots
     expect(slots).toHaveLength(4);
-    expect(slots[0]!.startAt).toBe("2026-03-02T10:00:00.000Z");
-    expect(slots[3]!.startAt).toBe("2026-03-02T11:30:00.000Z");
+    expect(slots[0]!.startTime).toBe("2026-03-02T10:00:00.000Z");
+    expect(slots[3]!.startTime).toBe("2026-03-02T11:30:00.000Z");
   });
 
   it("rejects query range > 7 days", async () => {
@@ -424,8 +424,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-10T00:00:00Z", // 8 days
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-10T00:00:00Z", // 8 days
         durationMs: 1800000,
       },
     );
@@ -439,8 +439,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
       },
     );
@@ -467,8 +467,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
       },
     );
@@ -485,8 +485,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${service.id}/availability/slots`,
       {
-        startAt: "2026-03-01T00:00:00Z",
-        endAt: "2026-03-01T23:59:59Z",
+        startTime: "2026-03-01T00:00:00Z",
+        endTime: "2026-03-01T23:59:59Z",
         durationMs: 1800000,
       },
     );
@@ -503,8 +503,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
     const response = await client.post(
       `/v1/ledgers/${ledger.id}/services/${fakeServiceId}/availability/slots`,
       {
-        startAt: "2026-03-02T00:00:00Z",
-        endAt: "2026-03-02T23:59:59Z",
+        startTime: "2026-03-02T00:00:00Z",
+        endTime: "2026-03-02T23:59:59Z",
         durationMs: 1800000,
       },
     );

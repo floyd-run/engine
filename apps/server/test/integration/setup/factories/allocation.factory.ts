@@ -8,8 +8,8 @@ export async function createAllocation(overrides?: {
   resourceId?: string;
   active?: boolean;
   bookingId?: string | null;
-  startAt?: Date;
-  endAt?: Date;
+  startTime?: Date;
+  endTime?: Date;
   expiresAt?: Date | null;
   metadata?: Record<string, unknown> | null;
 }) {
@@ -32,8 +32,8 @@ export async function createAllocation(overrides?: {
     ledgerId = resource.ledgerId;
   }
 
-  const startAt = overrides?.startAt ?? faker.date.future();
-  const endAt = overrides?.endAt ?? new Date(startAt.getTime() + 60 * 60 * 1000); // 1 hour later
+  const startTime = overrides?.startTime ?? faker.date.future();
+  const endTime = overrides?.endTime ?? new Date(startTime.getTime() + 60 * 60 * 1000); // 1 hour later
 
   const allocation = await db
     .insertInto("allocations")
@@ -43,8 +43,8 @@ export async function createAllocation(overrides?: {
       resourceId,
       bookingId: overrides?.bookingId ?? null,
       active: overrides?.active ?? true,
-      startAt,
-      endAt,
+      startTime,
+      endTime,
       bufferBeforeMs: 0,
       bufferAfterMs: 0,
       expiresAt: overrides?.expiresAt ?? null,

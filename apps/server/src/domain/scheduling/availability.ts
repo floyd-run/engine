@@ -29,9 +29,9 @@ interface GridConfig {
   interval_ms: number;
 }
 
-interface BookingWindowConfig {
-  min_lead_time_ms?: number;
-  max_lead_time_ms?: number;
+interface LeadTimeConfig {
+  min_ms?: number;
+  max_ms?: number;
 }
 
 interface BuffersConfig {
@@ -47,19 +47,19 @@ export interface ResolvedDay {
 
 export interface BlockingAllocation {
   resourceId: string;
-  startAt: Date;
-  endAt: Date;
+  startTime: Date;
+  endTime: Date;
 }
 
 export interface SlotResult {
-  startAt: string;
-  endAt: string;
+  startTime: string;
+  endTime: string;
   status?: "available" | "unavailable";
 }
 
 export interface WindowResult {
-  startAt: string;
-  endAt: string;
+  startTime: string;
+  endTime: string;
   status?: "available" | "unavailable";
 }
 
@@ -122,7 +122,7 @@ export function resolveDay(
       const config: ResolvedConfig = {
         duration: resolvedRaw["duration"] as DurationConfig | undefined,
         grid: resolvedRaw["grid"] as GridConfig | undefined,
-        booking_window: resolvedRaw["booking_window"] as BookingWindowConfig | undefined,
+        lead_time: resolvedRaw["lead_time"] as LeadTimeConfig | undefined,
         buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
       };
 
@@ -144,7 +144,7 @@ export function resolveDay(
   const config: ResolvedConfig = {
     duration: resolvedRaw["duration"] as DurationConfig | undefined,
     grid: resolvedRaw["grid"] as GridConfig | undefined,
-    booking_window: resolvedRaw["booking_window"] as BookingWindowConfig | undefined,
+    lead_time: resolvedRaw["lead_time"] as LeadTimeConfig | undefined,
     buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
   };
 
@@ -160,12 +160,12 @@ export function resolveDay(
  */
 export function resolveServiceDays(
   policy: PolicyConfig | null,
-  startAt: Date,
-  endAt: Date,
+  startTime: Date,
+  endTime: Date,
   timezone: string,
 ): ResolvedDay[] {
-  const startDate = toLocalDate(startAt, timezone);
-  const endInstant = new Date(endAt.getTime() - 1);
+  const startDate = toLocalDate(startTime, timezone);
+  const endInstant = new Date(endTime.getTime() - 1);
   const endDate = toLocalDate(endInstant, timezone);
   const dates = dateRange(startDate, endDate);
 
@@ -290,8 +290,8 @@ export function generateSlots(
 
   // Pre-convert allocations to ms timestamps for fast comparison
   const allocMs = allocations.map((a) => ({
-    start: a.startAt.getTime(),
-    end: a.endAt.getTime(),
+    start: a.startTime.getTime(),
+    end: a.endTime.getTime(),
   }));
 
   const slots: SlotResult[] = [];
@@ -303,10 +303,8 @@ export function generateSlots(
     const gridInterval = (day.config.grid as GridConfig | undefined)?.interval_ms ?? durationMs;
     const beforeMs = (day.config.buffers as BuffersConfig | undefined)?.before_ms ?? 0;
     const afterMs = (day.config.buffers as BuffersConfig | undefined)?.after_ms ?? 0;
-    const minLeadMs = (day.config.booking_window as BookingWindowConfig | undefined)
-      ?.min_lead_time_ms;
-    const maxLeadMs = (day.config.booking_window as BookingWindowConfig | undefined)
-      ?.max_lead_time_ms;
+    const minLeadMs = (day.config.lead_time as LeadTimeConfig | undefined)?.min_ms;
+    const maxLeadMs = (day.config.lead_time as LeadTimeConfig | undefined)?.max_ms;
 
     for (const window of day.windows) {
       // Generate candidates at grid steps within this window
@@ -348,15 +346,15 @@ export function generateSlots(
 
         if (available) {
           const slot: SlotResult = {
-            startAt: candidateStart.toISOString(),
-            endAt: candidateEnd.toISOString(),
+            startTime: candidateStart.toISOString(),
+            endTime: candidateEnd.toISOString(),
           };
           if (includeUnavailable) slot.status = "available";
           slots.push(slot);
         } else if (includeUnavailable) {
           slots.push({
-            startAt: candidateStart.toISOString(),
-            endAt: candidateEnd.toISOString(),
+            startTime: candidateStart.toISOString(),
+            endTime: candidateEnd.toISOString(),
             status: "unavailable",
           });
         }
@@ -423,8 +421,8 @@ export function computeWindows(
 
   // Convert allocations to Interval format
   const busyIntervals: Interval[] = allocations.map((a) => ({
-    start: a.startAt,
-    end: a.endAt,
+    start: a.startTime,
+    end: a.endTime,
   }));
 
   // Step 1-2: Convert schedule windows to absolute intervals, clamped to query range
@@ -518,14 +516,14 @@ export function computeWindows(
   // Step 6: Filter by lead time and horizon
   const leadFiltered = filteredWindows.filter((w) => {
     const config = getConfigForTime(w.start.getTime());
-    const bwConfig = config.booking_window as BookingWindowConfig | undefined;
+    const ltConfig = config.lead_time as LeadTimeConfig | undefined;
 
-    // For windows, we check if the window START is within the booking window
+    // For windows, we check if the window START is within the lead time window
     const leadTime = w.start.getTime() - serverTimeMs;
 
-    if (bwConfig?.min_lead_time_ms !== undefined && leadTime < bwConfig.min_lead_time_ms) {
+    if (ltConfig?.min_ms !== undefined && leadTime < ltConfig.min_ms) {
       // Trim the window start to meet lead time, rather than discarding entirely
-      const minStart = serverTimeMs + bwConfig.min_lead_time_ms;
+      const minStart = serverTimeMs + ltConfig.min_ms;
       if (minStart < w.end.getTime()) {
         w.start = new Date(minStart);
       } else {
@@ -533,8 +531,8 @@ export function computeWindows(
       }
     }
 
-    if (bwConfig?.max_lead_time_ms !== undefined) {
-      const maxStart = serverTimeMs + bwConfig.max_lead_time_ms;
+    if (ltConfig?.max_ms !== undefined) {
+      const maxStart = serverTimeMs + ltConfig.max_ms;
       if (w.start.getTime() > maxStart) return false;
       // Trim end if needed
       if (w.end.getTime() > maxStart) {
@@ -566,16 +564,16 @@ export function computeWindows(
 
     for (const entry of allEntries) {
       results.push({
-        startAt: entry.interval.start.toISOString(),
-        endAt: entry.interval.end.toISOString(),
+        startTime: entry.interval.start.toISOString(),
+        endTime: entry.interval.end.toISOString(),
         status: entry.status,
       });
     }
   } else {
     for (const w of finalWindows) {
       results.push({
-        startAt: w.start.toISOString(),
-        endAt: w.end.toISOString(),
+        startTime: w.start.toISOString(),
+        endTime: w.end.toISOString(),
       });
     }
   }

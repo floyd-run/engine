@@ -32,8 +32,8 @@ describe("DELETE /v1/ledgers/:ledgerId/resources/:id", () => {
       ledgerId,
       resourceId: resource.id,
       active: true,
-      startAt: new Date("2026-06-01T10:00:00Z"),
-      endAt: new Date("2026-06-01T11:00:00Z"),
+      startTime: new Date("2026-06-01T10:00:00Z"),
+      endTime: new Date("2026-06-01T11:00:00Z"),
     });
 
     const response = await client.delete(`/v1/ledgers/${ledgerId}/resources/${resource.id}`);

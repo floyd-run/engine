@@ -12,18 +12,18 @@ const MAX_WINDOWS_RANGE_MS = 31 * 24 * 60 * 60_000; // 31 days
 export default createOperation({
   input: availabilityInput.windows,
   execute: async (input) => {
-    const { ledgerId, serviceId, startAt, endAt, includeUnavailable } = input;
+    const { ledgerId, serviceId, startTime, endTime, includeUnavailable } = input;
 
     // Validate query window
-    if (endAt.getTime() - startAt.getTime() > MAX_WINDOWS_RANGE_MS) {
+    if (endTime.getTime() - startTime.getTime() > MAX_WINDOWS_RANGE_MS) {
       throw new InputError([
-        { code: "custom", message: "Query range exceeds maximum of 31 days", path: ["endAt"] },
+        { code: "custom", message: "Query range exceeds maximum of 31 days", path: ["endTime"] },
       ]);
     }
 
-    if (endAt <= startAt) {
+    if (endTime <= startTime) {
       throw new InputError([
-        { code: "custom", message: "endAt must be after startAt", path: ["endAt"] },
+        { code: "custom", message: "endTime must be after startTime", path: ["endTime"] },
       ]);
     }
 
@@ -99,15 +99,15 @@ export default createOperation({
     const blockingAllocations =
       targetResourceIds.length > 0
         ? await sql<BlockingAllocation>`
-          SELECT resource_id, start_at, end_at
+          SELECT resource_id, start_time, end_time
           FROM allocations
           WHERE ledger_id = ${ledgerId}
             AND resource_id = ANY(ARRAY[${sql.join(targetResourceIds.map((id) => sql`${id}`))}]::text[])
             AND active = true
             AND (expires_at IS NULL OR expires_at > clock_timestamp())
-            AND start_at < ${endAt}
-            AND end_at > ${startAt}
-          ORDER BY resource_id, start_at
+            AND start_time < ${endTime}
+            AND end_time > ${startTime}
+          ORDER BY resource_id, start_time
         `.execute(db)
         : { rows: [] };
 
@@ -127,15 +127,15 @@ export default createOperation({
       const timezone = resource?.timezone ?? "UTC";
       const allocs = allocByResource.get(resourceId) ?? [];
 
-      const resolvedDays = resolveServiceDays(policy, startAt, endAt, timezone);
+      const resolvedDays = resolveServiceDays(policy, startTime, endTime, timezone);
       const windows = computeWindows(
         resolvedDays,
         allocs,
         serverTime,
         timezone,
         includeUnavailable,
-        startAt,
-        endAt,
+        startTime,
+        endTime,
       );
 
       return { resourceId, timezone, windows };

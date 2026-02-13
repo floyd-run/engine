@@ -11,8 +11,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
     const response = await client.post(`/v1/ledgers/${ledgerId}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
       status: "hold",
     });
 

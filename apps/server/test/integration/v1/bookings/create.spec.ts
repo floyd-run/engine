@@ -18,14 +18,14 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       resourceIds: [resource.id],
     });
 
-    const startAt = "2026-06-01T10:00:00.000Z";
-    const endAt = "2026-06-01T11:00:00.000Z";
+    const startTime = "2026-06-01T10:00:00.000Z";
+    const endTime = "2026-06-01T11:00:00.000Z";
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt,
-      endAt,
+      startTime,
+      endTime,
     });
 
     expect(response.status).toBe(201);
@@ -40,8 +40,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     expect(data.expiresAt).toBeDefined();
     expect(data.allocations).toHaveLength(1);
     expect(data.allocations[0]!.resourceId).toBe(resource.id);
-    expect(data.allocations[0]!.startAt).toBe(startAt);
-    expect(data.allocations[0]!.endAt).toBe(endAt);
+    expect(data.allocations[0]!.startTime).toBe(startTime);
+    expect(data.allocations[0]!.endTime).toBe(endTime);
     expect(data.allocations[0]!.active).toBe(true);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
@@ -59,8 +59,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
       status: "confirmed",
     });
 
@@ -83,8 +83,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
       metadata,
     });
 
@@ -101,7 +101,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     expect(response.status).toBe(422);
   });
 
-  it("returns 422 when endAt equals startAt", async () => {
+  it("returns 422 when endTime equals startTime", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
     const { service } = await createService({
@@ -113,14 +113,14 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt: time,
-      endAt: time,
+      startTime: time,
+      endTime: time,
     });
 
     expect(response.status).toBe(422);
   });
 
-  it("returns 422 when endAt is before startAt", async () => {
+  it("returns 422 when endTime is before startTime", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
     const { service } = await createService({
@@ -131,8 +131,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: resource.id,
-      startAt: "2026-06-01T11:00:00.000Z",
-      endAt: "2026-06-01T10:00:00.000Z",
+      startTime: "2026-06-01T11:00:00.000Z",
+      endTime: "2026-06-01T10:00:00.000Z",
     });
 
     expect(response.status).toBe(422);
@@ -145,8 +145,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: "svc_00000000000000000000000000",
       resourceId: resource.id,
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
     });
 
     expect(response.status).toBe(404);
@@ -159,8 +159,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: "rsc_00000000000000000000000000",
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
     });
 
     expect(response.status).toBe(404);
@@ -178,8 +178,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
       serviceId: service.id,
       resourceId: r2.id, // r2 is NOT in the service
-      startAt: "2026-06-01T10:00:00.000Z",
-      endAt: "2026-06-01T11:00:00.000Z",
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
     });
 
     expect(response.status).toBe(409);
@@ -201,16 +201,16 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         ledgerId: ledger.id,
         resourceId: resource.id,
         active: true,
-        startAt: new Date("2026-06-01T10:00:00.000Z"),
-        endAt: new Date("2026-06-01T11:00:00.000Z"),
+        startTime: new Date("2026-06-01T10:00:00.000Z"),
+        endTime: new Date("2026-06-01T11:00:00.000Z"),
       });
 
       // Try to book overlapping time
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:30:00.000Z",
-        endAt: "2026-06-01T11:30:00.000Z",
+        startTime: "2026-06-01T10:30:00.000Z",
+        endTime: "2026-06-01T11:30:00.000Z",
       });
 
       expect(response.status).toBe(409);
@@ -230,8 +230,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
         status: "confirmed",
       });
       expect(first.status).toBe(201);
@@ -240,8 +240,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:30:00.000Z",
-        endAt: "2026-06-01T11:30:00.000Z",
+        startTime: "2026-06-01T10:30:00.000Z",
+        endTime: "2026-06-01T11:30:00.000Z",
       });
 
       expect(response.status).toBe(409);
@@ -260,8 +260,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
         status: "confirmed",
       });
       expect(first.status).toBe(201);
@@ -269,8 +269,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T11:00:00.000Z",
-        endAt: "2026-06-01T12:00:00.000Z",
+        startTime: "2026-06-01T11:00:00.000Z",
+        endTime: "2026-06-01T12:00:00.000Z",
         status: "confirmed",
       });
 
@@ -290,16 +290,16 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         ledgerId: ledger.id,
         resourceId: resource.id,
         active: false,
-        startAt: new Date("2026-06-01T10:00:00.000Z"),
-        endAt: new Date("2026-06-01T11:00:00.000Z"),
+        startTime: new Date("2026-06-01T10:00:00.000Z"),
+        endTime: new Date("2026-06-01T11:00:00.000Z"),
       });
 
       // Should succeed because inactive allocation doesn't block
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
       });
 
       expect(response.status).toBe(201);
@@ -307,7 +307,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   });
 
   describe("buffers", () => {
-    it("stores buffer-expanded times as allocation startAt/endAt", async () => {
+    it("stores buffer-expanded times as allocation startTime/endTime", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
       const { policy } = await createPolicy({
@@ -329,8 +329,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
         status: "confirmed",
       });
 
@@ -338,13 +338,13 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const { data } = (await response.json()) as { data: Booking };
       const allocation = data.allocations[0]!;
 
-      // Allocation startAt/endAt = buffer-expanded blocked window
-      expect(allocation.startAt).toBe("2026-06-01T09:45:00.000Z"); // 10:00 - 15min
-      expect(allocation.endAt).toBe("2026-06-01T11:10:00.000Z"); // 11:00 + 10min
+      // Allocation startTime/endTime = buffer-expanded blocked window
+      expect(allocation.startTime).toBe("2026-06-01T09:45:00.000Z"); // 10:00 - 15min
+      expect(allocation.endTime).toBe("2026-06-01T11:10:00.000Z"); // 11:00 + 10min
 
       // Buffer amounts stored for deriving original customer time
-      expect(allocation.bufferBeforeMs).toBe(900_000);
-      expect(allocation.bufferAfterMs).toBe(600_000);
+      expect(allocation.buffer.beforeMs).toBe(900_000);
+      expect(allocation.buffer.afterMs).toBe(600_000);
     });
 
     it("stores zero buffers when no policy", async () => {
@@ -355,14 +355,14 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         resourceIds: [resource.id],
       });
 
-      const startAt = "2026-06-01T10:00:00.000Z";
-      const endAt = "2026-06-01T11:00:00.000Z";
+      const startTime = "2026-06-01T10:00:00.000Z";
+      const endTime = "2026-06-01T11:00:00.000Z";
 
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt,
-        endAt,
+        startTime,
+        endTime,
         status: "confirmed",
       });
 
@@ -371,10 +371,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const allocation = data.allocations[0]!;
 
       // Without policy, allocation times = input times (no buffers)
-      expect(allocation.startAt).toBe(startAt);
-      expect(allocation.endAt).toBe(endAt);
-      expect(allocation.bufferBeforeMs).toBe(0);
-      expect(allocation.bufferAfterMs).toBe(0);
+      expect(allocation.startTime).toBe(startTime);
+      expect(allocation.endTime).toBe(endTime);
+      expect(allocation.buffer.beforeMs).toBe(0);
+      expect(allocation.buffer.afterMs).toBe(0);
     });
 
     it("detects conflicts across buffer windows", async () => {
@@ -400,8 +400,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
         status: "confirmed",
       });
       expect(first.status).toBe(201);
@@ -411,8 +411,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T11:00:00.000Z",
-        endAt: "2026-06-01T12:00:00.000Z",
+        startTime: "2026-06-01T11:00:00.000Z",
+        endTime: "2026-06-01T12:00:00.000Z",
         status: "confirmed",
       });
 
@@ -444,8 +444,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const first = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T10:00:00.000Z",
-        endAt: "2026-06-01T11:00:00.000Z",
+        startTime: "2026-06-01T10:00:00.000Z",
+        endTime: "2026-06-01T11:00:00.000Z",
         status: "confirmed",
       });
       expect(first.status).toBe(201);
@@ -455,8 +455,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
         serviceId: service.id,
         resourceId: resource.id,
-        startAt: "2026-06-01T11:30:00.000Z",
-        endAt: "2026-06-01T12:30:00.000Z",
+        startTime: "2026-06-01T11:30:00.000Z",
+        endTime: "2026-06-01T12:30:00.000Z",
         status: "confirmed",
       });
 

@@ -9,8 +9,8 @@ export const availability = new Hono().post("/", async (c) => {
   const result = await operations.availability.query({
     ledgerId,
     resourceIds: body.resourceIds,
-    startAt: body.startAt,
-    endAt: body.endAt,
+    startTime: body.startTime,
+    endTime: body.endTime,
   });
 
   return c.json({ data: result.items });

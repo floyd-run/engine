@@ -1,8 +1,8 @@
 import { z } from "./zod";
 
 export const timelineBlock = z.object({
-  startAt: z.string(),
-  endAt: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
   status: z.enum(["free", "busy"]),
 });
 
@@ -18,8 +18,8 @@ export const query = z.object({
 // ─── Service Availability ────────────────────────────────────────────────────
 
 export const slot = z.object({
-  startAt: z.string(),
-  endAt: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
   status: z.enum(["available", "unavailable"]).optional(),
 });
 
@@ -35,8 +35,8 @@ export const slotsResponse = z.object({
 });
 
 export const window = z.object({
-  startAt: z.string(),
-  endAt: z.string(),
+  startTime: z.string(),
+  endTime: z.string(),
   status: z.enum(["available", "unavailable"]).optional(),
 });
 

@@ -25,8 +25,8 @@ export interface AllocationsTable {
   resourceId: string;
   bookingId: string | null;
   active: boolean;
-  startAt: Date;
-  endAt: Date;
+  startTime: Date;
+  endTime: Date;
   bufferBeforeMs: number;
   bufferAfterMs: number;
   expiresAt: Date | null;

@@ -24,8 +24,8 @@ export const REASON_CODES = {
 export type ReasonCode = (typeof REASON_CODES)[keyof typeof REASON_CODES];
 
 export interface EvaluationInput {
-  startAt: Date;
-  endAt: Date;
+  startTime: Date;
+  endTime: Date;
 }
 
 export interface EvaluationContext {
@@ -44,9 +44,9 @@ interface GridConfig {
   interval_ms: number;
 }
 
-interface BookingWindowConfig {
-  min_lead_time_ms?: number;
-  max_lead_time_ms?: number;
+interface LeadTimeConfig {
+  min_ms?: number;
+  max_ms?: number;
 }
 
 interface BuffersConfig {
@@ -54,12 +54,16 @@ interface BuffersConfig {
   after_ms?: number;
 }
 
+interface HoldConfig {
+  duration_ms?: number;
+}
+
 export interface ResolvedConfig {
   duration?: DurationConfig | undefined;
   grid?: GridConfig | undefined;
-  booking_window?: BookingWindowConfig | undefined;
+  lead_time?: LeadTimeConfig | undefined;
   buffers?: BuffersConfig | undefined;
-  hold_duration_ms?: number | undefined;
+  hold?: HoldConfig | undefined;
 }
 
 interface TimeWindow {
@@ -94,8 +98,8 @@ export type EvaluationResult =
   | {
       allowed: true;
       resolvedConfig: ResolvedConfig;
-      effectiveStartAt: Date;
-      effectiveEndAt: Date;
+      effectiveStartTime: Date;
+      effectiveEndTime: Date;
       bufferBeforeMs: number;
       bufferAfterMs: number;
     }
@@ -242,12 +246,12 @@ export function evaluatePolicy(
     const rules = policy.rules ?? [];
 
     // Computed values
-    const localStartDate = toLocalDate(request.startAt, context.timezone);
-    const localEndDate = toLocalDate(request.endAt, context.timezone);
-    const localStartMs = msSinceLocalMidnight(request.startAt, context.timezone);
-    const localEndMs = msSinceLocalMidnight(request.endAt, context.timezone);
+    const localStartDate = toLocalDate(request.startTime, context.timezone);
+    const localEndDate = toLocalDate(request.endTime, context.timezone);
+    const localStartMs = msSinceLocalMidnight(request.startTime, context.timezone);
+    const localEndMs = msSinceLocalMidnight(request.endTime, context.timezone);
     const dayOfWeek = getDayOfWeek(localStartDate);
-    const durationMs = request.endAt.getTime() - request.startAt.getTime();
+    const durationMs = request.endTime.getTime() - request.startTime.getTime();
 
     // Midnight normalization
     let spansMultipleDays = localEndDate !== localStartDate;
@@ -270,8 +274,8 @@ export function evaluatePolicy(
       return {
         allowed: true,
         resolvedConfig: policy.config as unknown as ResolvedConfig,
-        effectiveStartAt: new Date(request.startAt.getTime() - bufferBeforeMs),
-        effectiveEndAt: new Date(request.endAt.getTime() + bufferAfterMs),
+        effectiveStartTime: new Date(request.startTime.getTime() - bufferBeforeMs),
+        effectiveEndTime: new Date(request.endTime.getTime() + bufferAfterMs),
         bufferBeforeMs,
         bufferAfterMs,
       };
@@ -280,7 +284,7 @@ export function evaluatePolicy(
     // ─── Step 1: Blackout pre-pass ─────────────────────────────────────────
 
     // Compute all local dates the booking overlaps (half-open: end exclusive)
-    const overlapEndInstant = new Date(request.endAt.getTime() - 1);
+    const overlapEndInstant = new Date(request.endTime.getTime() - 1);
     const lastOverlapDate = toLocalDate(overlapEndInstant, context.timezone);
 
     const overlapDates = dateRange(localStartDate, lastOverlapDate);
@@ -360,9 +364,9 @@ export function evaluatePolicy(
     const resolved = {
       duration: resolvedRaw["duration"] as DurationConfig | undefined,
       grid: resolvedRaw["grid"] as GridConfig | undefined,
-      booking_window: resolvedRaw["booking_window"] as BookingWindowConfig | undefined,
+      lead_time: resolvedRaw["lead_time"] as LeadTimeConfig | undefined,
       buffers: resolvedRaw["buffers"] as BuffersConfig | undefined,
-      hold_duration_ms: resolvedRaw["hold_duration_ms"] as number | undefined,
+      hold: resolvedRaw["hold"] as HoldConfig | undefined,
     };
 
     // ─── Step 5: Duration check ────────────────────────────────────────────
@@ -410,7 +414,7 @@ export function evaluatePolicy(
     // ─── Step 6: Grid alignment ────────────────────────────────────────────
 
     if (resolved.grid) {
-      const msSinceMidnight = msSinceLocalMidnight(request.startAt, context.timezone);
+      const msSinceMidnight = msSinceLocalMidnight(request.startTime, context.timezone);
       if (msSinceMidnight % resolved.grid.interval_ms !== 0) {
         return {
           allowed: false,
@@ -427,16 +431,16 @@ export function evaluatePolicy(
 
     // ─── Step 7: Lead time ─────────────────────────────────────────────────
 
-    if (resolved.booking_window?.min_lead_time_ms !== undefined) {
-      const leadTime = request.startAt.getTime() - context.decisionTime.getTime();
-      if (leadTime < resolved.booking_window.min_lead_time_ms) {
+    if (resolved.lead_time?.min_ms !== undefined) {
+      const leadTime = request.startTime.getTime() - context.decisionTime.getTime();
+      if (leadTime < resolved.lead_time.min_ms) {
         return {
           allowed: false,
           code: REASON_CODES.LEAD_TIME_VIOLATION,
           message: "Booking too close to current time",
           details: {
             leadTimeMs: leadTime,
-            min_lead_time_ms: resolved.booking_window.min_lead_time_ms,
+            min_ms: resolved.lead_time.min_ms,
           },
         };
       }
@@ -444,16 +448,16 @@ export function evaluatePolicy(
 
     // ─── Step 8: Horizon ───────────────────────────────────────────────────
 
-    if (resolved.booking_window?.max_lead_time_ms !== undefined) {
-      const leadTime = request.startAt.getTime() - context.decisionTime.getTime();
-      if (leadTime > resolved.booking_window.max_lead_time_ms) {
+    if (resolved.lead_time?.max_ms !== undefined) {
+      const leadTime = request.startTime.getTime() - context.decisionTime.getTime();
+      if (leadTime > resolved.lead_time.max_ms) {
         return {
           allowed: false,
           code: REASON_CODES.HORIZON_EXCEEDED,
           message: "Booking too far in the future",
           details: {
             leadTimeMs: leadTime,
-            max_lead_time_ms: resolved.booking_window.max_lead_time_ms,
+            max_ms: resolved.lead_time.max_ms,
           },
         };
       }
@@ -463,14 +467,14 @@ export function evaluatePolicy(
 
     const bufferBeforeMs = resolved.buffers?.before_ms ?? 0;
     const bufferAfterMs = resolved.buffers?.after_ms ?? 0;
-    const effectiveStartAt = new Date(request.startAt.getTime() - bufferBeforeMs);
-    const effectiveEndAt = new Date(request.endAt.getTime() + bufferAfterMs);
+    const effectiveStartTime = new Date(request.startTime.getTime() - bufferBeforeMs);
+    const effectiveEndTime = new Date(request.endTime.getTime() + bufferAfterMs);
 
     return {
       allowed: true,
       resolvedConfig: resolved,
-      effectiveStartAt,
-      effectiveEndAt,
+      effectiveStartTime,
+      effectiveEndTime,
       bufferBeforeMs,
       bufferAfterMs,
     };

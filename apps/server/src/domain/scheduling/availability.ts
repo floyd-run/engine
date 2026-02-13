@@ -213,6 +213,7 @@ export function localToAbsolute(dateStr: string, msFromMidnight: number, timezon
   const localMinute = parseInt(parts.find((p) => p.type === "minute")!.value);
   const localDay = parseInt(parts.find((p) => p.type === "day")!.value);
   const localMonth = parseInt(parts.find((p) => p.type === "month")!.value);
+  const localYear = parseInt(parts.find((p) => p.type === "year")!.value);
 
   // Compute the difference between what we wanted and what we got
   const roughLocalMs = localHour * 3_600_000 + localMinute * 60_000;
@@ -223,7 +224,7 @@ export function localToAbsolute(dateStr: string, msFromMidnight: number, timezon
   if (localDay !== day || localMonth !== month) {
     // Rough UTC landed on a different local day — calculate day offset
     const wantedDate = new Date(Date.UTC(year!, month! - 1, day));
-    const gotDate = new Date(Date.UTC(roughUtc.getUTCFullYear(), localMonth - 1, localDay));
+    const gotDate = new Date(Date.UTC(localYear, localMonth - 1, localDay));
     dayDiffMs = wantedDate.getTime() - gotDate.getTime();
   }
 
@@ -293,9 +294,12 @@ export function generateSlots(
     const maxLeadMs = day.config.lead_time?.max_ms;
 
     for (const window of day.windows) {
+      // Round up to next grid-aligned time (grid is aligned to midnight)
+      const firstAlignedMs = Math.ceil(window.startMs / gridInterval) * gridInterval;
+
       // Generate candidates at grid steps within this window
       for (
-        let startMs = window.startMs;
+        let startMs = firstAlignedMs;
         startMs + durationMs <= window.endMs;
         startMs += gridInterval
       ) {
@@ -437,11 +441,48 @@ export function computeWindows(
     return [];
   }
 
-  // Sort and merge schedule intervals (handles contiguous cross-day windows)
+  // Sort schedule intervals
   const sortedSchedule = [...scheduleIntervals].sort(
     (a, b) => a.start.getTime() - b.start.getTime(),
   );
-  const mergedSchedule = mergeIntervals(sortedSchedule);
+
+  // Helper to check if two intervals have the same config
+  function haveSameConfig(interval1: Interval, interval2: Interval): boolean {
+    const config1 = dayConfigs.find(
+      (dc) =>
+        interval1.start.getTime() >= dc.interval.start.getTime() &&
+        interval1.start.getTime() < dc.interval.end.getTime(),
+    )?.config;
+    const config2 = dayConfigs.find(
+      (dc) =>
+        interval2.start.getTime() >= dc.interval.start.getTime() &&
+        interval2.start.getTime() < dc.interval.end.getTime(),
+    )?.config;
+    // Deep equality check on config objects
+    return JSON.stringify(config1) === JSON.stringify(config2);
+  }
+
+  // Merge only contiguous intervals with identical configs
+  const mergedSchedule: Interval[] = [];
+  // eslint-disable-next-line @typescript-eslint/prefer-for-of
+  for (let i = 0; i < sortedSchedule.length; i++) {
+    const current = sortedSchedule[i]!;
+    if (mergedSchedule.length === 0) {
+      mergedSchedule.push(current);
+      continue;
+    }
+
+    const last = mergedSchedule[mergedSchedule.length - 1]!;
+    // Merge if contiguous and same config
+    if (
+      last.end.getTime() === current.start.getTime() &&
+      haveSameConfig(last, current)
+    ) {
+      last.end = current.end; // Extend the last interval
+    } else {
+      mergedSchedule.push(current);
+    }
+  }
 
   // Sort busy intervals
   const sortedBusy = [...busyIntervals].sort((a, b) => a.start.getTime() - b.start.getTime());

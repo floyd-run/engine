@@ -104,6 +104,15 @@ describe("localToAbsolute", () => {
       "2026-03-30T09:00:00.000Z",
     );
   });
+
+  it("handles year boundary correctly (regression test)", () => {
+    // Regression test for bug where roughUtc year was used instead of local year
+    // Dec 31 2025 23:00 in America/Los_Angeles (UTC-8) = Jan 1 2026 07:00 UTC
+    // The bug would extract year from roughUtc (2026) instead of from formatter (2025)
+    expect(localToAbsolute("2025-12-31", 23 * HOUR, "America/Los_Angeles").toISOString()).toBe(
+      "2026-01-01T07:00:00.000Z",
+    );
+  });
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -357,6 +366,22 @@ describe("generateSlots", () => {
     expect(slots[4]!.endTime).toBe("2026-03-16T12:00:00.000Z");
   });
 
+  it("rounds up to grid alignment when window starts off-grid (regression test)", () => {
+    // Regression test: window starts at 10:15, but grid is 30min aligned to midnight
+    // First slot should be at 10:30 (next grid point), not 10:15
+    const day = makeDay("2026-03-16", [[10 * HOUR + 15 * MINUTE, 12 * HOUR]], {
+      grid: { interval_ms: 30 * MINUTE },
+    });
+    const slots = generateSlots([day], [], HOUR, PAST, "UTC", false, Q.start, Q.end);
+
+    // Grid generates slots every 30min, so: 10:30-11:30, 11:00-12:00
+    expect(slots).toHaveLength(2);
+    expect(slots[0]!.startTime).toBe("2026-03-16T10:30:00.000Z");
+    expect(slots[0]!.endTime).toBe("2026-03-16T11:30:00.000Z");
+    expect(slots[1]!.startTime).toBe("2026-03-16T11:00:00.000Z");
+    expect(slots[1]!.endTime).toBe("2026-03-16T12:00:00.000Z");
+  });
+
   it("no grid → step = durationMs (non-overlapping)", () => {
     const day = makeDay("2026-03-16", [[9 * HOUR, 13 * HOUR]]);
     const slots = generateSlots([day], [], HOUR, PAST, "UTC", false, Q.start, Q.end);
@@ -577,6 +602,48 @@ describe("computeWindows", () => {
     expect(windows[0]!.endTime).toBe("2026-03-16T12:00:00.000Z");
     expect(windows[1]!.startTime).toBe("2026-03-16T13:00:00.000Z");
     expect(windows[1]!.endTime).toBe("2026-03-16T17:00:00.000Z");
+  });
+
+  it("respects per-day config boundaries when applying buffers (regression test)", () => {
+    // Regression test: buffer shrinkage should use per-day configs correctly
+    // Bug was that merged schedule intervals would use only the first day's config
+    // Day 1: 16:00-24:00 with buffers (before=10min, after=5min)
+    // Day 2: 00:00-08:00 with NO buffers
+    const Q2 = {
+      start: new Date("2026-03-16T00:00:00Z"),
+      end: new Date("2026-03-18T00:00:00Z"),
+    };
+    const day1 = makeDay("2026-03-16", [[16 * HOUR, 24 * HOUR]], {
+      buffers: { before_ms: 10 * MINUTE, after_ms: 5 * MINUTE },
+    });
+    const day2 = makeDay("2026-03-17", [[0, 8 * HOUR]], {
+      buffers: { before_ms: 0, after_ms: 0 },
+    });
+
+    // Allocation at 23:00-23:30 on day1
+    const allocs: BlockingAllocation[] = [
+      {
+        resourceId: "r",
+        startTime: new Date("2026-03-16T23:00:00Z"),
+        endTime: new Date("2026-03-16T23:30:00Z"),
+      },
+    ];
+
+    const windows = computeWindows([day1, day2], allocs, PAST, "UTC", false, Q2.start, Q2.end);
+
+    // After buffer shrinkage, we get:
+    // 1. 16:00-22:55 (day1 pre-allocation, shrunk end by after=5min)
+    // 2. 23:40-24:00 (day1 post-allocation, shrunk start by before=10min)
+    // 3. 00:00-08:00 (day2, no shrinkage - would have been shrunk if config leaked)
+    // Then 2+3 merge into 23:40-08:00 (contiguous windows merge for presentation)
+    expect(windows).toHaveLength(2);
+    expect(windows[0]!.startTime).toBe("2026-03-16T16:00:00.000Z");
+    expect(windows[0]!.endTime).toBe("2026-03-16T22:55:00.000Z"); // Shrunk by day1's after_ms=5min
+    expect(windows[1]!.startTime).toBe("2026-03-16T23:40:00.000Z"); // Shrunk by day1's before_ms=10min
+    expect(windows[1]!.endTime).toBe("2026-03-17T08:00:00.000Z"); // Day2 untouched, then merged
+
+    // The key assertion: if config leaked, day2 would start at 00:10 (shrunk by day1's before_ms)
+    // But it correctly starts at 00:00 because day2 has no buffers
   });
 
   it("asymmetric buffer shrinkage at allocation boundaries", () => {

@@ -1,21 +1,25 @@
 import { z } from "./zod";
-import { AllocationStatus } from "../constants";
 
-export const schema = z.object({
+export const base = z.object({
   id: z.string(),
   ledgerId: z.string(),
   resourceId: z.string(),
-  status: z.enum(AllocationStatus),
-  startAt: z.string(),
-  endAt: z.string(),
+  bookingId: z.string().nullable(),
+  active: z.boolean(),
+  startTime: z.string(),
+  endTime: z.string(),
+  buffer: z.object({
+    beforeMs: z.number(),
+    afterMs: z.number(),
+  }),
   expiresAt: z.string().nullable(),
   metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
 
-export const getSchema = z.object({
-  data: schema,
+export const get = z.object({
+  data: base,
   meta: z
     .object({
       serverTime: z.string(),
@@ -23,6 +27,6 @@ export const getSchema = z.object({
     .optional(),
 });
 
-export const listSchema = z.object({
-  data: z.array(schema),
+export const list = z.object({
+  data: z.array(base),
 });

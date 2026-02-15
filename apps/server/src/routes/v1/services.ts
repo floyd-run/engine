@@ -1,0 +1,76 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import { Hono } from "hono";
+import { operations } from "operations";
+import { NotFoundError } from "lib/errors";
+import { serializeService } from "./serializers";
+
+// Nested under /v1/ledgers/:ledgerId/services
+export const services = new Hono()
+  .get("/", async (c) => {
+    const { services } = await operations.service.list({
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({
+      data: services.map(({ service, resourceIds }) => serializeService(service, resourceIds)),
+    });
+  })
+
+  .get("/:id", async (c) => {
+    const { service, resourceIds } = await operations.service.get({
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    if (!service) throw new NotFoundError("Service not found");
+    return c.json({ data: serializeService(service, resourceIds) });
+  })
+
+  .post("/", async (c) => {
+    const body = await c.req.json();
+    const { service, resourceIds } = await operations.service.create({
+      ...body,
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({ data: serializeService(service, resourceIds) }, 201);
+  })
+
+  .put("/:id", async (c) => {
+    const body = await c.req.json();
+    const { service, resourceIds } = await operations.service.update({
+      ...body,
+      id: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({ data: serializeService(service, resourceIds) });
+  })
+
+  .delete("/:id", async (c) => {
+    await operations.service.remove({ id: c.req.param("id"), ledgerId: c.req.param("ledgerId")! });
+    return c.body(null, 204);
+  })
+
+  .post("/:id/availability/slots", async (c) => {
+    const body = await c.req.json();
+    const result = await operations.availability.slots({
+      ...body,
+      serviceId: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({
+      data: result.data,
+      meta: { serverTime: result.serverTime.toISOString() },
+    });
+  })
+
+  .post("/:id/availability/windows", async (c) => {
+    const body = await c.req.json();
+    const result = await operations.availability.windows({
+      ...body,
+      serviceId: c.req.param("id"),
+      ledgerId: c.req.param("ledgerId")!,
+    });
+    return c.json({
+      data: result.data,
+      meta: { serverTime: result.serverTime.toISOString() },
+    });
+  });

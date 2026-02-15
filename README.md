@@ -2,8 +2,9 @@
 
 > **Dev Preview** - APIs may change. Not recommended for production use yet.
 
-Headless booking infrastructure for AI agents.
+Booking engine for AI agents.
 
+- **Services & Policies** - Define bookable offerings with scheduling rules
 - **Hold → Confirm** - Two-phase booking for async workflows
 - **Race-safe** - Database-level conflict detection
 - **Retry-friendly** - Idempotent operations with automatic deduplication
@@ -22,21 +23,29 @@ Floyd handles all of this so you can focus on your agent.
 ## Example
 
 ```bash
-# 1. Create a hold (reserves the slot until confirmed or expired)
-curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/allocations \
+# 1. Create a service (groups resources with a policy)
+curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/services \
   -H "Content-Type: application/json" \
   -d '{
-    "resourceId": "doctor-alice",
-    "startAt": "2024-01-15T10:00:00Z",
-    "endAt": "2024-01-15T11:00:00Z",
-    "expiresAt": "2024-01-15T09:55:00Z"
+    "name": "Haircut",
+    "resourceIds": ["rsc_stylist1"]
   }'
 
-# 2. Confirm when user says "yes"
-curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/allocations/$ALLOC_ID/confirm
+# 2. Create a hold (reserves the slot until confirmed or expired)
+curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/bookings \
+  -H "Content-Type: application/json" \
+  -d '{
+    "serviceId": "svc_...",
+    "resourceId": "rsc_stylist1",
+    "startAt": "2026-01-15T10:00:00Z",
+    "endAt": "2026-01-15T11:00:00Z"
+  }'
 
-# 3. Or cancel if they change their mind
-curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/allocations/$ALLOC_ID/cancel
+# 3. Confirm when user says "yes"
+curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/confirm
+
+# 4. Or cancel if they change their mind
+curl -X POST http://localhost:4000/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/cancel
 
 # Overlapping requests get 409 Conflict - double-booking is impossible
 ```

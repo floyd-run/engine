@@ -12,6 +12,7 @@ async function runWorker(): Promise<void> {
 
   logger.info("[webhook-worker] Starting webhook delivery worker...");
 
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   while (isRunning) {
     try {
       const processed = await processPendingDeliveries(BATCH_SIZE);
@@ -32,7 +33,7 @@ export function stopWebhookWorker(): void {
 }
 
 export function startWebhookWorker(): void {
-  runWorker().catch((error) => {
+  runWorker().catch((error: unknown) => {
     logger.error(error, "[webhook-worker] Fatal error");
   });
 }

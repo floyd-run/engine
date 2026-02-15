@@ -1,4 +1,4 @@
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 import { config } from "config";
 
 export class AuthError extends Error {

@@ -1,35 +1,30 @@
 import z from "zod";
 import { isValidId } from "@floyd-run/utils";
-import { AllocationStatus } from "../constants";
 
-export const createSchema = z.object({
-  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
-  resourceId: z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
-  status: z
-    .enum([AllocationStatus.HOLD, AllocationStatus.CONFIRMED])
-    .default(AllocationStatus.HOLD),
-  startAt: z.coerce.date(),
-  endAt: z.coerce.date(),
-  expiresAt: z.coerce.date().nullable().optional(),
-  metadata: z.record(z.string(), z.unknown()).nullable().optional(),
-});
+export const create = z
+  .object({
+    ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+    resourceId: z.string().refine((id) => isValidId(id, "rsc"), { message: "Invalid resource ID" }),
+    startTime: z.coerce.date(),
+    endTime: z.coerce.date(),
+    expiresAt: z.coerce.date().nullable().optional(),
+    metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+  })
+  .refine((data) => data.endTime > data.startTime, {
+    message: "endTime must be after startTime",
+    path: ["endTime"],
+  });
 
-export const getSchema = z.object({
+export const get = z.object({
   id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
-});
-
-export const listSchema = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const removeSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
+export const list = z.object({
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
-export const confirmSchema = z.object({
+export const remove = z.object({
   id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
-});
-
-export const cancelSchema = z.object({
-  id: z.string().refine((id) => isValidId(id, "alc"), { message: "Invalid allocation ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });

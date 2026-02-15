@@ -3,7 +3,7 @@
   "info": {
     "title": "Floyd Engine API",
     "version": "1.0.0",
-    "description": "Resource scheduling and allocation engine"
+    "description": "Booking engine for AI agents"
   },
   "servers": [
     {
@@ -43,6 +43,9 @@
           "ledgerId": {
             "type": "string"
           },
+          "timezone": {
+            "type": ["string", "null"]
+          },
           "createdAt": {
             "type": "string"
           },
@@ -50,7 +53,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
+        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
       },
       "Allocation": {
         "type": "object",
@@ -64,15 +67,29 @@
           "resourceId": {
             "type": "string"
           },
-          "status": {
-            "type": "string",
-            "enum": ["hold", "confirmed", "cancelled", "expired"]
+          "bookingId": {
+            "type": ["string", "null"]
           },
-          "startAt": {
+          "active": {
+            "type": "boolean"
+          },
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
+          },
+          "buffer": {
+            "type": "object",
+            "properties": {
+              "beforeMs": {
+                "type": "number"
+              },
+              "afterMs": {
+                "type": "number"
+              }
+            },
+            "required": ["beforeMs", "afterMs"]
           },
           "expiresAt": {
             "type": ["string", "null"]
@@ -92,9 +109,11 @@
           "id",
           "ledgerId",
           "resourceId",
-          "status",
-          "startAt",
-          "endAt",
+          "bookingId",
+          "active",
+          "startTime",
+          "endTime",
+          "buffer",
           "expiresAt",
           "metadata",
           "createdAt",
@@ -133,10 +152,10 @@
             "items": {
               "type": "object",
               "properties": {
-                "startAt": {
+                "startTime": {
                   "type": "string"
                 },
-                "endAt": {
+                "endTime": {
                   "type": "string"
                 },
                 "status": {
@@ -144,7 +163,7 @@
                   "enum": ["free", "busy"]
                 }
               },
-              "required": ["startAt", "endAt", "status"]
+              "required": ["startTime", "endTime", "status"]
             }
           }
         },
@@ -153,10 +172,10 @@
       "TimelineBlock": {
         "type": "object",
         "properties": {
-          "startAt": {
+          "startTime": {
             "type": "string"
           },
-          "endAt": {
+          "endTime": {
             "type": "string"
           },
           "status": {
@@ -164,33 +183,274 @@
             "enum": ["free", "busy"]
           }
         },
-        "required": ["startAt", "endAt", "status"]
+        "required": ["startTime", "endTime", "status"]
+      },
+      "Slot": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "unavailable"]
+          }
+        },
+        "required": ["startTime", "endTime"]
+      },
+      "ResourceSlots": {
+        "type": "object",
+        "properties": {
+          "resourceId": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["available", "unavailable"]
+                }
+              },
+              "required": ["startTime", "endTime"]
+            }
+          }
+        },
+        "required": ["resourceId", "timezone", "slots"]
+      },
+      "Window": {
+        "type": "object",
+        "properties": {
+          "startTime": {
+            "type": "string"
+          },
+          "endTime": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["available", "unavailable"]
+          }
+        },
+        "required": ["startTime", "endTime"]
+      },
+      "ResourceWindows": {
+        "type": "object",
+        "properties": {
+          "resourceId": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "windows": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["available", "unavailable"]
+                }
+              },
+              "required": ["startTime", "endTime"]
+            }
+          }
+        },
+        "required": ["resourceId", "timezone", "windows"]
+      },
+      "Policy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ledgerId": {
+            "type": "string"
+          },
+          "config": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "configHash": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "ledgerId", "config", "configHash", "createdAt", "updatedAt"]
+      },
+      "Service": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ledgerId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "policyId": {
+            "type": ["string", "null"]
+          },
+          "resourceIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": ["object", "null"],
+            "additionalProperties": {}
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ledgerId",
+          "name",
+          "policyId",
+          "resourceIds",
+          "metadata",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ledgerId": {
+            "type": "string"
+          },
+          "serviceId": {
+            "type": "string"
+          },
+          "policyId": {
+            "type": ["string", "null"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["hold", "confirmed", "canceled", "expired"]
+          },
+          "expiresAt": {
+            "type": ["string", "null"]
+          },
+          "allocations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "resourceId": {
+                  "type": "string"
+                },
+                "startTime": {
+                  "type": "string"
+                },
+                "endTime": {
+                  "type": "string"
+                },
+                "buffer": {
+                  "type": "object",
+                  "properties": {
+                    "beforeMs": {
+                      "type": "number"
+                    },
+                    "afterMs": {
+                      "type": "number"
+                    }
+                  },
+                  "required": ["beforeMs", "afterMs"]
+                },
+                "active": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["id", "resourceId", "startTime", "endTime", "buffer", "active"]
+            }
+          },
+          "metadata": {
+            "type": ["object", "null"],
+            "additionalProperties": {}
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ledgerId",
+          "serviceId",
+          "policyId",
+          "status",
+          "expiresAt",
+          "allocations",
+          "metadata",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "Error": {
         "type": "object",
         "properties": {
           "error": {
-            "anyOf": [
-              {
+            "type": "object",
+            "properties": {
+              "code": {
                 "type": "string"
               },
-              {
+              "message": {
+                "type": "string"
+              },
+              "details": {
                 "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string"
-                  },
-                  "message": {
-                    "type": "string"
-                  },
-                  "details": {
-                    "type": "object",
-                    "additionalProperties": {}
-                  }
-                },
-                "required": ["code"]
+                "additionalProperties": {}
+              },
+              "issues": {
+                "type": "array",
+                "items": {}
               }
-            ]
+            },
+            "required": ["code", "message"]
           }
         },
         "required": ["error"]
@@ -335,27 +595,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -399,6 +656,9 @@
                           "ledgerId": {
                             "type": "string"
                           },
+                          "timezone": {
+                            "type": ["string", "null"]
+                          },
                           "createdAt": {
                             "type": "string"
                           },
@@ -406,7 +666,7 @@
                             "type": "string"
                           }
                         },
-                        "required": ["id", "ledgerId", "createdAt", "updatedAt"]
+                        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                       }
                     }
                   },
@@ -435,7 +695,14 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "properties": {}
+                "properties": {
+                  "timezone": {
+                    "type": "string",
+                    "description": "IANA timezone for the resource (e.g. America/New_York)",
+                    "example": "America/New_York"
+                  }
+                },
+                "required": ["timezone"]
               }
             }
           }
@@ -457,6 +724,9 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "timezone": {
+                          "type": ["string", "null"]
+                        },
                         "createdAt": {
                           "type": "string"
                         },
@@ -464,7 +734,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -514,6 +784,9 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "timezone": {
+                          "type": ["string", "null"]
+                        },
                         "createdAt": {
                           "type": "string"
                         },
@@ -521,7 +794,7 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "createdAt", "updatedAt"]
+                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
                     }
                   },
                   "required": ["data"]
@@ -537,27 +810,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -600,27 +870,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -660,20 +927,20 @@
                     "description": "Resource IDs to query",
                     "example": ["rsc_01abc123def456ghi789jkl012"]
                   },
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "Start of the time window (ISO 8601)",
                     "example": "2026-01-04T10:00:00Z"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time",
                     "description": "End of the time window (ISO 8601)",
                     "example": "2026-01-04T18:00:00Z"
                   }
                 },
-                "required": ["resourceIds", "startAt", "endAt"]
+                "required": ["resourceIds", "startTime", "endTime"]
               }
             }
           }
@@ -699,10 +966,10 @@
                             "items": {
                               "type": "object",
                               "properties": {
-                                "startAt": {
+                                "startTime": {
                                   "type": "string"
                                 },
-                                "endAt": {
+                                "endTime": {
                                   "type": "string"
                                 },
                                 "status": {
@@ -710,7 +977,7 @@
                                   "enum": ["free", "busy"]
                                 }
                               },
-                              "required": ["startAt", "endAt", "status"]
+                              "required": ["startTime", "endTime", "status"]
                             }
                           }
                         },
@@ -762,15 +1029,29 @@
                           "resourceId": {
                             "type": "string"
                           },
-                          "status": {
-                            "type": "string",
-                            "enum": ["hold", "confirmed", "cancelled", "expired"]
+                          "bookingId": {
+                            "type": ["string", "null"]
                           },
-                          "startAt": {
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "startTime": {
                             "type": "string"
                           },
-                          "endAt": {
+                          "endTime": {
                             "type": "string"
+                          },
+                          "buffer": {
+                            "type": "object",
+                            "properties": {
+                              "beforeMs": {
+                                "type": "number"
+                              },
+                              "afterMs": {
+                                "type": "number"
+                              }
+                            },
+                            "required": ["beforeMs", "afterMs"]
                           },
                           "expiresAt": {
                             "type": ["string", "null"]
@@ -790,9 +1071,11 @@
                           "id",
                           "ledgerId",
                           "resourceId",
-                          "status",
-                          "startAt",
-                          "endAt",
+                          "bookingId",
+                          "active",
+                          "startTime",
+                          "endTime",
+                          "buffer",
                           "expiresAt",
                           "metadata",
                           "createdAt",
@@ -811,7 +1094,7 @@
       "post": {
         "tags": ["Allocations"],
         "summary": "Create a new allocation",
-        "description": "Creates a new allocation for a resource. Supports idempotency via the Idempotency-Key header.",
+        "description": "Creates a raw allocation for a resource. Use bookings for policy-evaluated reservations with lifecycle management. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
           {
             "schema": {
@@ -830,31 +1113,27 @@
                 "properties": {
                   "resourceId": {
                     "type": "string",
-                    "example": "res_01abc123def456ghi789jkl012"
+                    "example": "rsc_01abc123def456ghi789jkl012"
                   },
-                  "status": {
-                    "type": "string",
-                    "enum": ["hold", "confirmed"],
-                    "default": "hold"
-                  },
-                  "startAt": {
+                  "startTime": {
                     "type": "string",
                     "format": "date-time"
                   },
-                  "endAt": {
+                  "endTime": {
                     "type": "string",
                     "format": "date-time"
                   },
                   "expiresAt": {
                     "type": ["string", "null"],
-                    "format": "date-time"
+                    "format": "date-time",
+                    "description": "If set, the allocation auto-expires after this time"
                   },
                   "metadata": {
                     "type": ["object", "null"],
                     "additionalProperties": {}
                   }
                 },
-                "required": ["resourceId", "startAt", "endAt"]
+                "required": ["resourceId", "startTime", "endTime"]
               }
             }
           }
@@ -879,15 +1158,29 @@
                         "resourceId": {
                           "type": "string"
                         },
-                        "status": {
-                          "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                        "bookingId": {
+                          "type": ["string", "null"]
                         },
-                        "startAt": {
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "startTime": {
                           "type": "string"
                         },
-                        "endAt": {
+                        "endTime": {
                           "type": "string"
+                        },
+                        "buffer": {
+                          "type": "object",
+                          "properties": {
+                            "beforeMs": {
+                              "type": "number"
+                            },
+                            "afterMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["beforeMs", "afterMs"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -907,9 +1200,11 @@
                         "id",
                         "ledgerId",
                         "resourceId",
-                        "status",
-                        "startAt",
-                        "endAt",
+                        "bookingId",
+                        "active",
+                        "startTime",
+                        "endTime",
+                        "buffer",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -939,27 +1234,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1012,15 +1304,29 @@
                         "resourceId": {
                           "type": "string"
                         },
-                        "status": {
-                          "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
+                        "bookingId": {
+                          "type": ["string", "null"]
                         },
-                        "startAt": {
+                        "active": {
+                          "type": "boolean"
+                        },
+                        "startTime": {
                           "type": "string"
                         },
-                        "endAt": {
+                        "endTime": {
                           "type": "string"
+                        },
+                        "buffer": {
+                          "type": "object",
+                          "properties": {
+                            "beforeMs": {
+                              "type": "number"
+                            },
+                            "afterMs": {
+                              "type": "number"
+                            }
+                          },
+                          "required": ["beforeMs", "afterMs"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
@@ -1040,9 +1346,11 @@
                         "id",
                         "ledgerId",
                         "resourceId",
-                        "status",
-                        "startAt",
-                        "endAt",
+                        "bookingId",
+                        "active",
+                        "startTime",
+                        "endTime",
+                        "buffer",
                         "expiresAt",
                         "metadata",
                         "createdAt",
@@ -1072,27 +1380,118 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Allocations"],
+        "summary": "Delete an allocation",
+        "description": "Deletes a raw allocation. Allocations that belong to a booking cannot be deleted directly — cancel the booking instead.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Allocation deleted"
+          },
+          "404": {
+            "description": "Allocation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Allocation belongs to a booking",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1103,11 +1502,226 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/allocations/{id}/confirm": {
+    "/v1/ledgers/{ledgerId}/services": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "List all services in a ledger",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of services",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ledgerId": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "policyId": {
+                            "type": ["string", "null"]
+                          },
+                          "resourceIds": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "metadata": {
+                            "type": ["object", "null"],
+                            "additionalProperties": {}
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ledgerId",
+                          "name",
+                          "policyId",
+                          "resourceIds",
+                          "metadata",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
-        "tags": ["Allocations"],
-        "summary": "Confirm a held allocation",
-        "description": "Confirms an allocation that is currently in HOLD status.",
+        "tags": ["Services"],
+        "summary": "Create a new service",
+        "description": "Creates a service that groups resources with an optional scheduling policy.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Service name",
+                    "example": "Haircut"
+                  },
+                  "policyId": {
+                    "type": ["string", "null"],
+                    "description": "Policy to enforce on bookings"
+                  },
+                  "resourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Resources that belong to this service",
+                    "example": ["rsc_01abc123def456ghi789jkl012"]
+                  },
+                  "metadata": {
+                    "type": ["object", "null"],
+                    "additionalProperties": {}
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Service created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
+                        "resourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "additionalProperties": {}
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "name",
+                        "policyId",
+                        "resourceIds",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Policy or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/services/{id}": {
+      "get": {
+        "tags": ["Services"],
+        "summary": "Get a service by ID",
         "parameters": [
           {
             "schema": {
@@ -1128,7 +1742,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Allocation confirmed",
+            "description": "Service details",
             "content": {
               "application/json": {
                 "schema": {
@@ -1143,21 +1757,17 @@
                         "ledgerId": {
                           "type": "string"
                         },
-                        "resourceId": {
+                        "name": {
                           "type": "string"
                         },
-                        "status": {
-                          "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
-                        },
-                        "startAt": {
-                          "type": "string"
-                        },
-                        "endAt": {
-                          "type": "string"
-                        },
-                        "expiresAt": {
+                        "policyId": {
                           "type": ["string", "null"]
+                        },
+                        "resourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
                         },
                         "metadata": {
                           "type": ["object", "null"],
@@ -1173,11 +1783,939 @@
                       "required": [
                         "id",
                         "ledgerId",
-                        "resourceId",
+                        "name",
+                        "policyId",
+                        "resourceIds",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Services"],
+        "summary": "Update a service",
+        "description": "Replaces the full service definition including name, policy, and resource assignments.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Service name",
+                    "example": "Haircut"
+                  },
+                  "policyId": {
+                    "type": ["string", "null"],
+                    "description": "Policy to enforce on bookings"
+                  },
+                  "resourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Resources that belong to this service",
+                    "example": ["rsc_01abc123def456ghi789jkl012"]
+                  },
+                  "metadata": {
+                    "type": ["object", "null"],
+                    "additionalProperties": {}
+                  }
+                },
+                "required": ["name"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
+                        "resourceIds": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "additionalProperties": {}
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "name",
+                        "policyId",
+                        "resourceIds",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service, policy, or resource not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Services"],
+        "summary": "Delete a service",
+        "description": "Deletes a service. Fails if the service has bookings in hold or confirmed status.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Service deleted"
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Service has active bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/services/{id}/availability/slots": {
+      "post": {
+        "tags": ["Service Availability"],
+        "summary": "Query available booking slots",
+        "description": "Returns discrete grid-aligned time slots for appointment-style booking. Applies the service's policy (schedule, duration, grid, buffers, lead time) and filters by existing allocations. Pass includeUnavailable: true to get the full grid with available/unavailable status.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Start of the query window (ISO 8601)",
+                    "example": "2026-03-02T00:00:00Z"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "End of the query window (ISO 8601). Max 7 days from startTime.",
+                    "example": "2026-03-07T00:00:00Z"
+                  },
+                  "durationMs": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "description": "Desired booking duration in milliseconds",
+                    "example": 3600000
+                  },
+                  "resourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Filter to specific resources. Defaults to all resources in the service."
+                  },
+                  "includeUnavailable": {
+                    "type": "boolean",
+                    "description": "Return all grid positions with status. Defaults to false."
+                  }
+                },
+                "required": ["startTime", "endTime", "durationMs"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Available slots per resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string"
+                          },
+                          "timezone": {
+                            "type": "string"
+                          },
+                          "slots": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": ["available", "unavailable"]
+                                }
+                              },
+                              "required": ["startTime", "endTime"]
+                            }
+                          }
+                        },
+                        "required": ["resourceId", "timezone", "slots"]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "serverTime": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["serverTime"]
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input (range too large, invalid resourceIds, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/services/{id}/availability/windows": {
+      "post": {
+        "tags": ["Service Availability"],
+        "summary": "Query available time windows",
+        "description": "Returns continuous available time ranges for rental-style booking. Applies the service's policy and subtracts existing allocations (with buffer-aware gap shrinkage). Pass includeUnavailable: true to get the full schedule with available/unavailable status.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Start of the query window (ISO 8601)",
+                    "example": "2026-03-02T00:00:00Z"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "End of the query window (ISO 8601). Max 31 days from startTime.",
+                    "example": "2026-03-07T00:00:00Z"
+                  },
+                  "resourceIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Filter to specific resources. Defaults to all resources in the service."
+                  },
+                  "includeUnavailable": {
+                    "type": "boolean",
+                    "description": "Return full schedule with status. Defaults to false."
+                  }
+                },
+                "required": ["startTime", "endTime"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Available windows per resource",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "resourceId": {
+                            "type": "string"
+                          },
+                          "timezone": {
+                            "type": "string"
+                          },
+                          "windows": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "status": {
+                                  "type": "string",
+                                  "enum": ["available", "unavailable"]
+                                }
+                              },
+                              "required": ["startTime", "endTime"]
+                            }
+                          }
+                        },
+                        "required": ["resourceId", "timezone", "windows"]
+                      }
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "serverTime": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["serverTime"]
+                    }
+                  },
+                  "required": ["data", "meta"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid input (range too large, invalid resourceIds, etc.)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/bookings": {
+      "get": {
+        "tags": ["Bookings"],
+        "summary": "List all bookings in a ledger",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of bookings",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ledgerId": {
+                            "type": "string"
+                          },
+                          "serviceId": {
+                            "type": "string"
+                          },
+                          "policyId": {
+                            "type": ["string", "null"]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": ["hold", "confirmed", "canceled", "expired"]
+                          },
+                          "expiresAt": {
+                            "type": ["string", "null"]
+                          },
+                          "allocations": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "resourceId": {
+                                  "type": "string"
+                                },
+                                "startTime": {
+                                  "type": "string"
+                                },
+                                "endTime": {
+                                  "type": "string"
+                                },
+                                "buffer": {
+                                  "type": "object",
+                                  "properties": {
+                                    "beforeMs": {
+                                      "type": "number"
+                                    },
+                                    "afterMs": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": ["beforeMs", "afterMs"]
+                                },
+                                "active": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "id",
+                                "resourceId",
+                                "startTime",
+                                "endTime",
+                                "buffer",
+                                "active"
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "type": ["object", "null"],
+                            "additionalProperties": {}
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ledgerId",
+                          "serviceId",
+                          "policyId",
+                          "status",
+                          "expiresAt",
+                          "allocations",
+                          "metadata",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Create a new booking",
+        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "serviceId": {
+                    "type": "string",
+                    "example": "svc_01abc123def456ghi789jkl012"
+                  },
+                  "resourceId": {
+                    "type": "string",
+                    "example": "rsc_01abc123def456ghi789jkl012"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-01-15T10:00:00Z"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-01-15T11:00:00Z"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": ["hold", "confirmed"],
+                    "default": "hold",
+                    "description": "Initial status. Hold creates a temporary reservation."
+                  },
+                  "metadata": {
+                    "type": ["object", "null"],
+                    "additionalProperties": {}
+                  }
+                },
+                "required": ["serviceId", "resourceId", "startTime", "endTime"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "serviceId": {
+                          "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
+                        },
+                        "expiresAt": {
+                          "type": ["string", "null"]
+                        },
+                        "allocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "resourceId": {
+                                "type": "string"
+                              },
+                              "startTime": {
+                                "type": "string"
+                              },
+                              "endTime": {
+                                "type": "string"
+                              },
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startTime",
+                              "endTime",
+                              "buffer",
+                              "active"
+                            ]
+                          }
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "additionalProperties": {}
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "serviceId",
+                        "policyId",
                         "status",
-                        "startAt",
-                        "endAt",
                         "expiresAt",
+                        "allocations",
                         "metadata",
                         "createdAt",
                         "updatedAt"
@@ -1199,34 +2737,31 @@
             }
           },
           "404": {
-            "description": "Allocation not found",
+            "description": "Service or resource not found",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1235,34 +2770,31 @@
             }
           },
           "409": {
-            "description": "Allocation cannot be confirmed",
+            "description": "Conflict (overlap, policy rejected, or resource not in service)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1273,11 +2805,11 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/allocations/{id}/cancel": {
-      "post": {
-        "tags": ["Allocations"],
-        "summary": "Cancel an allocation",
-        "description": "Cancels an allocation that is in HOLD or CONFIRMED status.",
+    "/v1/ledgers/{ledgerId}/bookings/{id}": {
+      "get": {
+        "tags": ["Bookings"],
+        "summary": "Get a booking by ID",
+        "description": "Returns the booking with its nested allocations.",
         "parameters": [
           {
             "schema": {
@@ -1298,7 +2830,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Allocation cancelled",
+            "description": "Booking details with allocations",
             "content": {
               "application/json": {
                 "schema": {
@@ -1313,21 +2845,61 @@
                         "ledgerId": {
                           "type": "string"
                         },
-                        "resourceId": {
+                        "serviceId": {
                           "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
                         },
                         "status": {
                           "type": "string",
-                          "enum": ["hold", "confirmed", "cancelled", "expired"]
-                        },
-                        "startAt": {
-                          "type": "string"
-                        },
-                        "endAt": {
-                          "type": "string"
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
                         },
                         "expiresAt": {
                           "type": ["string", "null"]
+                        },
+                        "allocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "resourceId": {
+                                "type": "string"
+                              },
+                              "startTime": {
+                                "type": "string"
+                              },
+                              "endTime": {
+                                "type": "string"
+                              },
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startTime",
+                              "endTime",
+                              "buffer",
+                              "active"
+                            ]
+                          }
                         },
                         "metadata": {
                           "type": ["object", "null"],
@@ -1343,11 +2915,11 @@
                       "required": [
                         "id",
                         "ledgerId",
-                        "resourceId",
+                        "serviceId",
+                        "policyId",
                         "status",
-                        "startAt",
-                        "endAt",
                         "expiresAt",
+                        "allocations",
                         "metadata",
                         "createdAt",
                         "updatedAt"
@@ -1369,34 +2941,202 @@
             }
           },
           "404": {
-            "description": "Allocation not found",
+            "description": "Booking not found",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/bookings/{id}/confirm": {
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Confirm a held booking",
+        "description": "Confirms a booking that is in hold status. Idempotent — confirming an already confirmed booking returns success. Supports idempotency via the Idempotency-Key header.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking confirmed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "serviceId": {
+                          "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
+                        },
+                        "expiresAt": {
+                          "type": ["string", "null"]
+                        },
+                        "allocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "resourceId": {
+                                "type": "string"
+                              },
+                              "startTime": {
+                                "type": "string"
+                              },
+                              "endTime": {
+                                "type": "string"
+                              },
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startTime",
+                              "endTime",
+                              "buffer",
+                              "active"
+                            ]
+                          }
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "additionalProperties": {}
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "serviceId",
+                        "policyId",
+                        "status",
+                        "expiresAt",
+                        "allocations",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
                       ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "serverTime": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["serverTime"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Booking not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1405,34 +3145,235 @@
             }
           },
           "409": {
-            "description": "Allocation cannot be cancelled",
+            "description": "Booking cannot be confirmed (expired or invalid state)",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/bookings/{id}/cancel": {
+      "post": {
+        "tags": ["Bookings"],
+        "summary": "Cancel a booking",
+        "description": "Cancels a booking in hold or confirmed status. Idempotent — canceling an already canceled booking returns success. Supports idempotency via the Idempotency-Key header.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking canceled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "serviceId": {
+                          "type": "string"
+                        },
+                        "policyId": {
+                          "type": ["string", "null"]
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": ["hold", "confirmed", "canceled", "expired"]
+                        },
+                        "expiresAt": {
+                          "type": ["string", "null"]
+                        },
+                        "allocations": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "resourceId": {
+                                "type": "string"
+                              },
+                              "startTime": {
+                                "type": "string"
+                              },
+                              "endTime": {
+                                "type": "string"
+                              },
+                              "buffer": {
+                                "type": "object",
+                                "properties": {
+                                  "beforeMs": {
+                                    "type": "number"
+                                  },
+                                  "afterMs": {
+                                    "type": "number"
+                                  }
+                                },
+                                "required": ["beforeMs", "afterMs"]
+                              },
+                              "active": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "resourceId",
+                              "startTime",
+                              "endTime",
+                              "buffer",
+                              "active"
+                            ]
+                          }
+                        },
+                        "metadata": {
+                          "type": ["object", "null"],
+                          "additionalProperties": {}
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "serviceId",
+                        "policyId",
+                        "status",
+                        "expiresAt",
+                        "allocations",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
                       ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "serverTime": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["serverTime"]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Booking not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Booking cannot be canceled (invalid state)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1569,7 +3510,7 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}": {
+    "/v1/ledgers/{ledgerId}/webhooks/{id}": {
       "patch": {
         "tags": ["Webhooks"],
         "summary": "Update a webhook subscription",
@@ -1587,7 +3528,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -1649,27 +3590,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1696,7 +3634,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -1712,27 +3650,24 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
-                      ]
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]
@@ -1743,7 +3678,7 @@
         }
       }
     },
-    "/v1/ledgers/{ledgerId}/webhooks/{subscriptionId}/rotate-secret": {
+    "/v1/ledgers/{ledgerId}/webhooks/{id}/rotate-secret": {
       "post": {
         "tags": ["Webhooks"],
         "summary": "Rotate webhook secret",
@@ -1762,7 +3697,7 @@
               "type": "string"
             },
             "required": true,
-            "name": "subscriptionId",
+            "name": "id",
             "in": "path"
           }
         ],
@@ -1812,27 +3747,501 @@
                   "type": "object",
                   "properties": {
                     "error": {
-                      "anyOf": [
-                        {
+                      "type": "object",
+                      "properties": {
+                        "code": {
                           "type": "string"
                         },
-                        {
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
                           "type": "object",
-                          "properties": {
-                            "code": {
-                              "type": "string"
-                            },
-                            "message": {
-                              "type": "string"
-                            },
-                            "details": {
-                              "type": "object",
-                              "additionalProperties": {}
-                            }
-                          },
-                          "required": ["code"]
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
                         }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/policies": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "List policies for a ledger",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of policies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "ledgerId": {
+                            "type": "string"
+                          },
+                          "config": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          },
+                          "configHash": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "ledgerId",
+                          "config",
+                          "configHash",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Policies"],
+        "summary": "Create a policy",
+        "description": "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "properties": {
+                      "schema_version": {
+                        "type": "number",
+                        "enum": [1]
+                      },
+                      "default": {
+                        "type": "string",
+                        "enum": ["open", "closed"]
+                      },
+                      "config": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": {}
+                      },
+                      "rules": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        }
+                      }
+                    },
+                    "required": ["schema_version", "default", "config"],
+                    "additionalProperties": {},
+                    "description": "Policy configuration in authoring format"
+                  }
+                },
+                "required": ["config"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Policy created (may include warnings)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configHash": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "config",
+                        "configHash",
+                        "createdAt",
+                        "updatedAt"
                       ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/ledgers/{ledgerId}/policies/{id}": {
+      "get": {
+        "tags": ["Policies"],
+        "summary": "Get a policy by ID",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Policy details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configHash": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "config",
+                        "configHash",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Policies"],
+        "summary": "Update a policy",
+        "description": "Replaces the full policy configuration. The config is re-normalized, re-validated, and re-hashed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "config": {
+                    "type": "object",
+                    "properties": {
+                      "schema_version": {
+                        "type": "number",
+                        "enum": [1]
+                      },
+                      "default": {
+                        "type": "string",
+                        "enum": ["open", "closed"]
+                      },
+                      "config": {
+                        "type": "object",
+                        "properties": {},
+                        "additionalProperties": {}
+                      },
+                      "rules": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {},
+                          "additionalProperties": {}
+                        }
+                      }
+                    },
+                    "required": ["schema_version", "default", "config"],
+                    "additionalProperties": {},
+                    "description": "Policy configuration in authoring format"
+                  }
+                },
+                "required": ["config"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Policy updated (may include warnings)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ledgerId": {
+                          "type": "string"
+                        },
+                        "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configHash": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "config",
+                        "configHash",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": ["data"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Policies"],
+        "summary": "Delete a policy",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "ledgerId",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Policy deleted"
+          },
+          "404": {
+            "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
                     }
                   },
                   "required": ["error"]

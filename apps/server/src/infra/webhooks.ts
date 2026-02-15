@@ -1,37 +1,36 @@
 import { createHmac } from "crypto";
 import type { Kysely, Transaction } from "kysely";
-import type { Database, AllocationRow } from "database/schema";
-import type { Allocation } from "@floyd-run/schema/types";
+import type { Database } from "database/schema";
 import { db } from "database";
 import { generateId } from "@floyd-run/utils";
-import { serializeAllocation } from "routes/v1/serializers";
 
 // Event types for webhooks
 export type WebhookEventType =
   | "allocation.created"
-  | "allocation.confirmed"
-  | "allocation.cancelled"
-  | "allocation.expired";
+  | "allocation.deleted"
+  | "booking.created"
+  | "booking.confirmed"
+  | "booking.canceled"
+  | "booking.expired";
 
 export interface WebhookEvent {
   id: string;
   type: WebhookEventType;
   ledgerId: string;
   createdAt: string;
-  data: {
-    allocation: Allocation;
-  };
+  data: Record<string, unknown>;
 }
 
 /**
  * Enqueue webhook deliveries for all subscriptions that match the event.
  * MUST be called within the same transaction as the data mutation.
+ * Call sites are responsible for serializing their own payload data.
  */
 export async function enqueueWebhookEvent(
   trx: Transaction<Database> | Kysely<Database>,
   eventType: WebhookEventType,
   ledgerId: string,
-  allocation: AllocationRow,
+  data: Record<string, unknown>,
 ): Promise<void> {
   // Find all subscriptions for this ledger
   const subscriptions = await trx
@@ -55,9 +54,7 @@ export async function enqueueWebhookEvent(
       type: eventType,
       ledgerId,
       createdAt: now.toISOString(),
-      data: {
-        allocation: serializeAllocation(allocation),
-      },
+      data,
     };
     return {
       id: deliveryId,
@@ -93,27 +90,34 @@ export function computeWebhookSignature(payload: string, secret: string): string
 export async function processPendingDeliveries(batchSize = 10): Promise<number> {
   const now = new Date();
 
-  // Claim a batch of pending deliveries
-  const deliveries = await db
-    .selectFrom("webhookDeliveries")
-    .selectAll()
-    .where((eb) => eb.or([eb("status", "=", "pending"), eb("status", "=", "failed")]))
-    .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", now)]))
-    .orderBy("nextAttemptAt", "asc")
-    .limit(batchSize)
-    .execute();
+  // Atomically claim a batch of pending deliveries using FOR UPDATE SKIP LOCKED
+  const deliveries = await db.transaction().execute(async (trx) => {
+    const rows = await trx
+      .selectFrom("webhookDeliveries")
+      .selectAll()
+      .where((eb) => eb.or([eb("status", "=", "pending"), eb("status", "=", "failed")]))
+      .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", now)]))
+      .orderBy("nextAttemptAt", "asc")
+      .limit(batchSize)
+      .forUpdate()
+      .skipLocked()
+      .execute();
+
+    if (rows.length === 0) return [];
+
+    const ids = rows.map((d) => d.id);
+    await trx
+      .updateTable("webhookDeliveries")
+      .set({ status: "in_flight" })
+      .where("id", "in", ids)
+      .execute();
+
+    return rows;
+  });
 
   if (deliveries.length === 0) {
     return 0;
   }
-
-  // Mark as in_flight
-  const deliveryIds = deliveries.map((d) => d.id);
-  await db
-    .updateTable("webhookDeliveries")
-    .set({ status: "in_flight" })
-    .where("id", "in", deliveryIds)
-    .execute();
 
   let processed = 0;
 

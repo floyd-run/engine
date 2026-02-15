@@ -1,100 +1,135 @@
 # Allocations
 
-Floyd Engine's core promise:
+Allocations are time blocks on resources. They are the single source of truth for "is this time taken?"
 
-> **Double-booking is impossible**, even under concurrency and retries.
+There are two types:
 
-Floyd achieves this with a **two-phase booking lifecycle**.
+1. **Booking allocations** — created and managed automatically by bookings. You don't interact with these directly.
+2. **Raw allocations** — created and deleted directly via the API, for ad-hoc time blocking.
 
-## The problem: non-atomic booking
+## Raw allocations
 
-Many agents do this:
+Raw allocations exist for use cases that don't go through the booking flow:
 
-1. Check availability
-2. Ask the user to confirm
-3. Book the slot
+- Maintenance windows
+- External calendar blocks (Google Calendar sync, etc.)
+- Manual time blocking
 
-Under latency, two agents can see the same slot as "free" and both try to book it.
+### Create a raw allocation
 
-## Floyd's lifecycle
+```bash
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: unique-request-id" \
+  -d '{
+    "resourceId": "rsc_01abc123...",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T11:00:00Z",
+    "metadata": { "reason": "maintenance" }
+  }'
+```
 
-An allocation moves through these states:
+Response:
 
-- `hold` — temporary reservation with `expiresAt` set. Blocks time.
-- `confirmed` — committed allocation. Blocks time.
-- `cancelled` — released. Does **not** block time.
-- `expired` — expiration time elapsed. Does **not** block time.
+```json
+{
+  "data": {
+    "id": "alc_01abc123...",
+    "ledgerId": "ldg_01xyz789...",
+    "resourceId": "rsc_01abc123...",
+    "bookingId": null,
+    "active": true,
+    "startTime": "2026-01-04T10:00:00.000Z",
+    "endTime": "2026-01-04T11:00:00.000Z",
+    "buffer": { "beforeMs": 0, "afterMs": 0 },
+    "expiresAt": null,
+    "metadata": { "reason": "maintenance" },
+    "createdAt": "2026-01-04T10:00:00.000Z",
+    "updatedAt": "2026-01-04T10:00:00.000Z"
+  },
+  "meta": {
+    "serverTime": "2026-01-04T10:00:00.000Z"
+  }
+}
+```
 
-### State transitions
+Raw allocations have no status lifecycle — they are `active: true` when created and block time immediately. No policy evaluation is performed.
 
-| From        | To          | Trigger                         |
-| ----------- | ----------- | ------------------------------- |
-| (none)      | `hold`      | `POST /allocations`             |
-| `hold`      | `confirmed` | `POST /allocations/:id/confirm` |
-| `hold`      | `cancelled` | `POST /allocations/:id/cancel`  |
-| `hold`      | `expired`   | `expiresAt` elapsed (automatic) |
-| `confirmed` | `cancelled` | `POST /allocations/:id/cancel`  |
+### Temporary blocks
 
-## Holds
+Use `expiresAt` for blocks that should auto-expire:
 
-When you create an allocation, it starts as `hold` by default.
+```bash
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceId": "rsc_...",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T11:00:00Z",
+    "expiresAt": "2026-01-04T10:30:00Z"
+  }'
+```
 
-- It **blocks the time slot** immediately.
-- It has an optional `expiresAt` timestamp.
-- The expiration window is your agent's "ask the user" time.
+Expired raw allocations are cleaned up automatically by the expiration worker (hard-deleted, since they have no booking to preserve).
 
-If not confirmed, the hold expires and the slot becomes available again.
+### Delete a raw allocation
 
-### Lazy cleanup
+```bash
+curl -X DELETE "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID"
+```
 
-Floyd automatically marks expired holds as `expired` when you create a new allocation on the same resource. This "lazy cleanup" ensures expired holds don't block slots indefinitely, while avoiding background jobs.
+- Returns `204 No Content` on success
+- Returns `409 Conflict` with code `booking_owned_allocation` if the allocation belongs to a booking — use the booking cancel endpoint instead
 
-## Confirm (commit)
+### Get an allocation
 
-When the user says "yes", call:
+```bash
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID"
+```
 
-- `POST /v1/ledgers/:ledgerId/allocations/:id/confirm`
+### List allocations
 
-This:
+```bash
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations"
+```
 
-- sets `status = confirmed`
-- clears `expiresAt`
+Returns all allocations for the ledger, including both raw and booking-owned.
 
-Confirm is safe to retry:
+## Conflict detection
 
-- confirming an already confirmed allocation returns the confirmed allocation
+Both bookings and raw allocations share the same conflict detection. Only `active` and non-expired allocations block time:
 
-## Cancel (release)
+- `active = true` and `expiresAt` is null → always blocks
+- `active = true` and `expiresAt > now()` → blocks until expiry
+- `active = false` → does not block (canceled/expired booking allocations)
+- `active = true` and `expiresAt <= now()` → does not block (expired)
 
-Cancel explicitly releases the slot:
-
-- `POST /v1/ledgers/:ledgerId/allocations/:id/cancel`
-
-Cancel is safe to retry:
-
-- cancelling an already cancelled/expired allocation returns the allocation
-- cancelling a `confirmed` allocation also works and releases the slot
+If two requests try to create overlapping allocations on the same resource at the same moment, **exactly one** will succeed.
 
 ## Time overlap semantics
 
-Floyd uses **half-open intervals**: **[startAt, endAt)**
+Floyd uses **half-open intervals**: **[startTime, endTime)**
 
-That means:
-
-- back-to-back allocations are allowed
-  e.g. `[10:00, 10:30)` and `[10:30, 11:00)` do not overlap
+- Back-to-back allocations are allowed: `[10:00, 10:30)` and `[10:30, 11:00)` do not overlap
 
 Overlap exists iff:
 
-- `allocation.startAt < query.endAt` **and**
-- `allocation.endAt > query.startAt`
+- `allocation.startTime < query.endTime` **and**
+- `allocation.endTime > query.startTime`
 
-## The "physics" (what you can rely on)
+## Allocation fields
 
-For a single `resourceId`:
-
-- If two requests try to hold overlapping time ranges at the same moment:
-  - **exactly one** will succeed
-  - the rest will get **409 Conflict**
-
-This remains true under heavy concurrency.
+| Field        | Type    | Description                                                                                          |
+| ------------ | ------- | ---------------------------------------------------------------------------------------------------- |
+| `id`         | string  | Allocation ID (`alc_` prefix)                                                                        |
+| `ledgerId`   | string  | Ledger this allocation belongs to                                                                    |
+| `resourceId` | string  | Resource being blocked                                                                               |
+| `bookingId`  | string  | Booking that owns this allocation, or `null` for raw blocks                                          |
+| `active`     | boolean | `true` = blocks time, `false` = historical record                                                    |
+| `startTime`  | string  | Start of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy. |
+| `endTime`    | string  | End of the blocked time window (ISO 8601). Includes buffer if from a booking with a buffer policy.   |
+| `buffer`     | object  | Buffer times: `{ beforeMs, afterMs }` in milliseconds. Both `0` for raw allocations.                 |
+| `expiresAt`  | string  | Expiration time, or `null` for permanent blocks                                                      |
+| `metadata`   | object  | Arbitrary key-value data                                                                             |
+| `createdAt`  | string  | Creation timestamp                                                                                   |
+| `updatedAt`  | string  | Last update timestamp                                                                                |

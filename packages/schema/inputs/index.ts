@@ -1,5 +1,8 @@
-export * as allocation from "./allocation";
-export * as availability from "./availability";
-export * as resource from "./resource";
-export * as ledger from "./ledger";
-export * as webhook from "./webhook";
+export * as allocationInput from "./allocation";
+export * as availabilityInput from "./availability";
+export * as resourceInput from "./resource";
+export * as ledgerInput from "./ledger";
+export * as webhookInput from "./webhook";
+export * as policyInput from "./policy";
+export * as serviceInput from "./service";
+export * as bookingInput from "./booking";

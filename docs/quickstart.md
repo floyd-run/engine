@@ -82,9 +82,9 @@ curl -H "Authorization: Bearer your-secret-key" \
 
 If `FLOYD_API_KEY` is not set, authentication is disabled (useful for local development).
 
-## 0) Create a ledger (if needed)
+## 0) Create a ledger
 
-Ledgers are containers for your resources and allocations.
+Ledgers are containers for your resources, services, and bookings.
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers" \
@@ -105,12 +105,12 @@ Response:
 
 ## 1) Create a resource
 
-Resources represent bookable entities (rooms, people, services, etc.). You need at least one resource before creating allocations.
+Resources represent bookable entities (rooms, people, equipment, etc.).
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/resources" \
   -H "Content-Type: application/json" \
-  -d '{}'
+  -d '{ "timezone": "America/New_York" }'
 ```
 
 Response:
@@ -120,23 +120,54 @@ Response:
   "data": {
     "id": "rsc_01abc123def456ghi789jkl012",
     "ledgerId": "ldg_01abc123def456ghi789jkl012",
+    "timezone": "America/New_York",
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
   }
 }
 ```
 
-## 2) Create a hold
+## 2) Create a service
+
+A service groups resources and optionally attaches a policy.
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Haircut",
+    "resourceIds": ["rsc_01abc123def456ghi789jkl012"]
+  }'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "svc_01abc123def456ghi789jkl012",
+    "ledgerId": "ldg_01abc123def456ghi789jkl012",
+    "name": "Haircut",
+    "policyId": null,
+    "resourceIds": ["rsc_01abc123def456ghi789jkl012"],
+    "metadata": null,
+    "createdAt": "2026-01-04T10:00:00.000Z",
+    "updatedAt": "2026-01-04T10:00:00.000Z"
+  }
+}
+```
+
+## 3) Create a hold
+
+```bash
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
   -H "Content-Type: application/json" \
   -H "Idempotency-Key: demo-001" \
   -d '{
+    "serviceId": "svc_01abc123def456ghi789jkl012",
     "resourceId": "rsc_01abc123def456ghi789jkl012",
-    "startAt": "2026-01-04T10:00:00Z",
-    "endAt": "2026-01-04T10:30:00Z",
-    "expiresAt": "2026-01-04T10:05:00Z",
+    "startTime": "2026-01-04T10:00:00Z",
+    "endTime": "2026-01-04T10:30:00Z",
     "metadata": { "source": "quickstart" }
   }'
 ```
@@ -146,13 +177,20 @@ Response:
 ```json
 {
   "data": {
-    "id": "alc_01abc123def456ghi789jkl012",
+    "id": "bkg_01abc123def456ghi789jkl012",
     "ledgerId": "ldg_01abc123def456ghi789jkl012",
-    "resourceId": "rsc_01abc123def456ghi789jkl012",
-    "startAt": "2026-01-04T10:00:00.000Z",
-    "endAt": "2026-01-04T10:30:00.000Z",
+    "serviceId": "svc_01abc123def456ghi789jkl012",
     "status": "hold",
-    "expiresAt": "2026-01-04T10:05:00.000Z",
+    "expiresAt": "2026-01-04T10:15:00.000Z",
+    "allocations": [
+      {
+        "id": "alc_01abc123def456ghi789jkl012",
+        "resourceId": "rsc_01abc123def456ghi789jkl012",
+        "startTime": "2026-01-04T10:00:00.000Z",
+        "endTime": "2026-01-04T10:30:00.000Z",
+        "active": true
+      }
+    ],
     "metadata": { "source": "quickstart" },
     "createdAt": "2026-01-04T10:00:00.000Z",
     "updatedAt": "2026-01-04T10:00:00.000Z"
@@ -165,78 +203,56 @@ Response:
 
 Error responses:
 
-- `409 Conflict` if someone already holds/confirmed that slot
-- `400 Bad Request` if your input is invalid
+- `409 Conflict` if the slot overlaps with an existing active allocation
+- `409 Conflict` if the service's policy rejects the request
+- `422 Unprocessable Entity` if your input is invalid
 
-## 3) Confirm the hold
+## 4) Confirm the booking
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID/confirm" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/confirm" \
   -H "Content-Type: application/json"
 ```
 
 Expected:
 
-- `200 OK` with status `confirmed`
+- `200 OK` with status `confirmed` and `expiresAt: null`
 - `409 Conflict` if the hold expired before you confirmed
-- Safe to retry (confirming an already confirmed allocation returns the confirmed allocation)
+- Safe to retry (confirming an already confirmed booking returns the confirmed booking)
 
-## 4) Cancel an allocation
+## 5) Cancel a booking
 
 ```bash
-curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID/cancel" \
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/cancel" \
   -H "Content-Type: application/json"
 ```
 
 Expected:
 
-- `200 OK` with status `cancelled`
-- Safe to retry (cancelling an already cancelled/expired allocation returns the allocation)
+- `200 OK` with status `canceled` and allocations deactivated (`active: false`)
+- Safe to retry (canceling an already canceled booking returns the booking)
 
-## 5) Get an allocation
-
-```bash
-curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations/$ALLOCATION_ID" \
-  -H "Content-Type: application/json"
-```
-
-Expected:
-
-- `200 OK` with the allocation object
-- `404 Not Found` if the allocation doesn't exist
-
-## 6) List allocations
+## 6) Get a booking
 
 ```bash
-curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/allocations" \
-  -H "Content-Type: application/json"
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID"
 ```
 
-Response:
+Returns the booking with nested allocations.
 
-```json
-{
-  "data": [
-    {
-      "id": "alc_01abc123def456ghi789jkl012",
-      "ledgerId": "ldg_01abc123def456ghi789jkl012",
-      "resourceId": "rsc_01abc123def456ghi789jkl012",
-      "status": "confirmed",
-      "startAt": "2026-01-04T10:00:00.000Z",
-      "endAt": "2026-01-04T10:30:00.000Z",
-      "expiresAt": null,
-      "metadata": { "source": "quickstart" },
-      "createdAt": "2026-01-04T10:00:00.000Z",
-      "updatedAt": "2026-01-04T10:00:00.000Z"
-    }
-  ]
-}
+## 7) List bookings
+
+```bash
+curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings"
 ```
 
 ## Next
 
-- [Allocations](./allocations.md) - Deep dive into the booking model
-- [Availability](./availability.md) - Query free/busy timelines
+- [Services](./services.md) - Grouping resources with policies
+- [Bookings](./bookings.md) - The reservation lifecycle
+- [Allocations](./allocations.md) - Raw time blocks and ad-hoc blocking
+- [Availability](./availability.md) - Slots, windows, and free/busy timelines
+- [Policies](./policies.md) - Scheduling rules
 - [Idempotency](./idempotency.md) - Safe retries
 - [Webhooks](./webhooks.md) - Real-time notifications
 - [Errors](./errors.md) - Error handling

@@ -1,6 +1,6 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
-import {
-  AllocationStatus,
+import type {
+  BookingStatus,
   IdempotencyStatus,
   WebhookDeliveryStatus,
 } from "@floyd-run/schema/types";
@@ -14,6 +14,7 @@ export interface LedgersTable {
 export interface ResourcesTable {
   id: string;
   ledgerId: string;
+  timezone: string;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -22,9 +23,39 @@ export interface AllocationsTable {
   id: string;
   ledgerId: string;
   resourceId: string;
-  status: AllocationStatus;
-  startAt: Date;
-  endAt: Date;
+  bookingId: string | null;
+  active: boolean;
+  startTime: Date;
+  endTime: Date;
+  bufferBeforeMs: number;
+  bufferAfterMs: number;
+  expiresAt: Date | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
+export interface ServicesTable {
+  id: string;
+  ledgerId: string;
+  policyId: string | null;
+  name: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
+export interface ServiceResourcesTable {
+  serviceId: string;
+  resourceId: string;
+}
+
+export interface BookingsTable {
+  id: string;
+  ledgerId: string;
+  serviceId: string;
+  policyId: string | null;
+  status: BookingStatus;
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;
   createdAt: Generated<Date>;
@@ -67,11 +98,24 @@ export interface WebhookDeliveriesTable {
   createdAt: Generated<Date>;
 }
 
+export interface PoliciesTable {
+  id: string;
+  ledgerId: string;
+  config: Record<string, unknown>;
+  configHash: string;
+  createdAt: Generated<Date>;
+  updatedAt: Generated<Date>;
+}
+
 export interface Database {
   allocations: AllocationsTable;
+  bookings: BookingsTable;
+  services: ServicesTable;
+  serviceResources: ServiceResourcesTable;
   idempotencyKeys: IdempotencyKeysTable;
   resources: ResourcesTable;
   ledgers: LedgersTable;
+  policies: PoliciesTable;
   webhookSubscriptions: WebhookSubscriptionsTable;
   webhookDeliveries: WebhookDeliveriesTable;
 }
@@ -88,6 +132,16 @@ export type AllocationRow = Selectable<AllocationsTable>;
 export type NewAllocation = Insertable<AllocationsTable>;
 export type AllocationUpdate = Updateable<AllocationsTable>;
 
+export type ServiceRow = Selectable<ServicesTable>;
+export type NewService = Insertable<ServicesTable>;
+export type ServiceUpdate = Updateable<ServicesTable>;
+
+export type ServiceResourceRow = Selectable<ServiceResourcesTable>;
+
+export type BookingRow = Selectable<BookingsTable>;
+export type NewBooking = Insertable<BookingsTable>;
+export type BookingUpdate = Updateable<BookingsTable>;
+
 export type IdempotencyKeyRow = Selectable<IdempotencyKeysTable>;
 export type NewIdempotencyKey = Insertable<IdempotencyKeysTable>;
 
@@ -97,3 +151,7 @@ export type WebhookSubscriptionUpdate = Updateable<WebhookSubscriptionsTable>;
 
 export type WebhookDeliveryRow = Selectable<WebhookDeliveriesTable>;
 export type NewWebhookDelivery = Insertable<WebhookDeliveriesTable>;
+
+export type PolicyRow = Selectable<PoliciesTable>;
+export type NewPolicy = Insertable<PoliciesTable>;
+export type PolicyUpdate = Updateable<PoliciesTable>;

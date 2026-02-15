@@ -1,4 +1,4 @@
-import { Context, Next } from "hono";
+import type { Context, Next } from "hono";
 import { createHash } from "crypto";
 import { db } from "database";
 
@@ -101,7 +101,15 @@ export function idempotent(options: IdempotencyOptions = {}) {
     const method = c.req.method;
 
     // Clone body for hashing (body can only be read once)
-    const body = await c.req.json();
+    // Handle empty bodies gracefully for body-less POST endpoints
+    let body: Record<string, unknown> = {};
+    const contentType = c.req.header("content-type");
+    if (contentType?.includes("application/json")) {
+      const text = await c.req.text();
+      if (text.trim()) {
+        body = JSON.parse(text) as Record<string, unknown>;
+      }
+    }
     const payloadHash = computePayloadHash(body, significantFields);
 
     // Store body for later use by handler
@@ -138,14 +146,24 @@ export function idempotent(options: IdempotencyOptions = {}) {
         ttlHours,
       });
 
-      await next();
+      try {
+        await next();
+      } catch (handlerError: unknown) {
+        // Handler failed — clean up the in_progress record so client can retry
+        await db
+          .deleteFrom("idempotencyKeys")
+          .where("ledgerId", "=", ledgerId)
+          .where("key", "=", idempotencyKey)
+          .where("status", "=", "in_progress")
+          .execute();
+        throw handlerError;
+      }
     } catch (error: unknown) {
-      // Check if it's a unique constraint violation
+      // Check if it's a unique constraint violation (PG error code 23505)
       const isConflict =
         error instanceof Error &&
-        (error.message.includes("duplicate key") ||
-          error.message.includes("unique constraint") ||
-          error.message.includes("UNIQUE constraint"));
+        "code" in error &&
+        (error as Error & { code: string }).code === "23505";
 
       if (!isConflict) {
         throw error;
@@ -257,24 +275,5 @@ export async function storeIdempotencyResponse(
     })
     .where("ledgerId", "=", ctx.ledgerId)
     .where("key", "=", ctx.key)
-    .execute();
-}
-
-/**
- * Call this if the handler fails to clean up the in_progress record.
- * This allows the client to retry with the same idempotency key.
- */
-export async function clearIdempotencyKey(c: Context): Promise<void> {
-  const ctx = c.get("idempotencyContext") as IdempotencyContext | undefined;
-
-  if (!ctx) {
-    return;
-  }
-
-  await db
-    .deleteFrom("idempotencyKeys")
-    .where("ledgerId", "=", ctx.ledgerId)
-    .where("key", "=", ctx.key)
-    .where("status", "=", "in_progress")
     .execute();
 }

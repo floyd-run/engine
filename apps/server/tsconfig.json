@@ -2,7 +2,10 @@
   "extends": "@floyd-run/typescript/app.json",
   "compilerOptions": {
     "baseUrl": "src",
-    "outDir": "dist"
+    "outDir": "dist",
+    "paths": {
+      "domain/*": ["domain/*"]
+    }
   },
   "include": ["src", "test", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]

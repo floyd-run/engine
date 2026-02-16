@@ -68,9 +68,8 @@ describe("Outbox Publisher Integration", () => {
         .execute();
 
       // Act: Import and run publisher (would normally run in background)
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       // Set environment variable for test
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
@@ -141,9 +140,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Act: Run publisher
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -199,9 +197,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Act: Run publisher
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -251,9 +248,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_ENGINE_SECRET"] = "test-secret-key";
 
       // Act
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -307,9 +303,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Act: Run publisher
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -365,9 +360,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Act: Run publisher - give it more time to process
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 2000)); // Extra time
@@ -429,9 +423,8 @@ describe("Outbox Publisher Integration", () => {
       process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Act
-      const { startOutboxPublisher, stopOutboxPublisher } = await import(
-        "../../../src/workers/outbox-publisher"
-      );
+      const { startOutboxPublisher, stopOutboxPublisher } =
+        await import("../../../src/workers/outbox-publisher");
 
       startOutboxPublisher();
       await new Promise((resolve) => setTimeout(resolve, 1500));

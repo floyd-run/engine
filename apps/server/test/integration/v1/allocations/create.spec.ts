@@ -91,7 +91,11 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     expect(event?.publishAttempts).toBe(0);
 
     // Verify payload contains allocation data
-    const payload = event?.payload as { id: string; type: string; data: { allocation: Allocation } };
+    const payload = event?.payload as {
+      id: string;
+      type: string;
+      data: { allocation: Allocation };
+    };
     expect(payload.type).toBe("allocation.created");
     expect(payload.data.allocation.id).toBe(data.id);
     expect(payload.data.allocation.resourceId).toBe(resource.id);

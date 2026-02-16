@@ -41,10 +41,7 @@ export function isRetryableError(statusCode: number | null): boolean {
  * Returns null if error is non-retryable
  * @internal Exported for testing
  */
-export function computeNextAttemptAt(
-  attempt: number,
-  statusCode: number | null,
-): Date | null {
+export function computeNextAttemptAt(attempt: number, statusCode: number | null): Date | null {
   // Check if error is retryable
   if (!isRetryableError(statusCode)) {
     return null; // Don't retry non-retryable errors
@@ -120,9 +117,7 @@ async function processOutboxBatch(): Promise<void> {
     .selectAll()
     .where("publishedAt", "is", null)
     .where("publishAttempts", "<", MAX_ATTEMPTS)
-    .where((eb) =>
-      eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", new Date())]),
-    )
+    .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", new Date())]))
     .orderBy("createdAt", "asc")
     .limit(BATCH_SIZE)
     .execute();

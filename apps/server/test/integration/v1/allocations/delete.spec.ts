@@ -36,7 +36,11 @@ describe("DELETE /v1/ledgers/:ledgerId/allocations/:id", () => {
     expect(event?.publishAttempts).toBe(0);
 
     // Verify payload contains deleted allocation data
-    const payload = event?.payload as { id: string; type: string; data: { allocation: Allocation } };
+    const payload = event?.payload as {
+      id: string;
+      type: string;
+      data: { allocation: Allocation };
+    };
     expect(payload.type).toBe("allocation.deleted");
     expect(payload.data.allocation.id).toBe(allocation.id);
   });

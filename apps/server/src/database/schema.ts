@@ -1,8 +1,5 @@
 import type { Generated, Insertable, Selectable, Updateable } from "kysely";
-import type {
-  BookingStatus,
-  IdempotencyStatus,
-} from "@floyd-run/schema/types";
+import type { BookingStatus, IdempotencyStatus } from "@floyd-run/schema/types";
 
 export interface LedgersTable {
   id: string;

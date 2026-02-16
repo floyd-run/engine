@@ -2,7 +2,7 @@ import { db } from "database";
 import { createOperation } from "lib/operation";
 import { allocationInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
-import { enqueueWebhookEvent } from "infra/webhooks";
+import { emitEvent } from "infra/event-bus";
 import { serializeAllocation } from "routes/v1/serializers";
 
 export default createOperation({
@@ -32,8 +32,8 @@ export default createOperation({
       // 3. Hard delete the allocation
       await trx.deleteFrom("allocations").where("id", "=", input.id).execute();
 
-      // 4. Enqueue webhook event
-      await enqueueWebhookEvent(trx, "allocation.deleted", existing.ledgerId, {
+      // 4. Emit event to outbox
+      await emitEvent(trx, "allocation.deleted", existing.ledgerId, {
         allocation: serializeAllocation(existing),
       });
 

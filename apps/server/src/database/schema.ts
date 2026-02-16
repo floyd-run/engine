@@ -98,6 +98,20 @@ export interface WebhookDeliveriesTable {
   createdAt: Generated<Date>;
 }
 
+export interface OutboxEventsTable {
+  id: string;
+  ledgerId: string;
+  eventType: string;
+  source: string;
+  schemaVersion: number;
+  payload: Record<string, unknown>;
+  createdAt: Generated<Date>;
+  publishedAt: Date | null;
+  publishAttempts: number;
+  nextAttemptAt: Date | null;
+  lastPublishError: string | null;
+}
+
 export interface PoliciesTable {
   id: string;
   ledgerId: string;
@@ -118,6 +132,7 @@ export interface Database {
   policies: PoliciesTable;
   webhookSubscriptions: WebhookSubscriptionsTable;
   webhookDeliveries: WebhookDeliveriesTable;
+  outboxEvents: OutboxEventsTable;
 }
 
 export type LedgerRow = Selectable<LedgersTable>;
@@ -151,6 +166,10 @@ export type WebhookSubscriptionUpdate = Updateable<WebhookSubscriptionsTable>;
 
 export type WebhookDeliveryRow = Selectable<WebhookDeliveriesTable>;
 export type NewWebhookDelivery = Insertable<WebhookDeliveriesTable>;
+
+export type OutboxEventRow = Selectable<OutboxEventsTable>;
+export type NewOutboxEvent = Insertable<OutboxEventsTable>;
+export type OutboxEventUpdate = Updateable<OutboxEventsTable>;
 
 export type PolicyRow = Selectable<PoliciesTable>;
 export type NewPolicy = Insertable<PoliciesTable>;

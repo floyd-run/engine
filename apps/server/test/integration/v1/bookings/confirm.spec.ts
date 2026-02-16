@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createLedger, createResource, createService } from "../../setup/factories";
 import type { Booking } from "@floyd-run/schema/types";
+import { db } from "database";
 
 describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
   async function createHoldBooking(ledgerId: string) {
@@ -39,6 +40,38 @@ describe("POST /v1/ledgers/:ledgerId/bookings/:id/confirm", () => {
     expect(data.expiresAt).toBeNull();
     expect(data.allocations).toHaveLength(1);
     expect(meta.serverTime).toBeDefined();
+  });
+
+  it("creates booking.confirmed event in outbox", async () => {
+    const { ledger } = await createLedger();
+    const holdBooking = await createHoldBooking(ledger.id);
+
+    const response = await client.post(
+      `/v1/ledgers/${ledger.id}/bookings/${holdBooking.id}/confirm`,
+    );
+
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Booking };
+
+    // Verify event was created in outbox
+    const event = await db
+      .selectFrom("outboxEvents")
+      .selectAll()
+      .where("ledgerId", "=", ledger.id)
+      .where("eventType", "=", "booking.confirmed")
+      .executeTakeFirst();
+
+    expect(event).toBeDefined();
+    expect(event?.eventType).toBe("booking.confirmed");
+    expect(event?.ledgerId).toBe(ledger.id);
+    expect(event?.publishedAt).toBeNull();
+    expect(event?.publishAttempts).toBe(0);
+
+    // Verify payload contains confirmed booking data
+    const payload = event?.payload as { id: string; type: string; data: { booking: Booking } };
+    expect(payload.type).toBe("booking.confirmed");
+    expect(payload.data.booking.id).toBe(data.id);
+    expect(payload.data.booking.status).toBe("confirmed");
   });
 
   it("is idempotent — confirming an already confirmed booking returns same data", async () => {

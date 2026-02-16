@@ -8,6 +8,7 @@ import {
   createPolicy,
 } from "../../setup/factories";
 import type { Booking } from "@floyd-run/schema/types";
+import { db } from "database";
 
 describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   it("returns 201 for valid hold booking", async () => {
@@ -91,6 +92,45 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Booking };
     expect(data.metadata).toEqual(metadata);
+  });
+
+  it("creates booking.created event in outbox", async () => {
+    const { ledger } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ledger.id });
+    const { service } = await createService({
+      ledgerId: ledger.id,
+      resourceIds: [resource.id],
+    });
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+      serviceId: service.id,
+      resourceId: resource.id,
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
+    });
+
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Booking };
+
+    // Verify event was created in outbox
+    const event = await db
+      .selectFrom("outboxEvents")
+      .selectAll()
+      .where("ledgerId", "=", ledger.id)
+      .where("eventType", "=", "booking.created")
+      .executeTakeFirst();
+
+    expect(event).toBeDefined();
+    expect(event?.eventType).toBe("booking.created");
+    expect(event?.ledgerId).toBe(ledger.id);
+    expect(event?.publishedAt).toBeNull(); // Not yet published
+    expect(event?.publishAttempts).toBe(0);
+
+    // Verify payload contains booking data
+    const payload = event?.payload as { id: string; type: string; data: { booking: Booking } };
+    expect(payload.type).toBe("booking.created");
+    expect(payload.data.booking.id).toBe(data.id);
+    expect(payload.data.booking.serviceId).toBe(service.id);
   });
 
   it("returns 422 for missing required fields", async () => {

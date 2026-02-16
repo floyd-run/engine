@@ -2,7 +2,7 @@ import { db, getServerTime } from "database";
 import { createOperation } from "lib/operation";
 import { bookingInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
-import { enqueueWebhookEvent } from "infra/webhooks";
+import { emitEvent } from "infra/event-bus";
 import { serializeBooking } from "routes/v1/serializers";
 
 export default createOperation({
@@ -68,8 +68,8 @@ export default createOperation({
         .where("bookingId", "=", input.id)
         .execute();
 
-      // 6. Enqueue webhook
-      await enqueueWebhookEvent(trx, "booking.canceled", booking.ledgerId, {
+      // 6. Emit event to outbox
+      await emitEvent(trx, "booking.canceled", booking.ledgerId, {
         booking: serializeBooking(booking, allocations),
       });
 

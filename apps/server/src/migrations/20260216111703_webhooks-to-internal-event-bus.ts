@@ -2,6 +2,10 @@ import type { Database } from 'database/schema';
 import { Kysely, sql } from 'kysely';
 
 export async function up(db: Kysely<Database>): Promise<void> {
+  // Drop old webhook tables (moved to cloud)
+  await db.schema.dropTable('webhook_deliveries').ifExists().execute();
+  await db.schema.dropTable('webhook_subscriptions').ifExists().execute();
+
   // Create outbox_events table for internal event bus
   await db.schema
     .createTable('outbox_events')

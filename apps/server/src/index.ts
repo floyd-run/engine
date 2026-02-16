@@ -1,7 +1,6 @@
 import { serve } from "@hono/node-server";
 import { config } from "config";
 import { logger } from "infra/logger";
-import { startWebhookWorker, stopWebhookWorker } from "./workers/webhook-worker";
 import { startExpirationWorker, stopExpirationWorker } from "./workers/expiration-worker";
 import { startOutboxPublisher, stopOutboxPublisher } from "./workers/outbox-publisher";
 
@@ -9,7 +8,6 @@ async function main() {
   const { default: app } = await import("./app");
 
   // Start background workers
-  startWebhookWorker();
   startExpirationWorker();
   startOutboxPublisher();
 
@@ -26,7 +24,6 @@ async function main() {
   // Handle graceful shutdown
   const shutdown = () => {
     logger.info("Shutting down...");
-    stopWebhookWorker();
     stopExpirationWorker();
     stopOutboxPublisher();
     server.close();

@@ -8,7 +8,10 @@ describe("Outbox Publisher Integration", () => {
   let originalFetch: typeof global.fetch;
   const testLedgerId = "ldg_test123";
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Clean up ALL outbox events before each test to prevent interference
+    await db.deleteFrom("outboxEvents").execute();
+
     // Save original fetch
     originalFetch = global.fetch;
 
@@ -213,7 +216,8 @@ describe("Outbox Publisher Integration", () => {
 
       expect(blockedEvent?.publishedAt).toBeNull();
       expect(blockedEvent?.publishAttempts).toBeGreaterThan(0);
-      expect(blockedEvent?.nextAttemptAt).toBeNull(); // No retry scheduled
+      // Non-retryable errors get far-future date to prevent retry
+      expect(blockedEvent?.nextAttemptAt).toEqual(new Date("2099-12-31T23:59:59.000Z"));
       expect(blockedEvent?.lastPublishError).toContain("401");
     });
 
@@ -377,7 +381,8 @@ describe("Outbox Publisher Integration", () => {
       expect(exhaustedEvent?.publishedAt).toBeNull();
       // The worker may not increment beyond 24 if it determines it's already at max
       expect(exhaustedEvent?.publishAttempts).toBeGreaterThanOrEqual(24);
-      expect(exhaustedEvent?.nextAttemptAt).toBeNull(); // No more retries
+      // Exhausted events get far-future date to prevent retry
+      expect(exhaustedEvent?.nextAttemptAt).toEqual(new Date("2099-12-31T23:59:59.000Z"));
       expect(exhaustedEvent?.lastPublishError).toContain("500");
     });
   });

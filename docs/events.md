@@ -48,37 +48,18 @@ SET published_at = NOW()
 WHERE id = 'evt_...';
 ```
 
-### Option 2: Subscribe via Redis Pub/Sub
+### Option 2: HTTP push to external service
 
-Set `EVENT_BUS_MODE=redis` and subscribe to the event channel:
-
-```typescript
-import { Redis } from "ioredis";
-
-const redis = new Redis(process.env.REDIS_URL);
-await redis.subscribe("floyd:internal:events");
-
-redis.on("message", (channel, message) => {
-  const event = JSON.parse(message);
-  console.log(`Received ${event.type} for ledger ${event.ledgerId}`);
-  // Process event
-});
-```
-
-### Option 3: HTTP push to external service
-
-Set `EVENT_BUS_MODE=http` to push events to an HTTP endpoint:
+Set `FLOYD_EVENT_INGEST_URL` to push events to an HTTP endpoint:
 
 ```bash
-EVENT_BUS_MODE=http
-EVENT_BUS_HTTP_URL=https://your-service.com/events
-ENGINE_ID=engine-1
-ENGINE_SECRET=your-secret-key
+FLOYD_EVENT_INGEST_URL=https://your-service.com/events
+FLOYD_ENGINE_SECRET=your-secret-key
 ```
 
 Events will be POSTed with an HMAC signature in the `Floyd-Signature` header.
 
-### Option 4: Build a custom worker
+### Option 3: Build a custom worker
 
 Read from the outbox table and process events in a background worker:
 
@@ -185,26 +166,22 @@ interface Event {
 
 ## Configuration
 
-Set the event bus mode via environment variables:
+Configure event publishing via environment variables:
 
 ```bash
-# None - events written to outbox only (default)
-EVENT_BUS_MODE=none
+# HTTP push to external endpoint (default if FLOYD_EVENT_INGEST_URL is set)
+FLOYD_EVENT_INGEST_URL=https://your-service.com/events
+FLOYD_ENGINE_SECRET=your-secret-key  # Optional, for HMAC signing
 
-# Redis - publish to Redis Pub/Sub channel
-EVENT_BUS_MODE=redis
-REDIS_URL=redis://localhost:6379
-
-# HTTP - push to external HTTP endpoint
-EVENT_BUS_MODE=http
-EVENT_BUS_HTTP_URL=https://your-service.com/events
-ENGINE_ID=engine-1
-ENGINE_SECRET=your-secret-key
+# If not set, events accumulate in outbox_events without being published
+# (useful for self-hosted deployments that poll the table directly)
 ```
+
+The engine automatically uses the `source` field from config (defaults to hostname) as the engine identifier.
 
 ## Verifying HTTP signatures
 
-When using `EVENT_BUS_MODE=http`, events are signed with HMAC-SHA256:
+When `FLOYD_ENGINE_SECRET` is set, events are signed with HMAC-SHA256:
 
 ```typescript
 import { createHmac } from "crypto";
@@ -219,7 +196,7 @@ app.post("/events", (req, res) => {
   const signature = req.headers["floyd-signature"];
   const payload = JSON.stringify(req.body);
 
-  if (!verifySignature(payload, signature, process.env.ENGINE_SECRET)) {
+  if (!verifySignature(payload, signature, process.env.FLOYD_ENGINE_SECRET)) {
     return res.status(401).json({ error: "Invalid signature" });
   }
 

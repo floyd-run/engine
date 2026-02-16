@@ -2,7 +2,6 @@ import type {
   AllocationRow,
   ResourceRow,
   LedgerRow,
-  WebhookSubscriptionRow,
   PolicyRow,
   ServiceRow,
   BookingRow,
@@ -51,24 +50,6 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
     metadata: allocation.metadata,
     createdAt: allocation.createdAt.toISOString(),
     updatedAt: allocation.updatedAt.toISOString(),
-  };
-}
-
-export interface WebhookSubscription {
-  id: string;
-  ledgerId: string;
-  url: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export function serializeWebhookSubscription(sub: WebhookSubscriptionRow): WebhookSubscription {
-  return {
-    id: sub.id,
-    ledgerId: sub.ledgerId,
-    url: sub.url,
-    createdAt: sub.createdAt.toISOString(),
-    updatedAt: sub.updatedAt.toISOString(),
   };
 }
 

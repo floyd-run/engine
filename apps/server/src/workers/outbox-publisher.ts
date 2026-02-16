@@ -1,7 +1,7 @@
 import { db } from "database";
 import { logger } from "infra/logger";
 import type { InternalEvent } from "infra/event-bus";
-import { computeWebhookSignature } from "infra/webhooks";
+import { computeHmacSignature } from "infra/crypto";
 
 const POLL_INTERVAL_MS = 1000; // 1 second
 const BATCH_SIZE = 50;
@@ -81,7 +81,7 @@ async function publishEvent(event: InternalEvent): Promise<void> {
 
   const secret = process.env["FLOYD_ENGINE_SECRET"];
   const payload = JSON.stringify(event);
-  const signature = secret ? computeWebhookSignature(payload, secret) : "sha256=unsigned";
+  const signature = secret ? computeHmacSignature(payload, secret) : "sha256=unsigned";
 
   const response = await fetch(ingestUrl, {
     method: "POST",
@@ -179,12 +179,12 @@ async function processOutboxBatch(): Promise<void> {
             : "[outbox-publisher] Event failed with non-retryable error",
         );
 
-        // Mark as blocked (no next_attempt_at means won't be retried)
+        // Mark as permanently failed (far-future date prevents retry)
         await db
           .updateTable("outboxEvents")
           .set({
             lastPublishError: errorMessage,
-            nextAttemptAt: null,
+            nextAttemptAt: new Date("2099-12-31T23:59:59Z"), // Far future = permanently failed
           })
           .where("id", "=", event.id)
           .execute();

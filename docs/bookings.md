@@ -113,7 +113,7 @@ Hold bookings expire automatically when `expiresAt` elapses. The expiration work
 1. Finds hold bookings where `expiresAt <= now()`
 2. Sets `status = expired`
 3. Deactivates allocations (`active = false`)
-4. Enqueues a `booking.expired` webhook event
+4. Emits a `booking.expired` event
 
 After expiration, the time slot is available for new bookings.
 

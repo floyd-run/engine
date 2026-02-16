@@ -44,6 +44,6 @@ See the [Quickstart](./quickstart) for full setup instructions.
 - [Allocations](./allocations) - Raw time blocks
 - [Policies](./policies) - Scheduling rules
 - [Availability](./availability) - Slots, windows, and free/busy timelines
-- [Webhooks](./webhooks) - Real-time notifications
+- [Events](./events) - Event system and consumption
 - [Idempotency](./idempotency) - Safe retries
 - [Errors](./errors) - Error handling

@@ -20,7 +20,9 @@ export function serializeResource(resource: ResourceRow): Resource {
   return {
     id: resource.id,
     ledgerId: resource.ledgerId,
+    name: resource.name,
     timezone: resource.timezone,
+    metadata: resource.metadata,
     createdAt: resource.createdAt.toISOString(),
     updatedAt: resource.updatedAt.toISOString(),
   };

@@ -45,8 +45,8 @@ export default createOperation({
           id: generateId("svc"),
           ledgerId: input.ledgerId,
           policyId: input.policyId ?? null,
-          name: input.name,
-          metadata: input.metadata ?? null,
+          name: input.name ?? null,
+          metadata: input.metadata,
         })
         .returningAll()
         .executeTakeFirstOrThrow();

@@ -10,7 +10,9 @@ export interface LedgersTable {
 export interface ResourcesTable {
   id: string;
   ledgerId: string;
+  name: string | null;
   timezone: string;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -26,7 +28,7 @@ export interface AllocationsTable {
   bufferBeforeMs: number;
   bufferAfterMs: number;
   expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -35,8 +37,8 @@ export interface ServicesTable {
   id: string;
   ledgerId: string;
   policyId: string | null;
-  name: string;
-  metadata: Record<string, unknown> | null;
+  name: string | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -53,7 +55,7 @@ export interface BookingsTable {
   policyVersionId: string;
   status: BookingStatus;
   expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }

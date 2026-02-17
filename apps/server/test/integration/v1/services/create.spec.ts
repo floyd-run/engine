@@ -20,7 +20,7 @@ describe("POST /v1/ledgers/:ledgerId/services", () => {
     expect(data.name).toBe("Haircut");
     expect(data.policyId).toBeNull();
     expect(data.resourceIds).toEqual([resource.id]);
-    expect(data.metadata).toBeNull();
+    expect(data.metadata).toEqual({});
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });
@@ -84,12 +84,14 @@ describe("POST /v1/ledgers/:ledgerId/services", () => {
     expect(data.resourceIds).toContain(r2.id);
   });
 
-  it("returns 422 for missing name", async () => {
+  it("returns 201 with null name when not provided", async () => {
     const { ledger } = await createLedger();
 
     const response = await client.post(`/v1/ledgers/${ledger.id}/services`, {});
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Service };
+    expect(data.name).toBeNull();
   });
 
   it("returns 404 for non-existent policyId", async () => {

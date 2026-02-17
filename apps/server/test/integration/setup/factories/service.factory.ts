@@ -7,7 +7,7 @@ export async function createService(overrides?: {
   name?: string;
   policyId?: string | null;
   resourceIds?: string[];
-  metadata?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown>;
 }) {
   let ledgerId = overrides?.ledgerId;
   if (!ledgerId) {
@@ -22,7 +22,7 @@ export async function createService(overrides?: {
       ledgerId,
       name: overrides?.name ?? "Test Service",
       policyId: overrides?.policyId ?? null,
-      metadata: overrides?.metadata ?? null,
+      metadata: overrides?.metadata ?? {},
     })
     .returningAll()
     .executeTakeFirstOrThrow();

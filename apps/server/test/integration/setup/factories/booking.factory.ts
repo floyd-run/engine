@@ -12,7 +12,7 @@ export async function createBooking(overrides?: {
   policyVersionId?: string;
   status?: "hold" | "confirmed" | "canceled" | "expired";
   expiresAt?: Date | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown>;
   startTime?: Date;
   endTime?: Date;
 }) {
@@ -76,7 +76,7 @@ export async function createBooking(overrides?: {
       policyVersionId,
       status,
       expiresAt,
-      metadata: overrides?.metadata ?? null,
+      metadata: overrides?.metadata ?? {},
     })
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -94,7 +94,7 @@ export async function createBooking(overrides?: {
       bufferBeforeMs: 0,
       bufferAfterMs: 0,
       expiresAt,
-      metadata: null,
+      metadata: {},
     })
     .returningAll()
     .executeTakeFirstOrThrow();

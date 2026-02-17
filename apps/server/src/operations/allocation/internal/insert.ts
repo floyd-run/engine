@@ -12,7 +12,7 @@ interface InsertAllocationParams {
   bufferBeforeMs: number;
   bufferAfterMs: number;
   expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   serverTime: Date;
 }
 

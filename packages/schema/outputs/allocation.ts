@@ -13,7 +13,7 @@ export const base = z.object({
     afterMs: z.number(),
   }),
   expiresAt: z.string().nullable(),
-  metadata: z.record(z.string(), z.unknown()).nullable(),
+  metadata: z.record(z.string(), z.unknown()),
   createdAt: z.string(),
   updatedAt: z.string(),
 });

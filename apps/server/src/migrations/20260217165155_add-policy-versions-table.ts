@@ -20,7 +20,7 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .execute();
 
   // 2. Add name, description, current_version_id to policies
-  await db.schema.alterTable("policies").addColumn("name", "varchar(100)").execute();
+  await db.schema.alterTable("policies").addColumn("name", "varchar(255)").execute();
 
   await db.schema.alterTable("policies").addColumn("description", "varchar(500)").execute();
 
@@ -54,6 +54,30 @@ export async function up(db: Kysely<Database>): Promise<void> {
 
   // Drop old policy_id column from bookings
   await db.schema.alterTable("bookings").dropColumn("policy_id").execute();
+
+  // 6. Add name and metadata to resources
+  await db.schema.alterTable("resources").addColumn("name", "varchar(255)").execute();
+
+  await db.schema
+    .alterTable("resources")
+    .addColumn("metadata", "jsonb", (col) => col.notNull().defaultTo(sql`'{}'::jsonb`))
+    .execute();
+
+  // 7. Make service name nullable
+  await sql`ALTER TABLE services ALTER COLUMN name DROP NOT NULL`.execute(db);
+
+  // 8. Make existing metadata columns NOT NULL with default {}
+  await sql`ALTER TABLE allocations ALTER COLUMN metadata SET DEFAULT '{}'::jsonb`.execute(db);
+  await sql`UPDATE allocations SET metadata = '{}' WHERE metadata IS NULL`.execute(db);
+  await sql`ALTER TABLE allocations ALTER COLUMN metadata SET NOT NULL`.execute(db);
+
+  await sql`ALTER TABLE services ALTER COLUMN metadata SET DEFAULT '{}'::jsonb`.execute(db);
+  await sql`UPDATE services SET metadata = '{}' WHERE metadata IS NULL`.execute(db);
+  await sql`ALTER TABLE services ALTER COLUMN metadata SET NOT NULL`.execute(db);
+
+  await sql`ALTER TABLE bookings ALTER COLUMN metadata SET DEFAULT '{}'::jsonb`.execute(db);
+  await sql`UPDATE bookings SET metadata = '{}' WHERE metadata IS NULL`.execute(db);
+  await sql`ALTER TABLE bookings ALTER COLUMN metadata SET NOT NULL`.execute(db);
 }
 
 export async function down(db: Kysely<Database>): Promise<void> {
@@ -92,6 +116,24 @@ export async function down(db: Kysely<Database>): Promise<void> {
     .on("policies")
     .columns(["ledger_id", "config_hash"])
     .execute();
+
+  // Revert metadata columns to nullable
+  await sql`ALTER TABLE bookings ALTER COLUMN metadata DROP NOT NULL`.execute(db);
+  await sql`ALTER TABLE bookings ALTER COLUMN metadata DROP DEFAULT`.execute(db);
+
+  await sql`ALTER TABLE services ALTER COLUMN metadata DROP NOT NULL`.execute(db);
+  await sql`ALTER TABLE services ALTER COLUMN metadata DROP DEFAULT`.execute(db);
+
+  await sql`ALTER TABLE allocations ALTER COLUMN metadata DROP NOT NULL`.execute(db);
+  await sql`ALTER TABLE allocations ALTER COLUMN metadata DROP DEFAULT`.execute(db);
+
+  // Restore service name as NOT NULL
+  await sql`UPDATE services SET name = '' WHERE name IS NULL`.execute(db);
+  await sql`ALTER TABLE services ALTER COLUMN name SET NOT NULL`.execute(db);
+
+  // Drop name and metadata from resources
+  await sql`ALTER TABLE resources DROP COLUMN IF EXISTS metadata`.execute(db);
+  await sql`ALTER TABLE resources DROP COLUMN IF EXISTS name`.execute(db);
 
   // Drop FK constraint, new columns, and policy_versions table
   await sql`ALTER TABLE policies DROP CONSTRAINT IF EXISTS fk_policies_current_version`.execute(db);

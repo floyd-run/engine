@@ -54,9 +54,9 @@ export default createOperation({
       const service = await trx
         .updateTable("services")
         .set({
-          name: input.name,
+          name: input.name ?? null,
           policyId: input.policyId ?? null,
-          metadata: input.metadata ?? null,
+          metadata: input.metadata,
         })
         .where("id", "=", input.id)
         .returningAll()

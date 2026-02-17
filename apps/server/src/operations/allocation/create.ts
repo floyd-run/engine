@@ -36,7 +36,7 @@ export default createOperation({
         bufferBeforeMs: 0,
         bufferAfterMs: 0,
         expiresAt: input.expiresAt ?? null,
-        metadata: input.metadata ?? null,
+        metadata: input.metadata,
         serverTime,
       });
 

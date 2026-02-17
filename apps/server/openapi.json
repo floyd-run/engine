@@ -43,8 +43,15 @@
           "ledgerId": {
             "type": "string"
           },
+          "name": {
+            "type": ["string", "null"]
+          },
           "timezone": {
             "type": ["string", "null"]
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {}
           },
           "createdAt": {
             "type": "string"
@@ -53,7 +60,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+        "required": ["id", "ledgerId", "name", "timezone", "metadata", "createdAt", "updatedAt"]
       },
       "Allocation": {
         "type": "object",
@@ -95,7 +102,7 @@
             "type": ["string", "null"]
           },
           "metadata": {
-            "type": ["object", "null"],
+            "type": "object",
             "additionalProperties": {}
           },
           "createdAt": {
@@ -317,7 +324,7 @@
             "type": "string"
           },
           "name": {
-            "type": "string"
+            "type": ["string", "null"]
           },
           "policyId": {
             "type": ["string", "null"]
@@ -329,7 +336,7 @@
             }
           },
           "metadata": {
-            "type": ["object", "null"],
+            "type": "object",
             "additionalProperties": {}
           },
           "createdAt": {
@@ -409,7 +416,7 @@
             }
           },
           "metadata": {
-            "type": ["object", "null"],
+            "type": "object",
             "additionalProperties": {}
           },
           "createdAt": {
@@ -659,8 +666,15 @@
                           "ledgerId": {
                             "type": "string"
                           },
+                          "name": {
+                            "type": ["string", "null"]
+                          },
                           "timezone": {
                             "type": ["string", "null"]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "additionalProperties": {}
                           },
                           "createdAt": {
                             "type": "string"
@@ -669,7 +683,15 @@
                             "type": "string"
                           }
                         },
-                        "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                        "required": [
+                          "id",
+                          "ledgerId",
+                          "name",
+                          "timezone",
+                          "metadata",
+                          "createdAt",
+                          "updatedAt"
+                        ]
                       }
                     }
                   },
@@ -699,10 +721,19 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "name": {
+                    "type": ["string", "null"],
+                    "description": "Human-readable name for the resource",
+                    "example": "Room A"
+                  },
                   "timezone": {
                     "type": "string",
                     "description": "IANA timezone for the resource (e.g. America/New_York)",
                     "example": "America/New_York"
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "additionalProperties": {}
                   }
                 },
                 "required": ["timezone"]
@@ -727,8 +758,15 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "name": {
+                          "type": ["string", "null"]
+                        },
                         "timezone": {
                           "type": ["string", "null"]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {}
                         },
                         "createdAt": {
                           "type": "string"
@@ -737,7 +775,15 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "name",
+                        "timezone",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ]
                     }
                   },
                   "required": ["data"]
@@ -787,8 +833,15 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "name": {
+                          "type": ["string", "null"]
+                        },
                         "timezone": {
                           "type": ["string", "null"]
+                        },
+                        "metadata": {
+                          "type": "object",
+                          "additionalProperties": {}
                         },
                         "createdAt": {
                           "type": "string"
@@ -797,7 +850,15 @@
                           "type": "string"
                         }
                       },
-                      "required": ["id", "ledgerId", "timezone", "createdAt", "updatedAt"]
+                      "required": [
+                        "id",
+                        "ledgerId",
+                        "name",
+                        "timezone",
+                        "metadata",
+                        "createdAt",
+                        "updatedAt"
+                      ]
                     }
                   },
                   "required": ["data"]
@@ -1060,7 +1121,7 @@
                             "type": ["string", "null"]
                           },
                           "metadata": {
-                            "type": ["object", "null"],
+                            "type": "object",
                             "additionalProperties": {}
                           },
                           "createdAt": {
@@ -1132,7 +1193,7 @@
                     "description": "If set, the allocation auto-expires after this time"
                   },
                   "metadata": {
-                    "type": ["object", "null"],
+                    "type": "object",
                     "additionalProperties": {}
                   }
                 },
@@ -1189,7 +1250,7 @@
                           "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1335,7 +1396,7 @@
                           "type": ["string", "null"]
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1539,7 +1600,7 @@
                             "type": "string"
                           },
                           "name": {
-                            "type": "string"
+                            "type": ["string", "null"]
                           },
                           "policyId": {
                             "type": ["string", "null"]
@@ -1551,7 +1612,7 @@
                             }
                           },
                           "metadata": {
-                            "type": ["object", "null"],
+                            "type": "object",
                             "additionalProperties": {}
                           },
                           "createdAt": {
@@ -1602,7 +1663,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Service name",
                     "example": "Haircut"
                   },
@@ -1619,11 +1680,10 @@
                     "example": ["rsc_01abc123def456ghi789jkl012"]
                   },
                   "metadata": {
-                    "type": ["object", "null"],
+                    "type": "object",
                     "additionalProperties": {}
                   }
-                },
-                "required": ["name"]
+                }
               }
             }
           }
@@ -1646,7 +1706,7 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
+                          "type": ["string", "null"]
                         },
                         "policyId": {
                           "type": ["string", "null"]
@@ -1658,7 +1718,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1761,7 +1821,7 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
+                          "type": ["string", "null"]
                         },
                         "policyId": {
                           "type": ["string", "null"]
@@ -1773,7 +1833,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -1864,7 +1924,7 @@
                 "type": "object",
                 "properties": {
                   "name": {
-                    "type": "string",
+                    "type": ["string", "null"],
                     "description": "Service name",
                     "example": "Haircut"
                   },
@@ -1881,11 +1941,10 @@
                     "example": ["rsc_01abc123def456ghi789jkl012"]
                   },
                   "metadata": {
-                    "type": ["object", "null"],
+                    "type": "object",
                     "additionalProperties": {}
                   }
-                },
-                "required": ["name"]
+                }
               }
             }
           }
@@ -1908,7 +1967,7 @@
                           "type": "string"
                         },
                         "name": {
-                          "type": "string"
+                          "type": ["string", "null"]
                         },
                         "policyId": {
                           "type": ["string", "null"]
@@ -1920,7 +1979,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -2541,7 +2600,7 @@
                             }
                           },
                           "metadata": {
-                            "type": ["object", "null"],
+                            "type": "object",
                             "additionalProperties": {}
                           },
                           "createdAt": {
@@ -2618,7 +2677,7 @@
                     "description": "Initial status. Hold creates a temporary reservation."
                   },
                   "metadata": {
-                    "type": ["object", "null"],
+                    "type": "object",
                     "additionalProperties": {}
                   }
                 },
@@ -2701,7 +2760,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -2905,7 +2964,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -3076,7 +3135,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -3280,7 +3339,7 @@
                           }
                         },
                         "metadata": {
-                          "type": ["object", "null"],
+                          "type": "object",
                           "additionalProperties": {}
                         },
                         "createdAt": {
@@ -3491,7 +3550,7 @@
                 "properties": {
                   "name": {
                     "type": ["string", "null"],
-                    "description": "Display name (max 100 chars)",
+                    "description": "Display name (max 255 chars)",
                     "example": "Weekday Hours"
                   },
                   "description": {
@@ -3750,7 +3809,7 @@
                 "properties": {
                   "name": {
                     "type": ["string", "null"],
-                    "description": "Display name (max 100 chars)"
+                    "description": "Display name (max 255 chars)"
                   },
                   "description": {
                     "type": ["string", "null"],

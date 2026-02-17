@@ -130,10 +130,15 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
+            name: z.string().nullable().optional().openapi({
+              description: "Human-readable name for the resource",
+              example: "Room A",
+            }),
             timezone: z.string().openapi({
               description: "IANA timezone for the resource (e.g. America/New_York)",
               example: "America/New_York",
             }),
+            metadata: z.record(z.string(), z.unknown()).optional(),
           }),
         },
       },
@@ -258,7 +263,7 @@ registry.registerPath({
             expiresAt: z.iso.datetime().nullable().optional().openapi({
               description: "If set, the allocation auto-expires after this time",
             }),
-            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+            metadata: z.record(z.string(), z.unknown()).optional(),
           }),
         },
       },
@@ -346,7 +351,11 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            name: z.string().openapi({ description: "Service name", example: "Haircut" }),
+            name: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Service name", example: "Haircut" }),
             policyId: z
               .string()
               .nullable()
@@ -359,7 +368,7 @@ registry.registerPath({
                 description: "Resources that belong to this service",
                 example: ["rsc_01abc123def456ghi789jkl012"],
               }),
-            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+            metadata: z.record(z.string(), z.unknown()).optional(),
           }),
         },
       },
@@ -390,7 +399,11 @@ registry.registerPath({
       content: {
         "application/json": {
           schema: z.object({
-            name: z.string().openapi({ description: "Service name", example: "Haircut" }),
+            name: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Service name", example: "Haircut" }),
             policyId: z
               .string()
               .nullable()
@@ -403,7 +416,7 @@ registry.registerPath({
                 description: "Resources that belong to this service",
                 example: ["rsc_01abc123def456ghi789jkl012"],
               }),
-            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+            metadata: z.record(z.string(), z.unknown()).optional(),
           }),
         },
       },
@@ -611,7 +624,7 @@ registry.registerPath({
               .enum(["hold", "confirmed"])
               .default("hold")
               .openapi({ description: "Initial status. Hold creates a temporary reservation." }),
-            metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+            metadata: z.record(z.string(), z.unknown()).optional(),
           }),
         },
       },
@@ -738,7 +751,7 @@ registry.registerPath({
               .string()
               .nullable()
               .optional()
-              .openapi({ description: "Display name (max 100 chars)", example: "Weekday Hours" }),
+              .openapi({ description: "Display name (max 255 chars)", example: "Weekday Hours" }),
             description: z
               .string()
               .nullable()
@@ -783,7 +796,7 @@ registry.registerPath({
               .string()
               .nullable()
               .optional()
-              .openapi({ description: "Display name (max 100 chars)" }),
+              .openapi({ description: "Display name (max 255 chars)" }),
             description: z
               .string()
               .nullable()

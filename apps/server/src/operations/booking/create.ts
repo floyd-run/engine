@@ -124,7 +124,7 @@ export default createOperation({
           policyVersionId,
           status: input.status,
           expiresAt,
-          metadata: input.metadata ?? null,
+          metadata: input.metadata,
         })
         .returningAll()
         .executeTakeFirstOrThrow();
@@ -139,7 +139,7 @@ export default createOperation({
         bufferBeforeMs,
         bufferAfterMs,
         expiresAt,
-        metadata: null,
+        metadata: {},
         serverTime,
       });
 

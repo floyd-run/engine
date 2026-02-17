@@ -8,7 +8,7 @@ export const create = z
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
     expiresAt: z.coerce.date().nullable().optional(),
-    metadata: z.record(z.string(), z.unknown()).nullable().optional(),
+    metadata: z.record(z.string(), z.unknown()).optional().default({}),
   })
   .refine((data) => data.endTime > data.startTime, {
     message: "endTime must be after startTime",

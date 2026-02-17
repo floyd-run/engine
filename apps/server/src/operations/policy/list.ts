@@ -11,6 +11,21 @@ export default createOperation({
       .where("ledgerId", "=", input.ledgerId)
       .execute();
 
-    return { policies };
+    const versionIds = policies.map((p) => p.currentVersionId);
+
+    const versions =
+      versionIds.length > 0
+        ? await db.selectFrom("policyVersions").selectAll().where("id", "in", versionIds).execute()
+        : [];
+
+    const versionMap = new Map(versions.map((v) => [v.id, v]));
+
+    return {
+      policies: policies.flatMap((p) => {
+        const version = versionMap.get(p.currentVersionId);
+        if (!version) return [];
+        return [{ policy: p, version }];
+      }),
+    };
   },
 });

@@ -101,14 +101,16 @@ describe("PUT /v1/ledgers/:ledgerId/services/:id", () => {
     expect(response.status).toBe(404);
   });
 
-  it("returns 422 for missing name", async () => {
+  it("returns 200 with null name when not provided", async () => {
     const { ledger } = await createLedger();
-    const { service } = await createService({ ledgerId: ledger.id });
+    const { service } = await createService({ ledgerId: ledger.id, name: "Original" });
 
     const response = await client.put(`/v1/ledgers/${ledger.id}/services/${service.id}`, {
       resourceIds: [],
     });
 
-    expect(response.status).toBe(422);
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Service };
+    expect(data.name).toBeNull();
   });
 });

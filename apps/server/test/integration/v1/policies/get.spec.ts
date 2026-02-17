@@ -13,8 +13,12 @@ describe("GET /v1/ledgers/:ledgerId/policies/:id", () => {
     const { data } = (await response.json()) as { data: Policy };
     expect(data.id).toBe(policy.id);
     expect(data.ledgerId).toBe(ledgerId);
+    expect(data.currentVersionId).toMatch(/^pvr_/);
     expect(data.config).toBeDefined();
+    expect(data.configSource).toBeDefined();
     expect(data.configHash).toBeDefined();
+    expect(data.name).toBeNull();
+    expect(data.description).toBeNull();
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });

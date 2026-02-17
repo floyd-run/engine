@@ -56,8 +56,8 @@ Response:
 ### How slots are generated
 
 1. **Day resolution**: Each day in the query range is resolved against the service's policy. Closed days and blackout dates are skipped.
-2. **Grid alignment**: Within each day's open windows, candidate positions are placed at grid intervals (from `config.grid.interval_ms`). If no grid is configured, the step defaults to `durationMs`.
-3. **Duration validation**: If the day's config restricts durations (`allowed_ms`, `min_ms`, `max_ms`) and `durationMs` doesn't pass, the entire day is skipped.
+2. **Grid alignment**: Within each day's open windows, candidate positions are placed at grid intervals (from `constraints.grid.interval_ms`). If no grid is configured, the step defaults to `durationMs`.
+3. **Duration validation**: If the day's constraints restrict durations (`allowed_ms`, `min_ms`, `max_ms`) and `durationMs` doesn't pass, the entire day is skipped.
 4. **Conflict check**: Each candidate is expanded by buffer times (`before_ms` / `after_ms`) and checked against existing allocations. Overlapping candidates are excluded.
 5. **Lead time / horizon**: Candidates too close to `serverTime` (below `min_ms`) or too far out (beyond `max_ms`) are excluded.
 
@@ -139,7 +139,7 @@ Response:
    - Gap start touches an allocation → shrink start by `before_ms`
    - Gap end touches an allocation → shrink end by `after_ms`
    - Gap start/end at a schedule boundary → no shrinkage (buffers extend outside schedule)
-5. **Minimum duration filter**: Windows shorter than `config.duration.min_ms` are discarded.
+5. **Minimum duration filter**: Windows shorter than `constraints.duration.min_ms` are discarded.
 6. **Lead time / horizon**: Windows outside the lead time range are filtered.
 7. **Merge**: Adjacent windows are merged into single ranges.
 

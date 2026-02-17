@@ -119,15 +119,28 @@ Trying to delete a resource that has allocations or service associations.
 }
 ```
 
-### Policy in use
+### Service has no policy
 
-Trying to delete a policy that is referenced by one or more services.
+Trying to create a booking against a service that has no policy attached.
 
 ```json
 {
   "error": {
-    "code": "policy_in_use",
-    "message": "Policy is referenced by one or more services"
+    "code": "service.no_policy",
+    "message": "Service must have a policy to create bookings"
+  }
+}
+```
+
+### Policy in use
+
+Trying to delete a policy that is referenced by one or more services or bookings.
+
+```json
+{
+  "error": {
+    "code": "policy.in_use",
+    "message": "Policy is referenced by one or more services or bookings"
   }
 }
 ```

@@ -3,20 +3,23 @@ import { generateId } from "@floyd-run/utils";
 import { faker } from "@faker-js/faker";
 import { createService } from "./service.factory";
 import { createResource } from "./resource.factory";
+import { createPolicy } from "./policy.factory";
 
 export async function createBooking(overrides?: {
   ledgerId?: string;
   serviceId?: string;
   resourceId?: string;
+  policyVersionId?: string;
   status?: "hold" | "confirmed" | "canceled" | "expired";
   expiresAt?: Date | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown>;
   startTime?: Date;
   endTime?: Date;
 }) {
   let ledgerId = overrides?.ledgerId;
   let serviceId = overrides?.serviceId;
   let resourceId = overrides?.resourceId;
+  let policyVersionId = overrides?.policyVersionId;
 
   // If no service or resource provided, create the full chain
   if (!serviceId || !resourceId) {
@@ -46,6 +49,12 @@ export async function createBooking(overrides?: {
     ledgerId = service.ledgerId;
   }
 
+  // Create a default policy version if not provided
+  if (!policyVersionId) {
+    const { version } = await createPolicy({ ledgerId });
+    policyVersionId = version.id;
+  }
+
   const startTime = overrides?.startTime ?? faker.date.future();
   const endTime = overrides?.endTime ?? new Date(startTime.getTime() + 60 * 60 * 1000);
   const status = overrides?.status ?? "hold";
@@ -64,9 +73,10 @@ export async function createBooking(overrides?: {
       id: generateId("bkg"),
       ledgerId,
       serviceId,
+      policyVersionId,
       status,
       expiresAt,
-      metadata: overrides?.metadata ?? null,
+      metadata: overrides?.metadata ?? {},
     })
     .returningAll()
     .executeTakeFirstOrThrow();
@@ -84,7 +94,7 @@ export async function createBooking(overrides?: {
       bufferBeforeMs: 0,
       bufferAfterMs: 0,
       expiresAt,
-      metadata: null,
+      metadata: {},
     })
     .returningAll()
     .executeTakeFirstOrThrow();

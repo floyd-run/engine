@@ -1,5 +1,6 @@
 import { db } from "database";
 import { createOperation } from "lib/operation";
+import { generateId } from "@floyd-run/utils";
 import { policyInput } from "@floyd-run/schema/inputs";
 import { NotFoundError } from "lib/errors";
 import { preparePolicyConfig } from "domain/policy";
@@ -26,19 +27,34 @@ export default createOperation({
         input.config as unknown as Record<string, unknown>,
       );
 
-      // 3. Update
-      const row = await trx
+      // 3. Insert new version
+      const versionId = generateId("pvr");
+      const version = await trx
+        .insertInto("policyVersions")
+        .values({
+          id: versionId,
+          policyId: input.id,
+          config: normalized,
+          configSource: input.config as unknown as Record<string, unknown>,
+          configHash,
+        })
+        .returningAll()
+        .executeTakeFirstOrThrow();
+
+      // 4. Update policy metadata + point to new version
+      const policy = await trx
         .updateTable("policies")
         .set({
-          config: normalized,
-          configHash,
+          currentVersionId: versionId,
+          name: input.name !== undefined ? input.name : existing.name,
+          description: input.description !== undefined ? input.description : existing.description,
         })
         .where("id", "=", input.id)
         .where("ledgerId", "=", input.ledgerId)
         .returningAll()
         .executeTakeFirstOrThrow();
 
-      return { policy: row, warnings };
+      return { policy, version, warnings };
     });
   },
 });

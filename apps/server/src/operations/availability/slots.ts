@@ -81,17 +81,22 @@ export default createOperation({
     // 4. Capture serverTime
     const serverTime = await getServerTime(db);
 
-    // 5. Load policy
+    // 5. Load policy config from current version
     let policy: PolicyConfig | null = null;
     if (service.policyId) {
       const policyRow = await db
         .selectFrom("policies")
-        .selectAll()
+        .select("currentVersionId")
         .where("id", "=", service.policyId)
         .executeTakeFirst();
 
-      if (policyRow) {
-        policy = policyRow.config as unknown as PolicyConfig;
+      if (policyRow?.currentVersionId) {
+        const version = await db
+          .selectFrom("policyVersions")
+          .select("config")
+          .where("id", "=", policyRow.currentVersionId)
+          .executeTakeFirstOrThrow();
+        policy = version.config as unknown as PolicyConfig;
       }
     }
 

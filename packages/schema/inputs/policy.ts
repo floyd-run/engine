@@ -96,8 +96,8 @@ const holdAuthoringSchema = z
   })
   .passthrough();
 
-// Config section (authoring)
-const configAuthoringSchema = z
+// Constraints section (authoring)
+const constraintsAuthoringSchema = z
   .object({
     duration: durationAuthoringSchema.optional(),
     grid: gridAuthoringSchema.optional(),
@@ -139,24 +139,24 @@ const ruleSchema = z
     match: matchSchema,
     closed: z.literal(true).optional(),
     windows: z.array(timeWindowSchema).nonempty().optional(),
-    config: configAuthoringSchema.optional(),
+    overrides: constraintsAuthoringSchema.optional(),
   })
   .refine(
     (rule) => {
       if (rule.closed === true) {
-        return rule.windows === undefined && rule.config === undefined;
+        return rule.windows === undefined && rule.overrides === undefined;
       }
       return true;
     },
-    { message: "closed rule must not have windows or config" },
+    { message: "closed rule must not have windows or overrides" },
   );
 
 // Full policy config schema (authoring format)
 const policyConfigSchema = z
   .object({
     schema_version: z.literal(1),
-    default: z.enum([ScheduleDefault.OPEN, ScheduleDefault.CLOSED]),
-    config: configAuthoringSchema,
+    default_availability: z.enum([ScheduleDefault.OPEN, ScheduleDefault.CLOSED]),
+    constraints: constraintsAuthoringSchema,
     rules: z.array(ruleSchema).default([]),
     metadata: z.record(z.string(), z.unknown()).optional(),
   })
@@ -164,12 +164,16 @@ const policyConfigSchema = z
 
 export const create = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+  name: z.string().max(255).nullable().optional(),
+  description: z.string().max(500).nullable().optional(),
   config: policyConfigSchema,
 });
 
 export const update = z.object({
   id: z.string().refine((id) => isValidId(id, "pol"), { message: "Invalid policy ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+  name: z.string().max(255).nullable().optional(),
+  description: z.string().max(500).nullable().optional(),
   config: policyConfigSchema,
 });
 

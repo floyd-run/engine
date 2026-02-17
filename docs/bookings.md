@@ -50,11 +50,12 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
 ### What happens on create
 
 1. Validates the resource belongs to the service
-2. If the service has a policy, evaluates it (working hours, duration, grid, buffers, etc.)
+2. Evaluates the service's policy (working hours, duration, grid, buffers, etc.) — the service must have a policy attached
 3. If the policy defines buffers, expands the allocation's time window (see [Buffers](#buffers))
 4. Checks for time conflicts on the resource
 5. Creates a booking with `status=hold` and `expiresAt` (default: 15 minutes from now)
 6. Creates an allocation linked to the booking
+7. Stores the `policyVersionId` that was active at booking time (for auditability)
 
 ### Creating as confirmed
 
@@ -125,6 +126,7 @@ After expiration, the time slot is available for new bookings.
     "id": "bkg_...",
     "ledgerId": "ldg_...",
     "serviceId": "svc_...",
+    "policyVersionId": "pvr_...",
     "status": "hold",
     "expiresAt": "2026-03-01T10:15:00.000Z",
     "allocations": [

@@ -11,7 +11,7 @@ export async function createAllocation(overrides?: {
   startTime?: Date;
   endTime?: Date;
   expiresAt?: Date | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Record<string, unknown>;
 }) {
   const ledgerIdParam = overrides?.ledgerId;
   let ledgerId: string;
@@ -48,7 +48,7 @@ export async function createAllocation(overrides?: {
       bufferBeforeMs: 0,
       bufferAfterMs: 0,
       expiresAt: overrides?.expiresAt ?? null,
-      metadata: overrides?.metadata ?? null,
+      metadata: overrides?.metadata ?? {},
     })
     .returningAll()
     .executeTakeFirst();

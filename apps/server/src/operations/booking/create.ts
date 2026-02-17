@@ -57,46 +57,57 @@ export default createOperation({
         });
       }
 
-      // 5. Policy evaluation (if service has a policy)
+      // 5. Load policy version
+      if (!service.policyId) {
+        throw new ConflictError("service.no_policy", {
+          message: "Service must have a policy to create bookings",
+        });
+      }
+
+      const policyRow = await trx
+        .selectFrom("policies")
+        .select("currentVersionId")
+        .where("id", "=", service.policyId)
+        .executeTakeFirstOrThrow();
+
+      const version = await trx
+        .selectFrom("policyVersions")
+        .selectAll()
+        .where("id", "=", policyRow.currentVersionId)
+        .executeTakeFirstOrThrow();
+
+      const policyVersionId = version.id;
+
       let holdDurationMs = DEFAULT_HOLD_DURATION_MS;
       let startTime = input.startTime;
       let endTime = input.endTime;
       let bufferBeforeMs = 0;
       let bufferAfterMs = 0;
-      if (service.policyId) {
-        const policy = await trx
-          .selectFrom("policies")
-          .selectAll()
-          .where("id", "=", service.policyId)
-          .executeTakeFirst();
 
-        if (policy) {
-          const timezone = resource.timezone;
-          const result = evaluatePolicy(
-            policy.config as unknown as PolicyConfig,
-            { startTime: input.startTime, endTime: input.endTime },
-            { decisionTime: serverTime, timezone },
-          );
+      const timezone = resource.timezone;
+      const result = evaluatePolicy(
+        version.config as unknown as PolicyConfig,
+        { startTime: input.startTime, endTime: input.endTime },
+        { decisionTime: serverTime, timezone },
+      );
 
-          if (!result.allowed) {
-            throw new ConflictError("policy.rejected", {
-              code: result.code,
-              message: result.message,
-              ...("details" in result ? { details: result.details } : {}),
-            });
-          }
+      if (!result.allowed) {
+        throw new ConflictError("policy.rejected", {
+          code: result.code,
+          message: result.message,
+          ...("details" in result ? { details: result.details } : {}),
+        });
+      }
 
-          // Use buffer-expanded times as the allocation's blocked window
-          startTime = result.effectiveStartTime;
-          endTime = result.effectiveEndTime;
-          bufferBeforeMs = result.bufferBeforeMs;
-          bufferAfterMs = result.bufferAfterMs;
+      // Use buffer-expanded times as the allocation's blocked window
+      startTime = result.effectiveStartTime;
+      endTime = result.effectiveEndTime;
+      bufferBeforeMs = result.bufferBeforeMs;
+      bufferAfterMs = result.bufferAfterMs;
 
-          // Use resolved hold_duration (respects per-rule overrides)
-          if (result.resolvedConfig.hold?.duration_ms !== undefined) {
-            holdDurationMs = result.resolvedConfig.hold.duration_ms;
-          }
-        }
+      // Use resolved hold_duration (respects per-rule overrides)
+      if (result.resolvedConfig.hold?.duration_ms !== undefined) {
+        holdDurationMs = result.resolvedConfig.hold.duration_ms;
       }
 
       // 6. Compute expiresAt
@@ -110,10 +121,10 @@ export default createOperation({
           id: generateId("bkg"),
           ledgerId: input.ledgerId,
           serviceId: input.serviceId,
-          policyId: service.policyId,
+          policyVersionId,
           status: input.status,
           expiresAt,
-          metadata: input.metadata ?? null,
+          metadata: input.metadata,
         })
         .returningAll()
         .executeTakeFirstOrThrow();
@@ -128,7 +139,7 @@ export default createOperation({
         bufferBeforeMs,
         bufferAfterMs,
         expiresAt,
-        metadata: null,
+        metadata: {},
         serverTime,
       });
 

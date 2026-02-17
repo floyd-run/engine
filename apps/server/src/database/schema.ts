@@ -1,4 +1,4 @@
-import type { Generated, Insertable, Selectable, Updateable } from "kysely";
+import type { ColumnType, Generated, Insertable, Selectable, Updateable } from "kysely";
 import type { BookingStatus, IdempotencyStatus } from "@floyd-run/schema/types";
 
 export interface LedgersTable {
@@ -10,7 +10,9 @@ export interface LedgersTable {
 export interface ResourcesTable {
   id: string;
   ledgerId: string;
+  name: string | null;
   timezone: string;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -26,7 +28,7 @@ export interface AllocationsTable {
   bufferBeforeMs: number;
   bufferAfterMs: number;
   expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -35,8 +37,8 @@ export interface ServicesTable {
   id: string;
   ledgerId: string;
   policyId: string | null;
-  name: string;
-  metadata: Record<string, unknown> | null;
+  name: string | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -50,10 +52,10 @@ export interface BookingsTable {
   id: string;
   ledgerId: string;
   serviceId: string;
-  policyId: string | null;
+  policyVersionId: string;
   status: BookingStatus;
   expiresAt: Date | null;
-  metadata: Record<string, unknown> | null;
+  metadata: Record<string, unknown>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }
@@ -87,10 +89,20 @@ export interface OutboxEventsTable {
 export interface PoliciesTable {
   id: string;
   ledgerId: string;
-  config: Record<string, unknown>;
-  configHash: string;
+  name: string | null;
+  description: string | null;
+  currentVersionId: ColumnType<string, string | null, string | null>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
+}
+
+export interface PolicyVersionsTable {
+  id: string;
+  policyId: string;
+  config: Record<string, unknown>;
+  configSource: Record<string, unknown>;
+  configHash: string;
+  createdAt: Generated<Date>;
 }
 
 export interface Database {
@@ -102,6 +114,7 @@ export interface Database {
   resources: ResourcesTable;
   ledgers: LedgersTable;
   policies: PoliciesTable;
+  policyVersions: PolicyVersionsTable;
   outboxEvents: OutboxEventsTable;
 }
 
@@ -137,3 +150,6 @@ export type OutboxEventUpdate = Updateable<OutboxEventsTable>;
 export type PolicyRow = Selectable<PoliciesTable>;
 export type NewPolicy = Insertable<PoliciesTable>;
 export type PolicyUpdate = Updateable<PoliciesTable>;
+
+export type PolicyVersionRow = Selectable<PolicyVersionsTable>;
+export type NewPolicyVersion = Insertable<PolicyVersionsTable>;

@@ -99,8 +99,8 @@ export function resolveDay(
       }));
 
       // Step 4: Config resolution
-      const baseConfig = policy.config;
-      const ruleConfig = matchedRule.config ?? {};
+      const baseConfig = policy.constraints;
+      const ruleConfig = matchedRule.overrides ?? {};
       const resolvedRaw = { ...baseConfig, ...ruleConfig };
       const config: ResolvedConfig = {
         duration: resolvedRaw["duration"] as DurationConfig | undefined,
@@ -115,15 +115,15 @@ export function resolveDay(
     // No windows on matched rule → day is open 24h
   } else {
     // No rule matched → use default
-    if (policy.default === "closed") {
+    if (policy.default_availability === "closed") {
       return null;
     }
     // default: "open" → proceed with 24h
   }
 
   // Open 24h (matched rule without windows, or default "open" with no matching rule)
-  const baseConfig = policy.config;
-  const ruleConfig = matchedRule?.config ?? {};
+  const baseConfig = policy.constraints;
+  const ruleConfig = matchedRule?.overrides ?? {};
   const resolvedRaw = { ...baseConfig, ...ruleConfig };
   const config: ResolvedConfig = {
     duration: resolvedRaw["duration"] as DurationConfig | undefined,

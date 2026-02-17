@@ -20,8 +20,8 @@ interface SlotsResponse {
 
 const SALON_POLICY = {
   schema_version: 1,
-  default: "closed",
-  config: {
+  default_availability: "closed",
+  constraints: {
     duration: { allowed_minutes: [30, 60, 90] },
     grid: { interval_minutes: 30 },
     buffers: { after_minutes: 10 },
@@ -121,8 +121,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
       ledgerId: ledger.id,
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           duration: { min_minutes: 60, max_minutes: 120 },
         },
         rules: [
@@ -172,8 +172,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
       ledgerId: ledger.id,
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           duration: { allowed_minutes: [30, 60, 90] },
           grid: { interval_minutes: 30 },
         },
@@ -185,7 +185,7 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/slots", () => {
           {
             match: { type: "weekly", days: ["saturday"] },
             windows: [{ start: "10:00", end: "14:00" }],
-            config: {
+            overrides: {
               duration: { allowed_minutes: [30, 60] },
             },
           },

@@ -7,17 +7,36 @@ export default createOperation({
   input: policyInput.remove,
   execute: async (input) => {
     try {
-      const result = await db
-        .deleteFrom("policies")
-        .where("id", "=", input.id)
-        .where("ledgerId", "=", input.ledgerId)
-        .executeTakeFirst();
+      return await db.transaction().execute(async (trx) => {
+        // Check policy exists
+        const policy = await trx
+          .selectFrom("policies")
+          .select("id")
+          .where("id", "=", input.id)
+          .where("ledgerId", "=", input.ledgerId)
+          .executeTakeFirst();
 
-      return { deleted: result.numDeletedRows > 0n };
+        if (!policy) return { deleted: false };
+
+        // Clear current_version_id FK before deleting versions
+        await trx
+          .updateTable("policies")
+          .set({ currentVersionId: null })
+          .where("id", "=", input.id)
+          .execute();
+
+        // Delete associated versions
+        await trx.deleteFrom("policyVersions").where("policyId", "=", input.id).execute();
+
+        // Delete the policy
+        await trx.deleteFrom("policies").where("id", "=", input.id).execute();
+
+        return { deleted: true };
+      });
     } catch (err: unknown) {
       if (err instanceof Error && "code" in err && err.code === "23503") {
         throw new ConflictError("policy.in_use", {
-          message: "Policy is referenced by one or more services",
+          message: "Policy is referenced by one or more services or bookings",
         });
       }
       throw err;

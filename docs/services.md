@@ -86,9 +86,10 @@ curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services"
 
 When a booking is created against a service:
 
-1. The resource must belong to the service
-2. If the service has a policy, the booking is evaluated against its rules
-3. The policy uses the resource's timezone for time-of-day rules
+1. The service must have a policy attached
+2. The resource must belong to the service
+3. The booking is evaluated against the policy's rules
+4. The policy uses the resource's timezone for time-of-day rules
 
 A resource can belong to multiple services. For example, "Room A" could be used by both "Yoga Class" and "Meeting Rental" services, each with different policies.
 
@@ -108,10 +109,11 @@ Both endpoints respect the service's policy (working hours, grid, buffers, lead 
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/policies" \
   -H "Content-Type: application/json" \
   -d '{
+    "name": "Salon Hours",
     "config": {
       "schema_version": 1,
-      "default": "closed",
-      "config": {
+      "default_availability": "closed",
+      "constraints": {
         "duration": { "allowed_minutes": [30, 60, 90] },
         "grid": { "interval_minutes": 30 },
         "buffers": { "after_minutes": 10 }

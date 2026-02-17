@@ -1,13 +1,21 @@
 import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
-import { createLedger, createResource, createService } from "../../setup/factories";
+import { createLedger, createResource, createService, createPolicy } from "../../setup/factories";
 import type { Booking } from "@floyd-run/schema/types";
 import { db } from "database";
 
 describe("POST /v1/ledgers/:ledgerId/bookings/:id/cancel", () => {
   async function createHoldBooking(ledgerId: string) {
     const { resource } = await createResource({ ledgerId });
-    const { service } = await createService({ ledgerId, resourceIds: [resource.id] });
+    const { policy } = await createPolicy({
+      ledgerId,
+      config: { schema_version: 1, default_availability: "open", constraints: {} },
+    });
+    const { service } = await createService({
+      ledgerId,
+      policyId: policy.id,
+      resourceIds: [resource.id],
+    });
 
     const response = await client.post(`/v1/ledgers/${ledgerId}/bookings`, {
       serviceId: service.id,

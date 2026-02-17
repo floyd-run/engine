@@ -68,12 +68,12 @@ describe("Outbox Publisher Integration", () => {
         })
         .execute();
 
+      // Set environment variable before import so config picks it up
+      process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
+
       // Act: Import and run publisher (would normally run in background)
       const { startOutboxPublisher, stopOutboxPublisher } =
         await import("../../../src/workers/outbox-publisher");
-
-      // Set environment variable for test
-      process.env["FLOYD_EVENT_INGEST_URL"] = "https://test.example.com/ingest";
 
       // Give publisher a moment to process
       startOutboxPublisher();

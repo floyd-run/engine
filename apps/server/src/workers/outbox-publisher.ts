@@ -2,6 +2,7 @@ import { db } from "database";
 import { logger } from "infra/logger";
 import type { InternalEvent } from "infra/event-bus";
 import { computeHmacSignature } from "infra/crypto";
+import { config } from "config";
 
 const POLL_INTERVAL_MS = 1000; // 1 second
 const BATCH_SIZE = 50;
@@ -72,14 +73,13 @@ export function extractStatusCode(error: Error): number | null {
  * Throws error with HTTP status for proper error classification.
  */
 async function publishEvent(event: InternalEvent): Promise<void> {
-  const ingestUrl = process.env["FLOYD_EVENT_INGEST_URL"];
+  const ingestUrl = config.FLOYD_EVENT_INGEST_URL;
 
   if (!ingestUrl) {
-    logger.warn({ eventId: event.id }, "[outbox-publisher] FLOYD_EVENT_INGEST_URL not set");
-    return;
+    throw new Error("FLOYD_EVENT_INGEST_URL not set");
   }
 
-  const secret = process.env["FLOYD_ENGINE_SECRET"];
+  const secret = config.FLOYD_ENGINE_SECRET;
   const payload = JSON.stringify(event);
   const signature = secret ? computeHmacSignature(payload, secret) : "sha256=unsigned";
 
@@ -111,8 +111,9 @@ async function processOutboxBatch(): Promise<void> {
     return;
   }
 
-  // Claim events ready for publishing using FOR UPDATE SKIP LOCKED
-  // to prevent duplicate processing across multiple engine instances
+  // FOR UPDATE SKIP LOCKED reduces duplicate delivery when concurrent workers
+  // poll at the same instant, but does not fully prevent it (locks release on
+  // auto-commit). Consumers must be idempotent.
   const events = await db
     .selectFrom("outboxEvents")
     .selectAll()
@@ -262,7 +263,7 @@ export function stopOutboxPublisher(): void {
 }
 
 export function startOutboxPublisher(): void {
-  const ingestUrl = process.env["FLOYD_EVENT_INGEST_URL"];
+  const ingestUrl = config.FLOYD_EVENT_INGEST_URL;
 
   if (!ingestUrl) {
     logger.info("[outbox-publisher] FLOYD_EVENT_INGEST_URL not set, running in self-hosted mode");

@@ -5,6 +5,8 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
   DATABASE_URL: z.url(),
   FLOYD_API_KEY: z.string().min(1).optional(),
+  FLOYD_EVENT_INGEST_URL: z.url().optional(),
+  FLOYD_ENGINE_SECRET: z.string().min(1).optional(),
 });
 
 export const config = schema.parse(process.env);

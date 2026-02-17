@@ -18,6 +18,10 @@ vi.mock("infra/crypto", () => ({
   computeHmacSignature: vi.fn(() => "mocked-signature"),
 }));
 
+vi.mock("config", () => ({
+  config: {},
+}));
+
 import {
   isRetryableError,
   computeNextAttemptAt,

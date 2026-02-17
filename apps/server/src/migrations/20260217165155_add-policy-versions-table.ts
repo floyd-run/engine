@@ -26,52 +26,25 @@ export async function up(db: Kysely<Database>): Promise<void> {
 
   await db.schema.alterTable("policies").addColumn("current_version_id", "varchar(32)").execute();
 
-  // 3. Migrate existing policies into policy_versions (pure SQL to avoid CamelCasePlugin)
-  await sql`
-    INSERT INTO policy_versions (id, policy_id, config, config_source, config_hash, created_at)
-    SELECT
-      'pvr_' || substr(replace(gen_random_uuid()::text, '-', ''), 1, 26),
-      id, config, config, config_hash, NOW()
-    FROM policies
-  `.execute(db);
-
-  await sql`
-    UPDATE policies p
-    SET current_version_id = pv.id
-    FROM policy_versions pv
-    WHERE pv.policy_id = p.id
-  `.execute(db);
-
-  // 4. Add FK constraint for current_version_id (after data migration)
+  // 3. Add FK constraint for current_version_id
   await sql`
     ALTER TABLE policies
     ADD CONSTRAINT fk_policies_current_version
     FOREIGN KEY (current_version_id) REFERENCES policy_versions(id)
   `.execute(db);
 
-  // 5. Drop old columns from policies
+  // 4. Drop old columns from policies
   await db.schema.dropIndex("idx_policies_config_hash").ifExists().execute();
   await db.schema.alterTable("policies").dropColumn("config").execute();
   await db.schema.alterTable("policies").dropColumn("config_hash").execute();
 
-  // 6. Replace policy_id with policy_version_id on bookings
+  // 5. Replace policy_id with policy_version_id on bookings
   await db.schema
     .alterTable("bookings")
-    .addColumn("policy_version_id", "varchar(32)", (col) => col.references("policy_versions.id"))
+    .addColumn("policy_version_id", "varchar(32)", (col) =>
+      col.notNull().references("policy_versions.id"),
+    )
     .execute();
-
-  // Migrate existing bookings that have a policy_id
-  await sql`
-    UPDATE bookings b
-    SET policy_version_id = p.current_version_id
-    FROM policies p
-    WHERE b.policy_id = p.id
-  `.execute(db);
-
-  // Make it NOT NULL after data migration
-  await sql`
-    ALTER TABLE bookings ALTER COLUMN policy_version_id SET NOT NULL
-  `.execute(db);
 
   await db.schema
     .createIndex("idx_bookings_policy_version")

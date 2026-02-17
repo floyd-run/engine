@@ -63,7 +63,7 @@ export function computeNextAttemptAt(attempt: number, statusCode: number | null)
  * @internal Exported for testing
  */
 export function extractStatusCode(error: Error): number | null {
-  const match = error.message.match(/HTTP (\d{3})/);
+  const match = /HTTP (\d{3})/.exec(error.message);
   return match ? parseInt(match[1]!, 10) : null;
 }
 

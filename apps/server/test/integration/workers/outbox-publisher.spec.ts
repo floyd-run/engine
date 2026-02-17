@@ -9,8 +9,8 @@ describe("Outbox Publisher Integration", () => {
   const testLedgerId = "ldg_test123";
 
   beforeEach(async () => {
-    // Clean up test ledger's events before each test
-    await db.deleteFrom("outboxEvents").where("ledgerId", "=", testLedgerId).execute();
+    // Clean up all unpublished events to prevent interference from other integration tests
+    await db.deleteFrom("outboxEvents").where("publishedAt", "is", null).execute();
 
     // Save original fetch
     originalFetch = global.fetch;
@@ -34,8 +34,8 @@ describe("Outbox Publisher Integration", () => {
     // Restore original fetch
     global.fetch = originalFetch;
 
-    // Clean up test events
-    await db.deleteFrom("outboxEvents").where("ledgerId", "=", testLedgerId).execute();
+    // Clean up all unpublished events
+    await db.deleteFrom("outboxEvents").where("publishedAt", "is", null).execute();
 
     // Clean up env vars
     delete process.env["FLOYD_EVENT_INGEST_URL"];
@@ -83,8 +83,10 @@ describe("Outbox Publisher Integration", () => {
       // Assert: Event was published via HTTP
       expect(fetchMock).toHaveBeenCalledWith(
         "https://test.example.com/ingest",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({
           method: "POST",
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           headers: expect.objectContaining({
             "Content-Type": "application/json",
           }),
@@ -253,16 +255,18 @@ describe("Outbox Publisher Integration", () => {
       // Assert: Floyd-Signature header is present and not "unsigned"
       expect(fetchMock).toHaveBeenCalledWith(
         "https://test.example.com/ingest",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           headers: expect.objectContaining({
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             "Floyd-Signature": expect.stringMatching(/^sha256=/),
           }),
         }),
       );
 
-      const calls = fetchMock.mock.calls;
-      const headers = calls[0]?.[1]?.headers as Record<string, string>;
-      expect(headers["Floyd-Signature"]).not.toBe("sha256=unsigned");
+      const call = fetchMock.mock.calls[0] as [string, { headers: Record<string, string> }];
+      expect(call[1].headers["Floyd-Signature"]).not.toBe("sha256=unsigned");
 
       // Cleanup
       delete process.env["FLOYD_ENGINE_SECRET"];
@@ -377,7 +381,7 @@ describe("Outbox Publisher Integration", () => {
   describe("Circuit Breaker", () => {
     it("activates circuit breaker after consecutive failures", async () => {
       // Arrange: Insert 5 events
-      const eventIds = await Promise.all(
+      await Promise.all(
         Array.from({ length: 5 }, async (_, i) => {
           const eventId = generateId("evt");
           await db

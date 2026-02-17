@@ -103,7 +103,6 @@ interface Event {
   type: string; // Event type (booking.created, etc.)
   ledgerId: string; // Which ledger
   timestamp: string; // ISO 8601 timestamp
-  source: string; // Engine instance identifier
   schemaVersion: number; // Payload schema version (currently 1)
   data: {
     booking?: Booking; // Present for booking events
@@ -120,7 +119,7 @@ interface Event {
   "type": "booking.created",
   "ledgerId": "ldg_01xyz789...",
   "timestamp": "2026-01-15T10:00:00Z",
-  "source": "engine-1",
+
   "schemaVersion": 1,
   "data": {
     "booking": {
@@ -150,7 +149,7 @@ interface Event {
   "type": "allocation.deleted",
   "ledgerId": "ldg_01xyz789...",
   "timestamp": "2026-01-15T10:00:00Z",
-  "source": "engine-1",
+
   "schemaVersion": 1,
   "data": {
     "allocation": {

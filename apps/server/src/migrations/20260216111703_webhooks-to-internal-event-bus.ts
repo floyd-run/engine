@@ -40,6 +40,8 @@ export async function up(db: Kysely<Database>): Promise<void> {
     .execute();
 }
 
+// Intentionally irreversible: webhook tables are not recreated.
+// The webhook system has been fully replaced by the internal event bus.
 export async function down(db: Kysely<Database>): Promise<void> {
   await db.schema.dropTable("outbox_events").execute();
 }

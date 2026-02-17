@@ -24,7 +24,7 @@ Floyd Engine emits events when state changes occur (bookings created, allocation
 
 - **Transactional safety** - Events are written in the same database transaction as the state change. If the transaction rolls back, no event is emitted.
 - **At-least-once delivery** - Events are retried automatically on failure
-- **Ordering** - Events are ordered by `created_at` within a ledger
+- **Ordering** - Events are emitted in `created_at` order within a ledger, but may be delivered out of order when retries occur. Use `event.id` (ULID) or `event.timestamp` to reconstruct order on the consumer side.
 - **Durability** - Events survive crashes and restarts
 
 ## Consuming events

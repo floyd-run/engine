@@ -111,7 +111,8 @@ async function processOutboxBatch(): Promise<void> {
     return;
   }
 
-  // Get events ready for publishing (no published_at, and next_attempt_at is due or null)
+  // Claim events ready for publishing using FOR UPDATE SKIP LOCKED
+  // to prevent duplicate processing across multiple engine instances
   const events = await db
     .selectFrom("outboxEvents")
     .selectAll()
@@ -120,6 +121,8 @@ async function processOutboxBatch(): Promise<void> {
     .where((eb) => eb.or([eb("nextAttemptAt", "is", null), eb("nextAttemptAt", "<=", new Date())]))
     .orderBy("createdAt", "asc")
     .limit(BATCH_SIZE)
+    .forUpdate()
+    .skipLocked()
     .execute();
 
   if (events.length === 0) {
@@ -131,12 +134,13 @@ async function processOutboxBatch(): Promise<void> {
   let consecutiveFailures = 0;
 
   for (const event of events) {
+    // Track attempt count locally after incrementing to avoid stale reads
+    const currentAttempt = event.publishAttempts + 1;
+
     // Increment attempt counter
     await db
       .updateTable("outboxEvents")
-      .set((eb) => ({
-        publishAttempts: eb("publishAttempts", "+", 1),
-      }))
+      .set({ publishAttempts: currentAttempt })
       .where("id", "=", event.id)
       .execute();
 
@@ -162,14 +166,14 @@ async function processOutboxBatch(): Promise<void> {
       const statusCode = error instanceof Error ? extractStatusCode(error) : null;
       const isRetryable = isRetryableError(statusCode);
 
-      const nextAttemptAt = computeNextAttemptAt(event.publishAttempts + 1, statusCode);
+      const nextAttemptAt = computeNextAttemptAt(currentAttempt, statusCode);
 
       // Check if we've exhausted retries or hit non-retryable error
-      if (!isRetryable || event.publishAttempts + 1 >= MAX_ATTEMPTS) {
+      if (!isRetryable || currentAttempt >= MAX_ATTEMPTS) {
         logger.error(
           {
             eventId: event.id,
-            attempts: event.publishAttempts + 1,
+            attempts: currentAttempt,
             error: errorMessage,
             statusCode,
             retryable: isRetryable,
@@ -203,7 +207,7 @@ async function processOutboxBatch(): Promise<void> {
         logger.warn(
           {
             eventId: event.id,
-            attempts: event.publishAttempts + 1,
+            attempts: currentAttempt,
             error: errorMessage,
             statusCode,
             nextAttemptAt,

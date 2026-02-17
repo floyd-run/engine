@@ -1,6 +1,6 @@
 import { db, getServerTime } from "database";
 import { logger } from "infra/logger";
-import { enqueueWebhookEvent } from "infra/webhooks";
+import { emitEvent } from "infra/event-bus";
 import { serializeBooking } from "routes/v1/serializers";
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
@@ -65,9 +65,9 @@ async function processExpiredBookings(): Promise<number> {
       allocationsByBookingId.set(allocation.bookingId!, group);
     }
 
-    // Enqueue webhook events
+    // Emit events to outbox
     for (const booking of expiredBookings) {
-      await enqueueWebhookEvent(trx, "booking.expired", booking.ledgerId, {
+      await emitEvent(trx, "booking.expired", booking.ledgerId, {
         booking: serializeBooking(
           { ...booking, status: "expired" as const, expiresAt: null, updatedAt: serverTime },
           allocationsByBookingId.get(booking.id) ?? [],

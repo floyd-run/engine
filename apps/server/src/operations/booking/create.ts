@@ -3,7 +3,7 @@ import { createOperation } from "lib/operation";
 import { generateId } from "@floyd-run/utils";
 import { bookingInput } from "@floyd-run/schema/inputs";
 import { ConflictError, NotFoundError } from "lib/errors";
-import { enqueueWebhookEvent } from "infra/webhooks";
+import { emitEvent } from "infra/event-bus";
 import { serializeBooking } from "routes/v1/serializers";
 import { evaluatePolicy, type PolicyConfig } from "domain/policy/evaluate";
 import { insertAllocation } from "../allocation/internal/insert";
@@ -132,8 +132,8 @@ export default createOperation({
         serverTime,
       });
 
-      // 9. Enqueue webhook
-      await enqueueWebhookEvent(trx, "booking.created", input.ledgerId, {
+      // 9. Emit event to outbox
+      await emitEvent(trx, "booking.created", input.ledgerId, {
         booking: serializeBooking(booking, [allocation]),
       });
 

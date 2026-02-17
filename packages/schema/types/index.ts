@@ -1,16 +1,10 @@
 import type { z } from "zod";
 import type * as outputs from "../outputs";
-import {
-  BookingStatus,
-  IdempotencyStatus,
-  WebhookDeliveryStatus,
-  ScheduleDefault,
-} from "../constants";
+import { BookingStatus, IdempotencyStatus, ScheduleDefault } from "../constants";
 import { ConstantType } from "./utils";
 
 export type BookingStatus = ConstantType<typeof BookingStatus>;
 export type IdempotencyStatus = ConstantType<typeof IdempotencyStatus>;
-export type WebhookDeliveryStatus = ConstantType<typeof WebhookDeliveryStatus>;
 export type ScheduleDefault = ConstantType<typeof ScheduleDefault>;
 
 export type Allocation = z.infer<typeof outputs.allocation.base>;

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { client } from "../../setup/client";
 import { createResource } from "../../setup/factories";
 import type { Allocation } from "@floyd-run/schema/types";
+import { db } from "database";
 
 describe("POST /v1/ledgers/:ledgerId/allocations", () => {
   it("returns 201 for valid allocation", async () => {
@@ -60,6 +61,44 @@ describe("POST /v1/ledgers/:ledgerId/allocations", () => {
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Allocation };
     expect(data.metadata).toEqual(metadata);
+  });
+
+  it("creates allocation.created event in outbox", async () => {
+    const { resource, ledgerId } = await createResource();
+
+    const response = await client.post(`/v1/ledgers/${ledgerId}/allocations`, {
+      resourceId: resource.id,
+      startTime: new Date("2026-02-01T10:00:00Z").toISOString(),
+      endTime: new Date("2026-02-01T11:00:00Z").toISOString(),
+    });
+
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Allocation };
+
+    // Verify event was created in outbox
+    const event = await db
+      .selectFrom("outboxEvents")
+      .selectAll()
+      .where("ledgerId", "=", ledgerId)
+      .where("eventType", "=", "allocation.created")
+      .orderBy("createdAt", "desc")
+      .executeTakeFirst();
+
+    expect(event).toBeDefined();
+    expect(event?.eventType).toBe("allocation.created");
+    expect(event?.ledgerId).toBe(ledgerId);
+    expect(event?.publishedAt).toBeNull(); // Not yet published
+    expect(event?.publishAttempts).toBe(0);
+
+    // Verify payload contains allocation data
+    const payload = event?.payload as {
+      id: string;
+      type: string;
+      data: { allocation: Allocation };
+    };
+    expect(payload.type).toBe("allocation.created");
+    expect(payload.data.allocation.id).toBe(data.id);
+    expect(payload.data.allocation.resourceId).toBe(resource.id);
   });
 
   it("returns 422 for missing required fields", async () => {

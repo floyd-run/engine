@@ -3,14 +3,6 @@ export const IdempotencyStatus = {
   COMPLETED: "completed",
 } as const;
 
-export const WebhookDeliveryStatus = {
-  PENDING: "pending",
-  IN_FLIGHT: "in_flight",
-  SUCCEEDED: "succeeded",
-  FAILED: "failed",
-  EXHAUSTED: "exhausted",
-} as const;
-
 export const BookingStatus = {
   HOLD: "hold",
   CONFIRMED: "confirmed",

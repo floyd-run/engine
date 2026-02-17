@@ -6,7 +6,6 @@ import {
   allocation,
   resource,
   ledger,
-  webhook,
   policy,
   error,
   availability,
@@ -20,7 +19,6 @@ const registry = new OpenAPIRegistry();
 registry.register("Ledger", ledger.base);
 registry.register("Resource", resource.base);
 registry.register("Allocation", allocation.base);
-registry.register("WebhookSubscription", webhook.subscription);
 registry.register("AvailabilityItem", availability.item);
 registry.register("TimelineBlock", availability.timelineBlock);
 registry.register("Slot", availability.slot);
@@ -681,116 +679,6 @@ registry.registerPath({
     },
     409: {
       description: "Booking cannot be canceled (invalid state)",
-      content: { "application/json": { schema: error.schema } },
-    },
-  },
-});
-
-// Webhook routes
-registry.registerPath({
-  method: "get",
-  path: "/v1/ledgers/{ledgerId}/webhooks",
-  tags: ["Webhooks"],
-  summary: "List webhook subscriptions",
-  request: { params: z.object({ ledgerId: z.string() }) },
-  responses: {
-    200: {
-      description: "List of webhook subscriptions",
-      content: { "application/json": { schema: webhook.listSubscriptions } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/v1/ledgers/{ledgerId}/webhooks",
-  tags: ["Webhooks"],
-  summary: "Create a webhook subscription",
-  description:
-    "Creates a new webhook subscription. The secret is only returned once at creation time.",
-  request: {
-    params: z.object({ ledgerId: z.string() }),
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            url: z.url().openapi({ example: "https://example.com/webhook" }),
-          }),
-        },
-      },
-    },
-  },
-  responses: {
-    201: {
-      description: "Webhook subscription created (includes secret)",
-      content: { "application/json": { schema: webhook.createSubscription } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "patch",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{id}",
-  tags: ["Webhooks"],
-  summary: "Update a webhook subscription",
-  request: {
-    params: z.object({ ledgerId: z.string(), id: z.string() }),
-    body: {
-      content: {
-        "application/json": {
-          schema: z.object({
-            url: z.url().optional(),
-          }),
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "Webhook subscription updated",
-      content: { "application/json": { schema: webhook.updateSubscription } },
-    },
-    404: {
-      description: "Webhook subscription not found",
-      content: { "application/json": { schema: error.schema } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "delete",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{id}",
-  tags: ["Webhooks"],
-  summary: "Delete a webhook subscription",
-  request: {
-    params: z.object({ ledgerId: z.string(), id: z.string() }),
-  },
-  responses: {
-    204: { description: "Webhook subscription deleted" },
-    404: {
-      description: "Webhook subscription not found",
-      content: { "application/json": { schema: error.schema } },
-    },
-  },
-});
-
-registry.registerPath({
-  method: "post",
-  path: "/v1/ledgers/{ledgerId}/webhooks/{id}/rotate-secret",
-  tags: ["Webhooks"],
-  summary: "Rotate webhook secret",
-  description:
-    "Generates a new secret for the webhook subscription. The old secret is invalidated immediately.",
-  request: {
-    params: z.object({ ledgerId: z.string(), id: z.string() }),
-  },
-  responses: {
-    200: {
-      description: "New secret generated (includes secret)",
-      content: { "application/json": { schema: webhook.rotateSecret } },
-    },
-    404: {
-      description: "Webhook subscription not found",
       content: { "application/json": { schema: error.schema } },
     },
   },

@@ -1,13 +1,13 @@
 import { ulid } from "ulid";
 
-export type IdPrefix = "ldg" | "rsc" | "alc" | "whs" | "whd" | "pol" | "svc" | "bkg";
+export type IdPrefix = "ldg" | "rsc" | "alc" | "pol" | "svc" | "bkg" | "evt";
 
 export function generateId(prefix: IdPrefix): string {
   return `${prefix}_${ulid().toLowerCase()}`;
 }
 
 export function parseId(id: string): { prefix: IdPrefix; ulid: string } | null {
-  const match = id.match(/^(ldg|rsc|alc|whs|whd|pol|svc|bkg)_([a-z0-9]{26})$/);
+  const match = id.match(/^(ldg|rsc|alc|pol|svc|bkg|evt)_([a-z0-9]{26})$/);
   if (!match) return null;
   return { prefix: match[1] as IdPrefix, ulid: match[2]! };
 }

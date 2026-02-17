@@ -88,9 +88,9 @@ async function publishEvent(event: InternalEvent): Promise<void> {
     headers: {
       "Content-Type": "application/json",
       "Floyd-Signature": signature,
-      "Floyd-Engine-ID": event.source,
     },
     body: payload,
+    signal: AbortSignal.timeout(30000), // 30 second timeout
   });
 
   if (!response.ok) {

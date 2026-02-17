@@ -254,5 +254,5 @@ curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings"
 - [Availability](./availability.md) - Slots, windows, and free/busy timelines
 - [Policies](./policies.md) - Scheduling rules
 - [Idempotency](./idempotency.md) - Safe retries
-- [Webhooks](./webhooks.md) - Real-time notifications
+- [Events](./events.md) - Event system and consumption
 - [Errors](./errors.md) - Error handling

@@ -75,7 +75,6 @@ export interface OutboxEventsTable {
   id: string;
   ledgerId: string;
   eventType: string;
-  source: string;
   schemaVersion: number;
   payload: Record<string, unknown>;
   createdAt: Generated<Date>;

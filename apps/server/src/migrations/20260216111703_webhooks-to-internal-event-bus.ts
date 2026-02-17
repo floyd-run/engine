@@ -6,13 +6,15 @@ export async function up(db: Kysely<Database>): Promise<void> {
   await db.schema.dropTable("webhook_deliveries").ifExists().execute();
   await db.schema.dropTable("webhook_subscriptions").ifExists().execute();
 
+  // Drop outbox_events if it exists (to ensure clean schema)
+  await db.schema.dropTable("outbox_events").ifExists().execute();
+
   // Create outbox_events table for internal event bus
   await db.schema
     .createTable("outbox_events")
     .addColumn("id", "text", (col) => col.primaryKey())
     .addColumn("ledger_id", "text", (col) => col.notNull())
     .addColumn("event_type", "text", (col) => col.notNull())
-    .addColumn("source", "text", (col) => col.notNull())
     .addColumn("schema_version", "integer", (col) => col.notNull().defaultTo(1))
     .addColumn("payload", "jsonb", (col) => col.notNull())
     .addColumn("created_at", "timestamptz", (col) => col.notNull().defaultTo(sql`NOW()`))

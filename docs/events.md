@@ -177,8 +177,6 @@ FLOYD_ENGINE_SECRET=your-secret-key  # Optional, for HMAC signing
 # (useful for self-hosted deployments that poll the table directly)
 ```
 
-The engine automatically uses the `source` field from config (defaults to hostname) as the engine identifier.
-
 ## Verifying HTTP signatures
 
 When `FLOYD_ENGINE_SECRET` is set, events are signed with HMAC-SHA256:

@@ -15,7 +15,6 @@ export interface InternalEvent {
   id: string;
   type: InternalEventType;
   ledgerId: string;
-  source: string;
   schemaVersion: number;
   timestamp: string;
   data: Record<string, unknown>;
@@ -37,13 +36,11 @@ export async function emitEvent(
   data: Record<string, unknown>,
 ): Promise<void> {
   const eventId = generateId("evt");
-  const source = process.env["ENGINE_ID"] || "engine-default";
 
   const event: InternalEvent = {
     id: eventId,
     type,
     ledgerId,
-    source,
     schemaVersion: 1,
     timestamp: new Date().toISOString(),
     data,
@@ -55,7 +52,6 @@ export async function emitEvent(
       id: eventId,
       ledgerId,
       eventType: type,
-      source,
       schemaVersion: 1,
       payload: event as unknown as Record<string, unknown>,
       publishAttempts: 0,

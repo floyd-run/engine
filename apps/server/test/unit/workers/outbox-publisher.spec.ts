@@ -14,8 +14,8 @@ vi.mock("infra/logger", () => ({
   },
 }));
 
-vi.mock("infra/webhooks", () => ({
-  computeWebhookSignature: vi.fn(() => "mocked-signature"),
+vi.mock("infra/crypto", () => ({
+  computeHmacSignature: vi.fn(() => "mocked-signature"),
 }));
 
 import {

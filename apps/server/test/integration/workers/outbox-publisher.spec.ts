@@ -9,8 +9,8 @@ describe("Outbox Publisher Integration", () => {
   const testLedgerId = "ldg_test123";
 
   beforeEach(async () => {
-    // Clean up ALL outbox events before each test to prevent interference
-    await db.deleteFrom("outboxEvents").execute();
+    // Clean up test ledger's events before each test
+    await db.deleteFrom("outboxEvents").where("ledgerId", "=", testLedgerId).execute();
 
     // Save original fetch
     originalFetch = global.fetch;
@@ -50,7 +50,6 @@ describe("Outbox Publisher Integration", () => {
         id: eventId,
         type: "allocation.created",
         ledgerId: testLedgerId,
-        source: "engine-test",
         schemaVersion: 1,
         timestamp: new Date().toISOString(),
         data: { test: "data" },
@@ -62,7 +61,6 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "allocation.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: event as unknown as Record<string, unknown>,
           publishAttempts: 0,
@@ -89,7 +87,6 @@ describe("Outbox Publisher Integration", () => {
           method: "POST",
           headers: expect.objectContaining({
             "Content-Type": "application/json",
-            "Floyd-Engine-ID": "engine-test",
           }),
         }),
       );
@@ -113,7 +110,6 @@ describe("Outbox Publisher Integration", () => {
         id: eventId,
         type: "booking.created",
         ledgerId: testLedgerId,
-        source: "engine-test",
         schemaVersion: 1,
         timestamp: new Date().toISOString(),
         data: { test: "data" },
@@ -125,7 +121,6 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "booking.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: event as unknown as Record<string, unknown>,
           publishAttempts: 0,
@@ -170,7 +165,6 @@ describe("Outbox Publisher Integration", () => {
         id: eventId,
         type: "booking.created",
         ledgerId: testLedgerId,
-        source: "engine-test",
         schemaVersion: 1,
         timestamp: new Date().toISOString(),
         data: { test: "data" },
@@ -182,7 +176,6 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "booking.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: event as unknown as Record<string, unknown>,
           publishAttempts: 0,
@@ -228,7 +221,6 @@ describe("Outbox Publisher Integration", () => {
         id: eventId,
         type: "allocation.created",
         ledgerId: testLedgerId,
-        source: "engine-test",
         schemaVersion: 1,
         timestamp: new Date().toISOString(),
         data: { test: "data" },
@@ -240,7 +232,6 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "allocation.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: event as unknown as Record<string, unknown>,
           publishAttempts: 0,
@@ -288,13 +279,11 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "booking.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: {
             id: eventId,
             type: "booking.created",
             ledgerId: testLedgerId,
-            source: "engine-test",
             schemaVersion: 1,
             timestamp: new Date().toISOString(),
             data: {},
@@ -338,13 +327,11 @@ describe("Outbox Publisher Integration", () => {
           id: eventId,
           ledgerId: testLedgerId,
           eventType: "booking.created",
-          source: "engine-test",
           schemaVersion: 1,
           payload: {
             id: eventId,
             type: "booking.created",
             ledgerId: testLedgerId,
-            source: "engine-test",
             schemaVersion: 1,
             timestamp: new Date().toISOString(),
             data: {},
@@ -399,13 +386,11 @@ describe("Outbox Publisher Integration", () => {
               id: eventId,
               ledgerId: testLedgerId,
               eventType: "booking.created",
-              source: "engine-test",
               schemaVersion: 1,
               payload: {
                 id: eventId,
                 type: "booking.created",
                 ledgerId: testLedgerId,
-                source: "engine-test",
                 schemaVersion: 1,
                 timestamp: new Date().toISOString(),
                 data: { index: i },

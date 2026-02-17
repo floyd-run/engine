@@ -83,7 +83,6 @@ describe("Outbox Publisher Integration", () => {
       // Assert: Event was published via HTTP
       expect(fetchMock).toHaveBeenCalledWith(
         "https://test.example.com/ingest",
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({
           method: "POST",
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -255,7 +254,6 @@ describe("Outbox Publisher Integration", () => {
       // Assert: Floyd-Signature header is present and not "unsigned"
       expect(fetchMock).toHaveBeenCalledWith(
         "https://test.example.com/ingest",
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         expect.objectContaining({
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           headers: expect.objectContaining({

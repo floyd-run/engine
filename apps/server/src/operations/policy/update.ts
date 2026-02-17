@@ -46,8 +46,8 @@ export default createOperation({
         .updateTable("policies")
         .set({
           currentVersionId: versionId,
-          name: input.name ?? existing.name,
-          description: input.description ?? existing.description,
+          name: input.name !== undefined ? input.name : existing.name,
+          description: input.description !== undefined ? input.description : existing.description,
         })
         .where("id", "=", input.id)
         .where("ledgerId", "=", input.ledgerId)

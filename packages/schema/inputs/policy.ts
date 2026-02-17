@@ -164,16 +164,16 @@ const policyConfigSchema = z
 
 export const create = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
-  name: z.string().max(100).optional(),
-  description: z.string().max(500).optional(),
+  name: z.string().max(100).nullable().optional(),
+  description: z.string().max(500).nullable().optional(),
   config: policyConfigSchema,
 });
 
 export const update = z.object({
   id: z.string().refine((id) => isValidId(id, "pol"), { message: "Invalid policy ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
-  name: z.string().max(100).optional(),
-  description: z.string().max(500).optional(),
+  name: z.string().max(100).nullable().optional(),
+  description: z.string().max(500).nullable().optional(),
   config: policyConfigSchema,
 });
 

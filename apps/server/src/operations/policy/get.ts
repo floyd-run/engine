@@ -12,7 +12,7 @@ export default createOperation({
       .where("ledgerId", "=", input.ledgerId)
       .executeTakeFirst();
 
-    if (!policy || !policy.currentVersionId) {
+    if (!policy) {
       return { policy: null, version: null };
     }
 

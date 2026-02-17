@@ -73,7 +73,7 @@ export default createOperation({
       const version = await trx
         .selectFrom("policyVersions")
         .selectAll()
-        .where("id", "=", policyRow.currentVersionId!)
+        .where("id", "=", policyRow.currentVersionId)
         .executeTakeFirstOrThrow();
 
       const policyVersionId = version.id;

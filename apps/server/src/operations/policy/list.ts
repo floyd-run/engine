@@ -11,9 +11,7 @@ export default createOperation({
       .where("ledgerId", "=", input.ledgerId)
       .execute();
 
-    const versionIds = policies
-      .map((p) => p.currentVersionId)
-      .filter((id): id is string => id !== null);
+    const versionIds = policies.map((p) => p.currentVersionId);
 
     const versions =
       versionIds.length > 0
@@ -23,12 +21,11 @@ export default createOperation({
     const versionMap = new Map(versions.map((v) => [v.id, v]));
 
     return {
-      policies: policies
-        .filter((p) => p.currentVersionId !== null)
-        .map((p) => ({
-          policy: p,
-          version: versionMap.get(p.currentVersionId!)!,
-        })),
+      policies: policies.flatMap((p) => {
+        const version = versionMap.get(p.currentVersionId);
+        if (!version) return [];
+        return [{ policy: p, version }];
+      }),
     };
   },
 });

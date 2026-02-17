@@ -1,4 +1,4 @@
-import type { Generated, Insertable, Selectable, Updateable } from "kysely";
+import type { ColumnType, Generated, Insertable, Selectable, Updateable } from "kysely";
 import type { BookingStatus, IdempotencyStatus } from "@floyd-run/schema/types";
 
 export interface LedgersTable {
@@ -89,7 +89,7 @@ export interface PoliciesTable {
   ledgerId: string;
   name: string | null;
   description: string | null;
-  currentVersionId: string | null;
+  currentVersionId: ColumnType<string, string | null, string | null>;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
 }

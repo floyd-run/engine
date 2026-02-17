@@ -267,7 +267,20 @@
           "ledgerId": {
             "type": "string"
           },
+          "name": {
+            "type": ["string", "null"]
+          },
+          "description": {
+            "type": ["string", "null"]
+          },
+          "currentVersionId": {
+            "type": "string"
+          },
           "config": {
+            "type": "object",
+            "additionalProperties": {}
+          },
+          "configSource": {
             "type": "object",
             "additionalProperties": {}
           },
@@ -281,7 +294,18 @@
             "type": "string"
           }
         },
-        "required": ["id", "ledgerId", "config", "configHash", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "ledgerId",
+          "name",
+          "description",
+          "currentVersionId",
+          "config",
+          "configSource",
+          "configHash",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "Service": {
         "type": "object",
@@ -338,8 +362,8 @@
           "serviceId": {
             "type": "string"
           },
-          "policyId": {
-            "type": ["string", "null"]
+          "policyVersionId": {
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -399,7 +423,7 @@
           "id",
           "ledgerId",
           "serviceId",
-          "policyId",
+          "policyVersionId",
           "status",
           "expiresAt",
           "allocations",
@@ -2463,8 +2487,8 @@
                           "serviceId": {
                             "type": "string"
                           },
-                          "policyId": {
-                            "type": ["string", "null"]
+                          "policyVersionId": {
+                            "type": "string"
                           },
                           "status": {
                             "type": "string",
@@ -2531,7 +2555,7 @@
                           "id",
                           "ledgerId",
                           "serviceId",
-                          "policyId",
+                          "policyVersionId",
                           "status",
                           "expiresAt",
                           "allocations",
@@ -2552,7 +2576,7 @@
       "post": {
         "tags": ["Bookings"],
         "summary": "Create a new booking",
-        "description": "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
+        "description": "Creates a booking for a service. The service must have a policy attached. Evaluates the policy, checks for conflicts, and creates the underlying allocation. The booking stores the policyVersionId that was active at creation time for auditability. When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. Supports idempotency via the Idempotency-Key header.",
         "parameters": [
           {
             "schema": {
@@ -2623,8 +2647,8 @@
                         "serviceId": {
                           "type": "string"
                         },
-                        "policyId": {
-                          "type": ["string", "null"]
+                        "policyVersionId": {
+                          "type": "string"
                         },
                         "status": {
                           "type": "string",
@@ -2691,7 +2715,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
-                        "policyId",
+                        "policyVersionId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -2827,8 +2851,8 @@
                         "serviceId": {
                           "type": "string"
                         },
-                        "policyId": {
-                          "type": ["string", "null"]
+                        "policyVersionId": {
+                          "type": "string"
                         },
                         "status": {
                           "type": "string",
@@ -2895,7 +2919,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
-                        "policyId",
+                        "policyVersionId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -2998,8 +3022,8 @@
                         "serviceId": {
                           "type": "string"
                         },
-                        "policyId": {
-                          "type": ["string", "null"]
+                        "policyVersionId": {
+                          "type": "string"
                         },
                         "status": {
                           "type": "string",
@@ -3066,7 +3090,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
-                        "policyId",
+                        "policyVersionId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -3202,8 +3226,8 @@
                         "serviceId": {
                           "type": "string"
                         },
-                        "policyId": {
-                          "type": ["string", "null"]
+                        "policyVersionId": {
+                          "type": "string"
                         },
                         "status": {
                           "type": "string",
@@ -3270,7 +3294,7 @@
                         "id",
                         "ledgerId",
                         "serviceId",
-                        "policyId",
+                        "policyVersionId",
                         "status",
                         "expiresAt",
                         "allocations",
@@ -3396,7 +3420,20 @@
                           "ledgerId": {
                             "type": "string"
                           },
+                          "name": {
+                            "type": ["string", "null"]
+                          },
+                          "description": {
+                            "type": ["string", "null"]
+                          },
+                          "currentVersionId": {
+                            "type": "string"
+                          },
                           "config": {
+                            "type": "object",
+                            "additionalProperties": {}
+                          },
+                          "configSource": {
                             "type": "object",
                             "additionalProperties": {}
                           },
@@ -3413,7 +3450,11 @@
                         "required": [
                           "id",
                           "ledgerId",
+                          "name",
+                          "description",
+                          "currentVersionId",
                           "config",
+                          "configSource",
                           "configHash",
                           "createdAt",
                           "updatedAt"
@@ -3431,7 +3472,7 @@
       "post": {
         "tags": ["Policies"],
         "summary": "Create a policy",
-        "description": "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds).",
+        "description": "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds). Both the normalized config and the original authoring input (configSource) are preserved on each version.",
         "parameters": [
           {
             "schema": {
@@ -3448,6 +3489,16 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "name": {
+                    "type": ["string", "null"],
+                    "description": "Display name (max 100 chars)",
+                    "example": "Weekday Hours"
+                  },
+                  "description": {
+                    "type": ["string", "null"],
+                    "description": "Description (max 500 chars)",
+                    "example": "Mon-Fri 9am-5pm"
+                  },
                   "config": {
                     "type": "object",
                     "properties": {
@@ -3455,11 +3506,11 @@
                         "type": "number",
                         "enum": [1]
                       },
-                      "default": {
+                      "default_availability": {
                         "type": "string",
                         "enum": ["open", "closed"]
                       },
-                      "config": {
+                      "constraints": {
                         "type": "object",
                         "properties": {},
                         "additionalProperties": {}
@@ -3473,7 +3524,7 @@
                         }
                       }
                     },
-                    "required": ["schema_version", "default", "config"],
+                    "required": ["schema_version", "default_availability", "constraints"],
                     "additionalProperties": {},
                     "description": "Policy configuration in authoring format"
                   }
@@ -3500,7 +3551,20 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "name": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "currentVersionId": {
+                          "type": "string"
+                        },
                         "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configSource": {
                           "type": "object",
                           "additionalProperties": {}
                         },
@@ -3517,7 +3581,11 @@
                       "required": [
                         "id",
                         "ledgerId",
+                        "name",
+                        "description",
+                        "currentVersionId",
                         "config",
+                        "configSource",
                         "configHash",
                         "createdAt",
                         "updatedAt"
@@ -3571,7 +3639,20 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "name": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "currentVersionId": {
+                          "type": "string"
+                        },
                         "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configSource": {
                           "type": "object",
                           "additionalProperties": {}
                         },
@@ -3588,7 +3669,11 @@
                       "required": [
                         "id",
                         "ledgerId",
+                        "name",
+                        "description",
+                        "currentVersionId",
                         "config",
+                        "configSource",
                         "configHash",
                         "createdAt",
                         "updatedAt"
@@ -3638,7 +3723,7 @@
       "put": {
         "tags": ["Policies"],
         "summary": "Update a policy",
-        "description": "Replaces the full policy configuration. The config is re-normalized, re-validated, and re-hashed.",
+        "description": "Replaces the full policy configuration. Creates a new immutable version — the config is re-normalized, re-validated, and re-hashed.",
         "parameters": [
           {
             "schema": {
@@ -3663,6 +3748,14 @@
               "schema": {
                 "type": "object",
                 "properties": {
+                  "name": {
+                    "type": ["string", "null"],
+                    "description": "Display name (max 100 chars)"
+                  },
+                  "description": {
+                    "type": ["string", "null"],
+                    "description": "Description (max 500 chars)"
+                  },
                   "config": {
                     "type": "object",
                     "properties": {
@@ -3670,11 +3763,11 @@
                         "type": "number",
                         "enum": [1]
                       },
-                      "default": {
+                      "default_availability": {
                         "type": "string",
                         "enum": ["open", "closed"]
                       },
-                      "config": {
+                      "constraints": {
                         "type": "object",
                         "properties": {},
                         "additionalProperties": {}
@@ -3688,7 +3781,7 @@
                         }
                       }
                     },
-                    "required": ["schema_version", "default", "config"],
+                    "required": ["schema_version", "default_availability", "constraints"],
                     "additionalProperties": {},
                     "description": "Policy configuration in authoring format"
                   }
@@ -3715,7 +3808,20 @@
                         "ledgerId": {
                           "type": "string"
                         },
+                        "name": {
+                          "type": ["string", "null"]
+                        },
+                        "description": {
+                          "type": ["string", "null"]
+                        },
+                        "currentVersionId": {
+                          "type": "string"
+                        },
                         "config": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "configSource": {
                           "type": "object",
                           "additionalProperties": {}
                         },
@@ -3732,7 +3838,11 @@
                       "required": [
                         "id",
                         "ledgerId",
+                        "name",
+                        "description",
+                        "currentVersionId",
                         "config",
+                        "configSource",
                         "configHash",
                         "createdAt",
                         "updatedAt"
@@ -3782,6 +3892,7 @@
       "delete": {
         "tags": ["Policies"],
         "summary": "Delete a policy",
+        "description": "Deletes a policy and all its versions. Fails if the policy is referenced by services or bookings.",
         "parameters": [
           {
             "schema": {
@@ -3806,6 +3917,39 @@
           },
           "404": {
             "description": "Policy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {}
+                        },
+                        "issues": {
+                          "type": "array",
+                          "items": {}
+                        }
+                      },
+                      "required": ["code", "message"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Policy is referenced by services or bookings",
             "content": {
               "application/json": {
                 "schema": {

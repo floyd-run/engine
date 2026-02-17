@@ -127,15 +127,59 @@ Response:
 }
 ```
 
-## 2) Create a service
+## 2) Create a policy
 
-A service groups resources and optionally attaches a policy.
+Policies define scheduling rules. For the quickstart, we'll create an open policy (no restrictions).
+
+```bash
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/policies" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Open",
+    "config": {
+      "schema_version": 1,
+      "default_availability": "open",
+      "constraints": {}
+    }
+  }'
+```
+
+Response:
+
+```json
+{
+  "data": {
+    "id": "pol_01abc123def456ghi789jkl012",
+    "ledgerId": "ldg_01abc123def456ghi789jkl012",
+    "name": "Open",
+    "description": null,
+    "currentVersionId": "pvr_01abc123def456ghi789jkl012",
+    "config": {
+      "schema_version": 1,
+      "default_availability": "open",
+      "constraints": {},
+      "rules": []
+    },
+    "configSource": { "schema_version": 1, "default_availability": "open", "constraints": {} },
+    "configHash": "sha256:...",
+    "createdAt": "2026-01-04T10:00:00.000Z",
+    "updatedAt": "2026-01-04T10:00:00.000Z"
+  }
+}
+```
+
+See [Policies](./policies.md) for working hours, durations, grid alignment, and more.
+
+## 3) Create a service
+
+A service groups resources and attaches a policy for booking rules.
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/services" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Haircut",
+    "policyId": "pol_01abc123def456ghi789jkl012",
     "resourceIds": ["rsc_01abc123def456ghi789jkl012"]
   }'
 ```
@@ -148,7 +192,7 @@ Response:
     "id": "svc_01abc123def456ghi789jkl012",
     "ledgerId": "ldg_01abc123def456ghi789jkl012",
     "name": "Haircut",
-    "policyId": null,
+    "policyId": "pol_01abc123def456ghi789jkl012",
     "resourceIds": ["rsc_01abc123def456ghi789jkl012"],
     "metadata": null,
     "createdAt": "2026-01-04T10:00:00.000Z",
@@ -157,7 +201,7 @@ Response:
 }
 ```
 
-## 3) Create a hold
+## 4) Create a hold
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
@@ -180,6 +224,7 @@ Response:
     "id": "bkg_01abc123def456ghi789jkl012",
     "ledgerId": "ldg_01abc123def456ghi789jkl012",
     "serviceId": "svc_01abc123def456ghi789jkl012",
+    "policyVersionId": "pvr_01abc123def456ghi789jkl012",
     "status": "hold",
     "expiresAt": "2026-01-04T10:15:00.000Z",
     "allocations": [
@@ -188,6 +233,7 @@ Response:
         "resourceId": "rsc_01abc123def456ghi789jkl012",
         "startTime": "2026-01-04T10:00:00.000Z",
         "endTime": "2026-01-04T10:30:00.000Z",
+        "buffer": { "beforeMs": 0, "afterMs": 0 },
         "active": true
       }
     ],
@@ -207,7 +253,7 @@ Error responses:
 - `409 Conflict` if the service's policy rejects the request
 - `422 Unprocessable Entity` if your input is invalid
 
-## 4) Confirm the booking
+## 5) Confirm the booking
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/confirm" \
@@ -220,7 +266,7 @@ Expected:
 - `409 Conflict` if the hold expired before you confirmed
 - Safe to retry (confirming an already confirmed booking returns the confirmed booking)
 
-## 5) Cancel a booking
+## 6) Cancel a booking
 
 ```bash
 curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/cancel" \
@@ -232,7 +278,7 @@ Expected:
 - `200 OK` with status `canceled` and allocations deactivated (`active: false`)
 - Safe to retry (canceling an already canceled booking returns the booking)
 
-## 6) Get a booking
+## 7) Get a booking
 
 ```bash
 curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID"
@@ -240,7 +286,7 @@ curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID"
 
 Returns the booking with nested allocations.
 
-## 7) List bookings
+## 8) List bookings
 
 ```bash
 curl "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings"

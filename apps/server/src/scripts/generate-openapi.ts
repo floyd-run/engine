@@ -592,7 +592,8 @@ registry.registerPath({
   tags: ["Bookings"],
   summary: "Create a new booking",
   description:
-    "Creates a booking for a service. Evaluates the service's policy, checks for conflicts, and creates the underlying allocation. " +
+    "Creates a booking for a service. The service must have a policy attached. Evaluates the policy, checks for conflicts, and creates the underlying allocation. " +
+    "The booking stores the policyVersionId that was active at creation time for auditability. " +
     "When the policy defines buffers, the allocation's startTime/endTime represent the buffer-expanded blocked window. " +
     "The original customer time can be derived using buffer.beforeMs and buffer.afterMs on the allocation. " +
     "Supports idempotency via the Idempotency-Key header.",
@@ -725,18 +726,29 @@ registry.registerPath({
   tags: ["Policies"],
   summary: "Create a policy",
   description:
-    "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds).",
+    "Creates a new scheduling policy for the ledger. The config is provided in authoring format (friendly units like minutes/hours) and stored in canonical format (milliseconds). " +
+    "Both the normalized config and the original authoring input (configSource) are preserved on each version.",
   request: {
     params: z.object({ ledgerId: z.string() }),
     body: {
       content: {
         "application/json": {
           schema: z.object({
+            name: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Display name (max 100 chars)", example: "Weekday Hours" }),
+            description: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Description (max 500 chars)", example: "Mon-Fri 9am-5pm" }),
             config: z
               .object({
                 schema_version: z.literal(1),
-                default: z.enum(["open", "closed"]),
-                config: z.object({}).loose(),
+                default_availability: z.enum(["open", "closed"]),
+                constraints: z.object({}).loose(),
                 rules: z.array(z.object({}).loose()).optional(),
               })
               .loose()
@@ -760,18 +772,28 @@ registry.registerPath({
   tags: ["Policies"],
   summary: "Update a policy",
   description:
-    "Replaces the full policy configuration. The config is re-normalized, re-validated, and re-hashed.",
+    "Replaces the full policy configuration. Creates a new immutable version — the config is re-normalized, re-validated, and re-hashed.",
   request: {
     params: z.object({ ledgerId: z.string(), id: z.string() }),
     body: {
       content: {
         "application/json": {
           schema: z.object({
+            name: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Display name (max 100 chars)" }),
+            description: z
+              .string()
+              .nullable()
+              .optional()
+              .openapi({ description: "Description (max 500 chars)" }),
             config: z
               .object({
                 schema_version: z.literal(1),
-                default: z.enum(["open", "closed"]),
-                config: z.object({}).loose(),
+                default_availability: z.enum(["open", "closed"]),
+                constraints: z.object({}).loose(),
                 rules: z.array(z.object({}).loose()).optional(),
               })
               .loose()
@@ -798,6 +820,8 @@ registry.registerPath({
   path: "/v1/ledgers/{ledgerId}/policies/{id}",
   tags: ["Policies"],
   summary: "Delete a policy",
+  description:
+    "Deletes a policy and all its versions. Fails if the policy is referenced by services or bookings.",
   request: {
     params: z.object({ ledgerId: z.string(), id: z.string() }),
   },
@@ -805,6 +829,10 @@ registry.registerPath({
     204: { description: "Policy deleted" },
     404: {
       description: "Policy not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    409: {
+      description: "Policy is referenced by services or bookings",
       content: { "application/json": { schema: error.schema } },
     },
   },

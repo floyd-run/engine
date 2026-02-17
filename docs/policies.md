@@ -75,7 +75,7 @@ curl -X POST https://api.floyd.run/v1/ledgers/{ledgerId}/policies \
 
 | Field         | Type   | Required | Description                      |
 | ------------- | ------ | -------- | -------------------------------- |
-| `name`        | string | No       | Display name (max 100 chars)     |
+| `name`        | string | No       | Display name (max 255 chars)     |
 | `description` | string | No       | Description (max 500 chars)      |
 | `config`      | object | Yes      | Policy configuration (see below) |
 

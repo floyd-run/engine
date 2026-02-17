@@ -28,6 +28,26 @@ registry.register("ResourceWindows", availability.resourceWindows);
 registry.register("Policy", policy.base);
 registry.register("Service", service.base);
 registry.register("Booking", booking.base);
+
+const policyWarning = z.object({
+  code: z.string().openapi({ description: "Warning code", example: "implicit_open_default" }),
+  message: z.string().openapi({ description: "Human-readable warning message" }),
+  details: z
+    .record(z.string(), z.unknown())
+    .optional()
+    .openapi({ description: "Additional context" }),
+});
+registry.register("PolicyWarning", policyWarning);
+
+const policyMutationResponse = z.object({
+  data: policy.base,
+  meta: z
+    .object({
+      warnings: z.array(policyWarning),
+    })
+    .optional(),
+});
+registry.register("PolicyMutationResponse", policyMutationResponse);
 registry.register("Error", error.schema);
 
 // Ledger routes
@@ -774,7 +794,7 @@ registry.registerPath({
   responses: {
     201: {
       description: "Policy created (may include warnings)",
-      content: { "application/json": { schema: policy.get } },
+      content: { "application/json": { schema: policyMutationResponse } },
     },
   },
 });
@@ -819,7 +839,7 @@ registry.registerPath({
   responses: {
     200: {
       description: "Policy updated (may include warnings)",
-      content: { "application/json": { schema: policy.get } },
+      content: { "application/json": { schema: policyMutationResponse } },
     },
     404: {
       description: "Policy not found",

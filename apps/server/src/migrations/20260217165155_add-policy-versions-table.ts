@@ -1,6 +1,8 @@
 import type { Database } from "database/schema";
 import { type Kysely, sql } from "kysely";
 
+// This migration assumes an empty database (no existing policies or bookings).
+// It drops columns and adds NOT NULL constraints without backfilling data.
 export async function up(db: Kysely<Database>): Promise<void> {
   // 1. Create policy_versions table
   await db.schema

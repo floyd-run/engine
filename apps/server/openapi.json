@@ -439,6 +439,110 @@
           "updatedAt"
         ]
       },
+      "PolicyWarning": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Warning code",
+            "example": "implicit_open_default"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable warning message"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": {},
+            "description": "Additional context"
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "PolicyMutationResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "ledgerId": {
+                "type": "string"
+              },
+              "name": {
+                "type": ["string", "null"]
+              },
+              "description": {
+                "type": ["string", "null"]
+              },
+              "currentVersionId": {
+                "type": "string"
+              },
+              "config": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "configSource": {
+                "type": "object",
+                "additionalProperties": {}
+              },
+              "configHash": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "ledgerId",
+              "name",
+              "description",
+              "currentVersionId",
+              "config",
+              "configSource",
+              "configHash",
+              "createdAt",
+              "updatedAt"
+            ]
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "warnings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "Warning code",
+                      "example": "implicit_open_default"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "Human-readable warning message"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {},
+                      "description": "Additional context"
+                    }
+                  },
+                  "required": ["code", "message"]
+                }
+              }
+            },
+            "required": ["warnings"]
+          }
+        },
+        "required": ["data"]
+      },
       "Error": {
         "type": "object",
         "properties": {
@@ -3649,6 +3753,35 @@
                         "createdAt",
                         "updatedAt"
                       ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                                "description": "Warning code",
+                                "example": "implicit_open_default"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Human-readable warning message"
+                              },
+                              "details": {
+                                "type": "object",
+                                "additionalProperties": {},
+                                "description": "Additional context"
+                              }
+                            },
+                            "required": ["code", "message"]
+                          }
+                        }
+                      },
+                      "required": ["warnings"]
                     }
                   },
                   "required": ["data"]
@@ -3906,6 +4039,35 @@
                         "createdAt",
                         "updatedAt"
                       ]
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "warnings": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "code": {
+                                "type": "string",
+                                "description": "Warning code",
+                                "example": "implicit_open_default"
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Human-readable warning message"
+                              },
+                              "details": {
+                                "type": "object",
+                                "additionalProperties": {},
+                                "description": "Additional context"
+                              }
+                            },
+                            "required": ["code", "message"]
+                          }
+                        }
+                      },
+                      "required": ["warnings"]
                     }
                   },
                   "required": ["data"]

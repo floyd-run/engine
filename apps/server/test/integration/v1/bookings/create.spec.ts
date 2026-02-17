@@ -220,6 +220,26 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     expect(response.status).toBe(404);
   });
 
+  it("returns 409 when service has no policy", async () => {
+    const { ledger } = await createLedger();
+    const { resource } = await createResource({ ledgerId: ledger.id });
+    const { service } = await createService({
+      ledgerId: ledger.id,
+      resourceIds: [resource.id],
+    });
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/bookings`, {
+      serviceId: service.id,
+      resourceId: resource.id,
+      startTime: "2026-06-01T10:00:00.000Z",
+      endTime: "2026-06-01T11:00:00.000Z",
+    });
+
+    expect(response.status).toBe(409);
+    const body = (await response.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("service.no_policy");
+  });
+
   it("returns 409 when resource does not belong to service", async () => {
     const { ledger } = await createLedger();
     const { resource: r1 } = await createResource({ ledgerId: ledger.id });

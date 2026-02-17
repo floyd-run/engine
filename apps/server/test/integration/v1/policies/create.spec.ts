@@ -76,6 +76,56 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     expect(data.configHash.length).toBeGreaterThan(0);
   });
 
+  it("preserves configSource with original authoring units", async () => {
+    const { ledger } = await createLedger();
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
+      config: validAuthoringConfig,
+    });
+
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Policy };
+
+    // configSource should contain the original authoring format
+    const source = data.configSource as Record<string, unknown>;
+    const constraints = source["constraints"] as Record<string, Record<string, unknown>>;
+    expect(constraints["duration"]!["allowed_minutes"]).toEqual([30, 60]);
+    expect(constraints["grid"]!["interval_minutes"]).toBe(15);
+
+    // config should contain normalized ms values
+    const config = data.config;
+    const normalizedConstraints = config["constraints"] as Record<string, Record<string, unknown>>;
+    expect(normalizedConstraints["duration"]!["allowed_ms"]).toEqual([1800000, 3600000]);
+  });
+
+  it("accepts name and description", async () => {
+    const { ledger } = await createLedger();
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
+      name: "Weekday Hours",
+      description: "Standard business hours policy",
+      config: validAuthoringConfig,
+    });
+
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Policy };
+    expect(data.name).toBe("Weekday Hours");
+    expect(data.description).toBe("Standard business hours policy");
+  });
+
+  it("defaults name and description to null", async () => {
+    const { ledger } = await createLedger();
+
+    const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
+      config: validAuthoringConfig,
+    });
+
+    expect(response.status).toBe(201);
+    const { data } = (await response.json()) as { data: Policy };
+    expect(data.name).toBeNull();
+    expect(data.description).toBeNull();
+  });
+
   it("returns 422 for invalid schema_version", async () => {
     const { ledger } = await createLedger();
 

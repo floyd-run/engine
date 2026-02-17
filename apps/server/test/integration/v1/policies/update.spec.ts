@@ -69,6 +69,59 @@ describe("PUT /v1/ledgers/:ledgerId/policies/:id", () => {
     expect(data.configHash).not.toBe(originalHash);
   });
 
+  it("creates a new version on update", async () => {
+    const { policy, version: originalVersion, ledgerId } = await createPolicy();
+
+    const response = await client.put(`/v1/ledgers/${ledgerId}/policies/${policy.id}`, {
+      config: updatedConfig,
+    });
+
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Policy };
+    expect(data.currentVersionId).toMatch(/^pvr_/);
+    expect(data.currentVersionId).not.toBe(originalVersion.id);
+  });
+
+  it("updates name and description", async () => {
+    const { policy, ledgerId } = await createPolicy();
+
+    const response = await client.put(`/v1/ledgers/${ledgerId}/policies/${policy.id}`, {
+      name: "Updated Name",
+      description: "Updated description",
+      config: updatedConfig,
+    });
+
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Policy };
+    expect(data.name).toBe("Updated Name");
+    expect(data.description).toBe("Updated description");
+  });
+
+  it("clears name and description with null", async () => {
+    const { ledger } = await createLedger();
+
+    // Create with name/description
+    const createResponse = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
+      name: "Original Name",
+      description: "Original description",
+      config: validConfig,
+    });
+    const { data: created } = (await createResponse.json()) as { data: Policy };
+    expect(created.name).toBe("Original Name");
+
+    // Update with null to clear
+    const response = await client.put(`/v1/ledgers/${ledger.id}/policies/${created.id}`, {
+      name: null,
+      description: null,
+      config: updatedConfig,
+    });
+
+    expect(response.status).toBe(200);
+    const { data } = (await response.json()) as { data: Policy };
+    expect(data.name).toBeNull();
+    expect(data.description).toBeNull();
+  });
+
   it("returns 404 for non-existent policy", async () => {
     const { ledger } = await createLedger();
 

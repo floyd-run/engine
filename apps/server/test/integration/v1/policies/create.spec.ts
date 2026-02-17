@@ -87,7 +87,7 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const { data } = (await response.json()) as { data: Policy };
 
     // configSource should contain the original authoring format
-    const source = data.configSource as Record<string, unknown>;
+    const source = data.configSource;
     const constraints = source["constraints"] as Record<string, Record<string, unknown>>;
     expect(constraints["duration"]!["allowed_minutes"]).toEqual([30, 60]);
     expect(constraints["grid"]!["interval_minutes"]).toBe(15);

@@ -20,7 +20,7 @@ export const policies = new Hono()
       id: c.req.param("id"),
       ledgerId: c.req.param("ledgerId")!,
     });
-    if (!policy || !version) throw new NotFoundError("Policy not found");
+    if (!policy) throw new NotFoundError("Policy not found");
     return c.json({ data: serializePolicy(policy, version) });
   })
 

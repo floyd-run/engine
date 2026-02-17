@@ -83,13 +83,13 @@ interface Rule {
   match: RuleMatch;
   closed?: true;
   windows?: TimeWindow[];
-  config?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
 }
 
 export interface PolicyConfig {
   schema_version: number;
-  default: "open" | "closed";
-  config: Record<string, unknown>;
+  default_availability: "open" | "closed";
+  constraints: Record<string, unknown>;
   rules?: Rule[];
   metadata?: Record<string, unknown>;
 }
@@ -268,12 +268,13 @@ export function evaluatePolicy(
     // Admin override: skip Steps 1-8
     if (context.skipPolicy) {
       const bufferBeforeMs =
-        (policy.config["buffers"] as BuffersConfig | undefined)?.before_ms ?? 0;
-      const bufferAfterMs = (policy.config["buffers"] as BuffersConfig | undefined)?.after_ms ?? 0;
+        (policy.constraints["buffers"] as BuffersConfig | undefined)?.before_ms ?? 0;
+      const bufferAfterMs =
+        (policy.constraints["buffers"] as BuffersConfig | undefined)?.after_ms ?? 0;
 
       return {
         allowed: true,
-        resolvedConfig: policy.config as unknown as ResolvedConfig,
+        resolvedConfig: policy.constraints as unknown as ResolvedConfig,
         effectiveStartTime: new Date(request.startTime.getTime() - bufferBeforeMs),
         effectiveEndTime: new Date(request.endTime.getTime() + bufferAfterMs),
         bufferBeforeMs,
@@ -346,7 +347,7 @@ export function evaluatePolicy(
       // No windows on matched rule → day is open 24h
     } else {
       // No rule matched → use default
-      if (policy.default === "closed") {
+      if (policy.default_availability === "closed") {
         return {
           allowed: false,
           code: REASON_CODES.CLOSED_BY_SCHEDULE,
@@ -358,9 +359,9 @@ export function evaluatePolicy(
 
     // ─── Step 4: Config resolution ─────────────────────────────────────────
 
-    const baseConfig = policy.config;
-    const ruleConfig = matchedRule?.config ?? {};
-    const resolvedRaw = { ...baseConfig, ...ruleConfig };
+    const baseConstraints = policy.constraints;
+    const ruleOverrides = matchedRule?.overrides ?? {};
+    const resolvedRaw = { ...baseConstraints, ...ruleOverrides };
     const resolved = {
       duration: resolvedRaw["duration"] as DurationConfig | undefined,
       grid: resolvedRaw["grid"] as GridConfig | undefined,

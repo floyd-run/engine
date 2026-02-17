@@ -5,8 +5,8 @@ import type { Policy } from "@floyd-run/schema/types";
 
 const validAuthoringConfig = {
   schema_version: 1,
-  default: "closed",
-  config: {
+  default_availability: "closed",
+  constraints: {
     duration: { allowed_minutes: [30, 60] },
     grid: { interval_minutes: 15 },
   },
@@ -30,6 +30,7 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const { data } = (await response.json()) as { data: Policy };
     expect(data.id).toMatch(/^pol_/);
     expect(data.ledgerId).toBe(ledger.id);
+    expect(data.currentVersionId).toMatch(/^pvr_/);
     expect(data.createdAt).toBeDefined();
     expect(data.updatedAt).toBeDefined();
   });
@@ -44,15 +45,15 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     expect(response.status).toBe(201);
     const { data } = (await response.json()) as { data: Policy };
     const config = data.config;
-    const duration = config["config"] as Record<string, Record<string, unknown>>;
+    const constraints = config["constraints"] as Record<string, Record<string, unknown>>;
 
     // allowed_minutes: [30, 60] -> allowed_ms: [1800000, 3600000]
-    expect(duration["duration"]!["allowed_ms"]).toEqual([1800000, 3600000]);
-    expect(duration["duration"]!["allowed_minutes"]).toBeUndefined();
+    expect(constraints["duration"]!["allowed_ms"]).toEqual([1800000, 3600000]);
+    expect(constraints["duration"]!["allowed_minutes"]).toBeUndefined();
 
     // interval_minutes: 15 -> interval_ms: 900000
-    expect(duration["grid"]!["interval_ms"]).toBe(900000);
-    expect(duration["grid"]!["interval_minutes"]).toBeUndefined();
+    expect(constraints["grid"]!["interval_ms"]).toBe(900000);
+    expect(constraints["grid"]!["interval_minutes"]).toBeUndefined();
 
     // weekdays -> expanded day names
     const rules = config["rules"] as {
@@ -94,7 +95,7 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
       config: {
         schema_version: 1,
-        // missing default and config
+        // missing default_availability and constraints
       },
     });
 
@@ -107,8 +108,8 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           duration: { allowed_minutes: [30] },
           grid: { interval_minutes: 15 },
         },
@@ -130,8 +131,8 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           duration: { allowed_minutes: [30] },
           grid: { interval_minutes: 15 },
         },
@@ -154,8 +155,8 @@ describe("POST /v1/ledgers/:ledgerId/policies", () => {
     const response = await client.post(`/v1/ledgers/${ledger.id}/policies`, {
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           duration: { allowed_minutes: [30] },
           grid: { interval_minutes: 15 },
         },

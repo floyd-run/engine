@@ -5,8 +5,8 @@ import { preparePolicyConfig } from "domain/policy";
 
 const DEFAULT_CONFIG = {
   schema_version: 1,
-  default: "closed",
-  config: {
+  default_availability: "closed",
+  constraints: {
     duration: { allowed_ms: [1800000, 3600000] },
     grid: { interval_ms: 1800000 },
   },
@@ -20,6 +20,8 @@ const DEFAULT_CONFIG = {
 
 export async function createPolicy(overrides?: {
   ledgerId?: string;
+  name?: string | null;
+  description?: string | null;
   config?: Record<string, unknown>;
 }) {
   let ledgerId = overrides?.ledgerId;
@@ -31,16 +33,40 @@ export async function createPolicy(overrides?: {
   const rawConfig = overrides?.config ?? DEFAULT_CONFIG;
   const { normalized, configHash } = preparePolicyConfig(rawConfig);
 
-  const policy = await db
+  const policyId = generateId("pol");
+  const versionId = generateId("pvr");
+
+  // 1. Insert policy (without currentVersionId)
+  await db
     .insertInto("policies")
     .values({
-      id: generateId("pol"),
+      id: policyId,
       ledgerId,
+      name: overrides?.name ?? null,
+      description: overrides?.description ?? null,
+    })
+    .execute();
+
+  // 2. Insert version
+  const version = await db
+    .insertInto("policyVersions")
+    .values({
+      id: versionId,
+      policyId,
       config: normalized,
+      configSource: rawConfig,
       configHash,
     })
     .returningAll()
-    .executeTakeFirst();
+    .executeTakeFirstOrThrow();
 
-  return { policy: policy!, ledgerId };
+  // 3. Set currentVersionId
+  const policy = await db
+    .updateTable("policies")
+    .set({ currentVersionId: versionId })
+    .where("id", "=", policyId)
+    .returningAll()
+    .executeTakeFirstOrThrow();
+
+  return { policy, version, ledgerId };
 }

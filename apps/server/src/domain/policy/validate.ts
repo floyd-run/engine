@@ -23,7 +23,7 @@ interface Rule {
   match: RuleMatch;
   closed?: true;
   windows?: { start: string; end: string }[];
-  config?: Record<string, unknown>;
+  overrides?: Record<string, unknown>;
 }
 
 export function validatePolicyConfig(config: Record<string, unknown>): {
@@ -31,7 +31,7 @@ export function validatePolicyConfig(config: Record<string, unknown>): {
 } {
   const warnings: PolicyWarning[] = [];
   const rules = (config["rules"] as Rule[] | undefined) ?? [];
-  const defaultValue = config["default"] as string;
+  const defaultValue = config["default_availability"] as string;
 
   // Track which days have been seen in weekly rules (for unreachable detection)
   const seenWeeklyDays = new Set<string>();
@@ -74,11 +74,11 @@ export function validatePolicyConfig(config: Record<string, unknown>): {
       hasWindowedRule = true;
     }
 
-    // Config-only rule (no windows, no closed) with default: "closed"
-    if (!rule.closed && !rule.windows && rule.config && defaultValue === "closed") {
+    // Overrides-only rule (no windows, no closed) with default_availability: "closed"
+    if (!rule.closed && !rule.windows && rule.overrides && defaultValue === "closed") {
       warnings.push({
-        code: "config_only_with_closed_default",
-        message: `Rule ${i}: has config overrides but no windows. Matched dates will be open 24h, which may be unintentional with default:"closed"`,
+        code: "overrides_only_with_closed_default",
+        message: `Rule ${i}: has overrides but no windows. Matched dates will be open 24h, which may be unintentional with default_availability:"closed"`,
         details: { ruleIndex: i },
       });
     }
@@ -89,7 +89,7 @@ export function validatePolicyConfig(config: Record<string, unknown>): {
     warnings.push({
       code: "open_default_with_windows",
       message:
-        'default is "open" but some rules have windows. Matched dates follow rule windows; unmatched dates are open 24h',
+        'default_availability is "open" but some rules have windows. Matched dates follow rule windows; unmatched dates are open 24h',
     });
   }
 

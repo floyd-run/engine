@@ -20,8 +20,8 @@ interface WindowsResponse {
 
 const KAYAK_POLICY = {
   schema_version: 1,
-  default: "closed",
-  config: {
+  default_availability: "closed",
+  constraints: {
     duration: { min_hours: 2, max_hours: 8 },
     buffers: { after_minutes: 30 },
   },
@@ -125,8 +125,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       config: {
         schema_version: 1,
-        default: "closed",
-        config: {
+        default_availability: "closed",
+        constraints: {
           buffers: { before_minutes: 15, after_minutes: 10 },
         },
         rules: [
@@ -226,8 +226,8 @@ describe("POST /v1/ledgers/:ledgerId/services/:id/availability/windows", () => {
       ledgerId: ledger.id,
       config: {
         schema_version: 1,
-        default: "open",
-        config: {},
+        default_availability: "open",
+        constraints: {},
         rules: [],
       },
     });

@@ -23,8 +23,8 @@ const MINUTE = 60_000;
 function makePolicy(overrides: Partial<PolicyConfig> = {}): PolicyConfig {
   return {
     schema_version: 1,
-    default: "open",
-    config: {},
+    default_availability: "open",
+    constraints: {},
     ...overrides,
   };
 }
@@ -295,7 +295,7 @@ describe("Step 1: Blackout pre-pass", () => {
 describe("Steps 2-3: Rule resolution + open/closed", () => {
   it("first-match-wins: earlier weekly rule takes precedence", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -316,7 +316,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
   });
 
   it("default 'open' with no rules allows all times", () => {
-    const policy = makePolicy({ default: "open" });
+    const policy = makePolicy({ default_availability: "open" });
     const request = makeRequest("2026-03-16T09:00:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext();
 
@@ -325,7 +325,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
   });
 
   it("default 'closed' with no rules rejects", () => {
-    const policy = makePolicy({ default: "closed" });
+    const policy = makePolicy({ default_availability: "closed" });
     const request = makeRequest("2026-03-16T09:00:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext();
 
@@ -336,7 +336,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("windowed rule allows booking inside window", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -353,7 +353,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("windowed rule rejects booking outside window", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -371,7 +371,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("windowed rule rejects booking that starts inside but ends outside window", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -389,7 +389,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("no windows on matched rule means open 24h", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -407,7 +407,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("matched rule with empty windows array means open 24h", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -424,7 +424,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("midnight normalization: Mon 22:00-Tue 00:00 treated as same-day ending at 24:00", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -442,7 +442,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("overnight rejection: booking spans midnight with windowed rule", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -460,7 +460,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("booking within one of multiple windows is allowed", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -481,7 +481,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("booking that falls between two windows is rejected", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -502,7 +502,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("date rule matches by exact date", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "date", date: "2026-03-16" },
@@ -519,7 +519,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("date_range rule with day filter matches correctly", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: {
@@ -542,7 +542,7 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 
   it("date_range rule with day filter does not match excluded day", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: {
@@ -571,14 +571,14 @@ describe("Steps 2-3: Rule resolution + open/closed", () => {
 describe("Step 4: Config merge", () => {
   it("rule config overrides base config (section-level replace)", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
         grid: { interval_ms: 30 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
-          config: {
+          overrides: {
             duration: { min_ms: 60 * MINUTE, max_ms: 60 * MINUTE },
           },
         },
@@ -601,7 +601,7 @@ describe("Step 4: Config merge", () => {
 
   it("base config preserved when rule has no config", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
         buffers: { before_ms: 5 * MINUTE, after_ms: 5 * MINUTE },
       },
@@ -630,13 +630,13 @@ describe("Step 4: Config merge", () => {
 
   it("rule config fully replaces a section (not deep merge)", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
-          config: {
+          overrides: {
             // Override duration with only allowed_ms -- min_ms/max_ms from base should NOT survive
             duration: { allowed_ms: [60 * MINUTE] },
           },
@@ -663,7 +663,7 @@ describe("Step 4: Config merge", () => {
 describe("Step 5: Duration", () => {
   it("allowed_ms takes precedence over min/max -- duration in list is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: {
           min_ms: 30 * MINUTE,
           max_ms: 120 * MINUTE,
@@ -681,7 +681,7 @@ describe("Step 5: Duration", () => {
 
   it("allowed_ms takes precedence -- duration NOT in list is rejected even if within min/max", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: {
           min_ms: 30 * MINUTE,
           max_ms: 120 * MINUTE,
@@ -700,7 +700,7 @@ describe("Step 5: Duration", () => {
 
   it("duration below min_ms is rejected", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 60 * MINUTE, max_ms: 120 * MINUTE },
       },
     });
@@ -715,7 +715,7 @@ describe("Step 5: Duration", () => {
 
   it("duration above max_ms is rejected", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 60 * MINUTE },
       },
     });
@@ -730,7 +730,7 @@ describe("Step 5: Duration", () => {
 
   it("duration within min/max is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
       },
     });
@@ -744,7 +744,7 @@ describe("Step 5: Duration", () => {
 
   it("duration exactly at min_ms boundary is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
       },
     });
@@ -758,7 +758,7 @@ describe("Step 5: Duration", () => {
 
   it("duration exactly at max_ms boundary is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 120 * MINUTE },
       },
     });
@@ -772,7 +772,7 @@ describe("Step 5: Duration", () => {
 
   it("no duration config means no duration enforcement", () => {
     const policy = makePolicy({
-      config: {},
+      constraints: {},
     });
     // Very long booking, no duration limits
     const request = makeRequest("2026-03-16T00:00:00Z", "2026-03-16T23:00:00Z");
@@ -790,7 +790,7 @@ describe("Step 5: Duration", () => {
 describe("Step 6: Grid alignment", () => {
   it("aligned start time is allowed (30-min grid)", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 30 * MINUTE },
       },
     });
@@ -804,7 +804,7 @@ describe("Step 6: Grid alignment", () => {
 
   it("aligned start time at 09:30 on 30-min grid is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 30 * MINUTE },
       },
     });
@@ -817,7 +817,7 @@ describe("Step 6: Grid alignment", () => {
 
   it("misaligned start time is rejected (30-min grid)", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 30 * MINUTE },
       },
     });
@@ -833,7 +833,7 @@ describe("Step 6: Grid alignment", () => {
 
   it("15-minute grid: start at :45 is aligned", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 15 * MINUTE },
       },
     });
@@ -846,7 +846,7 @@ describe("Step 6: Grid alignment", () => {
 
   it("1-hour grid: start at :30 is misaligned", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 60 * MINUTE },
       },
     });
@@ -859,7 +859,7 @@ describe("Step 6: Grid alignment", () => {
 
   it("no grid config means no alignment enforcement", () => {
     const policy = makePolicy({
-      config: {},
+      constraints: {},
     });
     const request = makeRequest("2026-03-16T09:17:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext();
@@ -876,7 +876,7 @@ describe("Step 6: Grid alignment", () => {
 describe("Steps 7-8: Lead time + horizon", () => {
   it("booking within lead time is rejected", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: { min_ms: 2 * HOUR },
       },
     });
@@ -892,7 +892,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
   it("booking beyond horizon is rejected", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: { max_ms: 7 * 24 * HOUR },
       },
     });
@@ -906,7 +906,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
   it("booking within both lead time and horizon is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: {
           min_ms: 1 * HOUR,
           max_ms: 30 * 24 * HOUR,
@@ -923,7 +923,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
   it("booking exactly at min_lead_time boundary is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: { min_ms: 2 * HOUR },
       },
     });
@@ -937,7 +937,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
   it("booking exactly at max_lead_time boundary is allowed", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: { max_ms: 7 * 24 * HOUR },
       },
     });
@@ -950,7 +950,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
   });
 
   it("no lead_time config means no lead time or horizon enforcement", () => {
-    const policy = makePolicy({ config: {} });
+    const policy = makePolicy({ constraints: {} });
     // Booking 1 minute in the future
     const request = makeRequest("2026-03-16T08:01:00Z", "2026-03-16T09:00:00Z");
     const context = makeContext({ decisionTime: new Date("2026-03-16T08:00:00Z") });
@@ -961,7 +961,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 
   it("lead time check runs before horizon check (correct order)", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         lead_time: {
           min_ms: 2 * HOUR,
           max_ms: 7 * 24 * HOUR,
@@ -984,7 +984,7 @@ describe("Steps 7-8: Lead time + horizon", () => {
 describe("Step 9: Buffers", () => {
   it("buffer before/after computed correctly", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         buffers: { before_ms: 10 * MINUTE, after_ms: 15 * MINUTE },
       },
     });
@@ -1001,7 +1001,7 @@ describe("Step 9: Buffers", () => {
   });
 
   it("no buffers means effective equals original", () => {
-    const policy = makePolicy({ config: {} });
+    const policy = makePolicy({ constraints: {} });
     const request = makeRequest("2026-03-16T09:00:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext();
 
@@ -1016,7 +1016,7 @@ describe("Step 9: Buffers", () => {
 
   it("only buffer_before_ms is set", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         buffers: { before_ms: 5 * MINUTE },
       },
     });
@@ -1034,7 +1034,7 @@ describe("Step 9: Buffers", () => {
 
   it("only buffer_after_ms is set", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         buffers: { after_ms: 10 * MINUTE },
       },
     });
@@ -1059,8 +1059,8 @@ describe("Common patterns", () => {
   describe("Simple salon (Mon-Fri 9-5, 30/60 min)", () => {
     const salonPolicy: PolicyConfig = {
       schema_version: 1,
-      default: "closed",
-      config: {
+      default_availability: "closed",
+      constraints: {
         duration: { allowed_ms: [30 * MINUTE, 60 * MINUTE] },
         grid: { interval_ms: 30 * MINUTE },
         lead_time: {
@@ -1133,8 +1133,8 @@ describe("Common patterns", () => {
   describe("24/7 resource (default open, no rules)", () => {
     const openPolicy: PolicyConfig = {
       schema_version: 1,
-      default: "open",
-      config: {
+      default_availability: "open",
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 8 * HOUR },
       },
     };
@@ -1169,8 +1169,8 @@ describe("Common patterns", () => {
   describe("Holiday closure (closed date rule before weekly)", () => {
     const holidayPolicy: PolicyConfig = {
       schema_version: 1,
-      default: "closed",
-      config: {
+      default_availability: "closed",
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 2 * HOUR },
       },
       rules: [
@@ -1208,8 +1208,8 @@ describe("Common patterns", () => {
   describe("Multi-day rental (no windows, closed blackout)", () => {
     const rentalPolicy: PolicyConfig = {
       schema_version: 1,
-      default: "open",
-      config: {
+      default_availability: "open",
+      constraints: {
         duration: { min_ms: 24 * HOUR, max_ms: 7 * 24 * HOUR },
         lead_time: { min_ms: 24 * HOUR },
       },
@@ -1249,8 +1249,8 @@ describe("Common patterns", () => {
   describe("Escape room (fixed duration, grid, buffer)", () => {
     const escapeRoomPolicy: PolicyConfig = {
       schema_version: 1,
-      default: "closed",
-      config: {
+      default_availability: "closed",
+      constraints: {
         duration: { allowed_ms: [60 * MINUTE] },
         grid: { interval_ms: 90 * MINUTE },
         buffers: { before_ms: 15 * MINUTE, after_ms: 15 * MINUTE },
@@ -1323,8 +1323,8 @@ describe("Common patterns", () => {
 describe("Admin override (skipPolicy)", () => {
   it("skipPolicy: true bypasses all checks (Steps 1-8)", () => {
     const policy = makePolicy({
-      default: "closed",
-      config: {
+      default_availability: "closed",
+      constraints: {
         duration: { allowed_ms: [60 * MINUTE] },
         grid: { interval_ms: 30 * MINUTE },
         lead_time: { min_ms: 24 * HOUR },
@@ -1350,7 +1350,7 @@ describe("Admin override (skipPolicy)", () => {
 
   it("skipPolicy: true still computes buffers from base config", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         buffers: { before_ms: 10 * MINUTE, after_ms: 5 * MINUTE },
       },
     });
@@ -1367,7 +1367,7 @@ describe("Admin override (skipPolicy)", () => {
   });
 
   it("skipPolicy: true with no buffers returns zero buffers", () => {
-    const policy = makePolicy({ config: {} });
+    const policy = makePolicy({ constraints: {} });
     const request = makeRequest("2026-03-16T09:00:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext({ skipPolicy: true });
 
@@ -1382,8 +1382,8 @@ describe("Admin override (skipPolicy)", () => {
 
   it("skipPolicy: false behaves normally (checks enforced)", () => {
     const policy = makePolicy({
-      default: "closed",
-      config: {},
+      default_availability: "closed",
+      constraints: {},
     });
     const request = makeRequest("2026-03-16T09:00:00Z", "2026-03-16T10:00:00Z");
     const context = makeContext({ skipPolicy: false });
@@ -1417,7 +1417,7 @@ describe("Edge cases", () => {
   });
 
   it("empty rules + default open allows all times", () => {
-    const policy = makePolicy({ default: "open", rules: [] });
+    const policy = makePolicy({ default_availability: "open", rules: [] });
     const request = makeRequest("2026-03-16T03:00:00Z", "2026-03-16T04:00:00Z");
     const context = makeContext();
 
@@ -1426,7 +1426,7 @@ describe("Edge cases", () => {
   });
 
   it("undefined rules + default open allows all times", () => {
-    const policy = makePolicy({ default: "open" });
+    const policy = makePolicy({ default_availability: "open" });
     const request = makeRequest("2026-03-16T03:00:00Z", "2026-03-16T04:00:00Z");
     const context = makeContext();
 
@@ -1436,8 +1436,8 @@ describe("Edge cases", () => {
 
   it("empty config means no enforcement beyond schedule", () => {
     const policy = makePolicy({
-      default: "closed",
-      config: {},
+      default_availability: "closed",
+      constraints: {},
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -1455,7 +1455,7 @@ describe("Edge cases", () => {
 
   it("midnight normalization does NOT apply when end is after midnight (not exactly midnight)", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -1473,7 +1473,7 @@ describe("Edge cases", () => {
 
   it("booking that starts and ends at the exact same time with duration config is rejected", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE },
       },
     });
@@ -1487,7 +1487,7 @@ describe("Edge cases", () => {
 
   it("evaluation order: blackout checked before schedule windows", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "date", date: "2026-03-16" },
@@ -1509,8 +1509,8 @@ describe("Edge cases", () => {
 
   it("evaluation order: schedule checked before duration", () => {
     const policy = makePolicy({
-      default: "closed",
-      config: {
+      default_availability: "closed",
+      constraints: {
         duration: { allowed_ms: [60 * MINUTE] },
       },
     });
@@ -1524,7 +1524,7 @@ describe("Edge cases", () => {
 
   it("evaluation order: duration checked before grid", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { allowed_ms: [60 * MINUTE] },
         grid: { interval_ms: 30 * MINUTE },
       },
@@ -1539,7 +1539,7 @@ describe("Edge cases", () => {
 
   it("evaluation order: grid checked before lead time", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 60 * MINUTE },
         lead_time: { min_ms: 24 * HOUR },
       },
@@ -1554,13 +1554,13 @@ describe("Edge cases", () => {
 
   it("rule config with buffers overrides base buffers", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         buffers: { before_ms: 10 * MINUTE, after_ms: 10 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
-          config: {
+          overrides: {
             buffers: { before_ms: 30 * MINUTE, after_ms: 0 },
           },
         },
@@ -1580,7 +1580,7 @@ describe("Edge cases", () => {
 
   it("closed rule is skipped in Step 2 (rule resolution)", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         // First rule matches Monday but is closed -- blackout handles it
         // This tests that a closed rule doesn't "consume" the match for Step 2
@@ -1614,7 +1614,7 @@ describe("Edge cases", () => {
     // Let's use a clearer example: 2026-03-16T03:00:00Z
     // In EDT (UTC-4): 2026-03-15 23:00 EDT
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["sunday"] },
@@ -1640,7 +1640,7 @@ describe("Edge cases", () => {
 
   it("grid alignment is timezone-aware", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 60 * MINUTE },
       },
     });
@@ -1657,7 +1657,7 @@ describe("Edge cases", () => {
 
   it("grid alignment passes when local time is aligned but UTC is not", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         grid: { interval_ms: 60 * MINUTE },
       },
     });
@@ -1675,7 +1675,7 @@ describe("Edge cases", () => {
 
   it("resolvedConfig includes hold from base config", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         hold: { duration_ms: 5 * MINUTE },
       },
     });
@@ -1689,14 +1689,14 @@ describe("Edge cases", () => {
 
   it("resolvedConfig hold is overridden by matching rule config", () => {
     const policy = makePolicy({
-      default: "open",
-      config: {
+      default_availability: "open",
+      constraints: {
         hold: { duration_ms: 5 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
-          config: {
+          overrides: {
             hold: { duration_ms: 10 * MINUTE },
           },
         },
@@ -1712,7 +1712,7 @@ describe("Edge cases", () => {
   });
 
   it("resolvedConfig hold is undefined when not configured", () => {
-    const policy = makePolicy({ config: {} });
+    const policy = makePolicy({ constraints: {} });
 
     const request = makeRequest("2026-03-16T10:00:00Z", "2026-03-16T11:00:00Z");
     const result = evaluatePolicy(policy, request, makeContext());

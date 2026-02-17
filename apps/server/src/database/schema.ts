@@ -50,7 +50,7 @@ export interface BookingsTable {
   id: string;
   ledgerId: string;
   serviceId: string;
-  policyId: string | null;
+  policyVersionId: string;
   status: BookingStatus;
   expiresAt: Date | null;
   metadata: Record<string, unknown> | null;
@@ -87,10 +87,20 @@ export interface OutboxEventsTable {
 export interface PoliciesTable {
   id: string;
   ledgerId: string;
-  config: Record<string, unknown>;
-  configHash: string;
+  name: string | null;
+  description: string | null;
+  currentVersionId: string | null;
   createdAt: Generated<Date>;
   updatedAt: Generated<Date>;
+}
+
+export interface PolicyVersionsTable {
+  id: string;
+  policyId: string;
+  config: Record<string, unknown>;
+  configSource: Record<string, unknown>;
+  configHash: string;
+  createdAt: Generated<Date>;
 }
 
 export interface Database {
@@ -102,6 +112,7 @@ export interface Database {
   resources: ResourcesTable;
   ledgers: LedgersTable;
   policies: PoliciesTable;
+  policyVersions: PolicyVersionsTable;
   outboxEvents: OutboxEventsTable;
 }
 
@@ -137,3 +148,6 @@ export type OutboxEventUpdate = Updateable<OutboxEventsTable>;
 export type PolicyRow = Selectable<PoliciesTable>;
 export type NewPolicy = Insertable<PoliciesTable>;
 export type PolicyUpdate = Updateable<PoliciesTable>;
+
+export type PolicyVersionRow = Selectable<PolicyVersionsTable>;
+export type NewPolicyVersion = Insertable<PolicyVersionsTable>;

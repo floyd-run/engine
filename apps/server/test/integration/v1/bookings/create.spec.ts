@@ -10,12 +10,20 @@ import {
 import type { Booking } from "@floyd-run/schema/types";
 import { db } from "database";
 
+const OPEN_POLICY_CONFIG = {
+  schema_version: 1,
+  default_availability: "open",
+  constraints: {},
+};
+
 describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   it("returns 201 for valid hold booking", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
+    const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
     const { service } = await createService({
       ledgerId: ledger.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -52,8 +60,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   it("returns 201 for confirmed booking", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
+    const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
     const { service } = await createService({
       ledgerId: ledger.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -74,8 +84,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   it("returns 201 with metadata", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
+    const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
     const { service } = await createService({
       ledgerId: ledger.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -97,8 +109,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
   it("creates booking.created event in outbox", async () => {
     const { ledger } = await createLedger();
     const { resource } = await createResource({ ledgerId: ledger.id });
+    const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
     const { service } = await createService({
       ledgerId: ledger.id,
+      policyId: policy.id,
       resourceIds: [resource.id],
     });
 
@@ -231,8 +245,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     it("returns 409 when overlapping with existing active allocation", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
       const { service } = await createService({
         ledgerId: ledger.id,
+        policyId: policy.id,
         resourceIds: [resource.id],
       });
 
@@ -261,8 +277,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     it("returns 409 when overlapping with existing booking", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
       const { service } = await createService({
         ledgerId: ledger.id,
+        policyId: policy.id,
         resourceIds: [resource.id],
       });
 
@@ -292,8 +310,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     it("allows adjacent bookings (no overlap)", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
       const { service } = await createService({
         ledgerId: ledger.id,
+        policyId: policy.id,
         resourceIds: [resource.id],
       });
 
@@ -320,8 +340,10 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
     it("ignores inactive allocations for conflict detection", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
       const { service } = await createService({
         ledgerId: ledger.id,
+        policyId: policy.id,
         resourceIds: [resource.id],
       });
 
@@ -354,8 +376,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         ledgerId: ledger.id,
         config: {
           schema_version: 1,
-          default: "open",
-          config: {
+          default_availability: "open",
+          constraints: {
             buffers: { before_ms: 900_000, after_ms: 600_000 }, // 15min before, 10min after
           },
         },
@@ -387,11 +409,13 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       expect(allocation.buffer.afterMs).toBe(600_000);
     });
 
-    it("stores zero buffers when no policy", async () => {
+    it("stores zero buffers when policy has no buffer config", async () => {
       const { ledger } = await createLedger();
       const { resource } = await createResource({ ledgerId: ledger.id });
+      const { policy } = await createPolicy({ ledgerId: ledger.id, config: OPEN_POLICY_CONFIG });
       const { service } = await createService({
         ledgerId: ledger.id,
+        policyId: policy.id,
         resourceIds: [resource.id],
       });
 
@@ -410,7 +434,7 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
       const { data } = (await response.json()) as { data: Booking };
       const allocation = data.allocations[0]!;
 
-      // Without policy, allocation times = input times (no buffers)
+      // Without buffer config, allocation times = input times (no buffers)
       expect(allocation.startTime).toBe(startTime);
       expect(allocation.endTime).toBe(endTime);
       expect(allocation.buffer.beforeMs).toBe(0);
@@ -424,8 +448,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         ledgerId: ledger.id,
         config: {
           schema_version: 1,
-          default: "open",
-          config: {
+          default_availability: "open",
+          constraints: {
             buffers: { before_ms: 0, after_ms: 1_800_000 }, // 30min after-buffer
           },
         },
@@ -468,8 +492,8 @@ describe("POST /v1/ledgers/:ledgerId/bookings", () => {
         ledgerId: ledger.id,
         config: {
           schema_version: 1,
-          default: "open",
-          config: {
+          default_availability: "open",
+          constraints: {
             buffers: { before_ms: 900_000, after_ms: 900_000 }, // 15min each side
           },
         },

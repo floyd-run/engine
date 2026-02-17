@@ -17,7 +17,7 @@ export const base = z.object({
   id: z.string(),
   ledgerId: z.string(),
   serviceId: z.string(),
-  policyId: z.string().nullable(),
+  policyVersionId: z.string(),
   status: z.enum([
     BookingStatus.HOLD,
     BookingStatus.CONFIRMED,

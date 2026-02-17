@@ -124,7 +124,7 @@ function normalizeRule(rule: Record<string, unknown>): Record<string, unknown> {
   for (const [key, value] of Object.entries(rule)) {
     if (key === "match" && typeof value === "object" && value !== null) {
       result[key] = normalizeMatch(value as Record<string, unknown>);
-    } else if (key === "config" && typeof value === "object" && value !== null) {
+    } else if (key === "overrides" && typeof value === "object" && value !== null) {
       result[key] = normalizeConfigSection(value as Record<string, unknown>);
     } else {
       result[key] = value;
@@ -138,7 +138,7 @@ export function normalizePolicyConfig(authoring: Record<string, unknown>): Recor
   const result: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(authoring)) {
-    if (key === "config" && typeof value === "object" && value !== null) {
+    if (key === "constraints" && typeof value === "object" && value !== null) {
       result[key] = normalizeConfigSection(value as Record<string, unknown>);
     } else if (key === "rules" && Array.isArray(value)) {
       result[key] = value.map((rule) => normalizeRule(rule as Record<string, unknown>));

@@ -5,8 +5,8 @@ import type { Policy } from "@floyd-run/schema/types";
 
 const validConfig = {
   schema_version: 1,
-  default: "closed",
-  config: {
+  default_availability: "closed",
+  constraints: {
     duration: { allowed_minutes: [30, 60] },
     grid: { interval_minutes: 15 },
   },
@@ -20,8 +20,8 @@ const validConfig = {
 
 const updatedConfig = {
   schema_version: 1,
-  default: "open",
-  config: {
+  default_availability: "open",
+  constraints: {
     duration: { allowed_minutes: [45, 90] },
     grid: { interval_minutes: 30 },
   },
@@ -50,8 +50,8 @@ describe("PUT /v1/ledgers/:ledgerId/policies/:id", () => {
   });
 
   it("updates config and recalculates hash", async () => {
-    const { policy, ledgerId } = await createPolicy();
-    const originalHash = policy.configHash;
+    const { version, ledgerId, policy } = await createPolicy();
+    const originalHash = version.configHash;
 
     const response = await client.put(`/v1/ledgers/${ledgerId}/policies/${policy.id}`, {
       config: updatedConfig,
@@ -62,7 +62,7 @@ describe("PUT /v1/ledgers/:ledgerId/policies/:id", () => {
 
     // Config should reflect the updated values (normalized)
     const config = data.config;
-    expect(config["default"] as string).toBe("open");
+    expect(config["default_availability"] as string).toBe("open");
 
     // Hash should be recalculated and differ from original
     expect(data.configHash).toBeDefined();
@@ -86,8 +86,8 @@ describe("PUT /v1/ledgers/:ledgerId/policies/:id", () => {
     const response = await client.put(`/v1/ledgers/${ledgerId}/policies/${policy.id}`, {
       config: {
         schema_version: 2,
-        default: "closed",
-        config: {},
+        default_availability: "closed",
+        constraints: {},
       },
     });
 

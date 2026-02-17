@@ -10,26 +10,28 @@ export const policies = new Hono()
     const { policies } = await operations.policy.list({
       ledgerId: c.req.param("ledgerId")!,
     });
-    return c.json({ data: policies.map(serializePolicy) });
+    return c.json({
+      data: policies.map(({ policy, version }) => serializePolicy(policy, version)),
+    });
   })
 
   .get("/:id", async (c) => {
-    const { policy } = await operations.policy.get({
+    const { policy, version } = await operations.policy.get({
       id: c.req.param("id"),
       ledgerId: c.req.param("ledgerId")!,
     });
-    if (!policy) throw new NotFoundError("Policy not found");
-    return c.json({ data: serializePolicy(policy) });
+    if (!policy || !version) throw new NotFoundError("Policy not found");
+    return c.json({ data: serializePolicy(policy, version) });
   })
 
   .post("/", async (c) => {
     const body = await c.req.json();
-    const { policy, warnings } = await operations.policy.create({
+    const { policy, version, warnings } = await operations.policy.create({
       ...(body as object),
       ledgerId: c.req.param("ledgerId")!,
     } as Parameters<typeof operations.policy.create>[0]);
 
-    const responseBody: Record<string, unknown> = { data: serializePolicy(policy) };
+    const responseBody: Record<string, unknown> = { data: serializePolicy(policy, version) };
     if (warnings.length > 0) {
       responseBody["meta"] = { warnings };
     }
@@ -38,13 +40,13 @@ export const policies = new Hono()
 
   .put("/:id", async (c) => {
     const body = await c.req.json();
-    const { policy, warnings } = await operations.policy.update({
+    const { policy, version, warnings } = await operations.policy.update({
       ...(body as object),
       id: c.req.param("id"),
       ledgerId: c.req.param("ledgerId")!,
     } as Parameters<typeof operations.policy.update>[0]);
 
-    const responseBody: Record<string, unknown> = { data: serializePolicy(policy) };
+    const responseBody: Record<string, unknown> = { data: serializePolicy(policy, version) };
     if (warnings.length > 0) {
       responseBody["meta"] = { warnings };
     }

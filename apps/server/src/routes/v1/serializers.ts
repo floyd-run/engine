@@ -3,6 +3,7 @@ import type {
   ResourceRow,
   LedgerRow,
   PolicyRow,
+  PolicyVersionRow,
   ServiceRow,
   BookingRow,
 } from "database/schema";
@@ -53,12 +54,16 @@ export function serializeAllocation(allocation: AllocationRow): Allocation {
   };
 }
 
-export function serializePolicy(policy: PolicyRow): Policy {
+export function serializePolicy(policy: PolicyRow, version: PolicyVersionRow): Policy {
   return {
     id: policy.id,
     ledgerId: policy.ledgerId,
-    config: policy.config,
-    configHash: policy.configHash,
+    name: policy.name,
+    description: policy.description,
+    currentVersionId: version.id,
+    config: version.config,
+    configSource: version.configSource,
+    configHash: version.configHash,
     createdAt: policy.createdAt.toISOString(),
     updatedAt: policy.updatedAt.toISOString(),
   };
@@ -82,7 +87,7 @@ export function serializeBooking(booking: BookingRow, allocations: AllocationRow
     id: booking.id,
     ledgerId: booking.ledgerId,
     serviceId: booking.serviceId,
-    policyId: booking.policyId,
+    policyVersionId: booking.policyVersionId,
     status: booking.status,
     expiresAt: booking.expiresAt?.toISOString() ?? null,
     allocations: allocations.map((a) => ({

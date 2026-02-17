@@ -22,7 +22,7 @@ const PAST = new Date("2020-01-01T00:00:00Z");
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function makePolicy(overrides: Partial<PolicyConfig> = {}): PolicyConfig {
-  return { schema_version: 1, default: "open", config: {}, ...overrides };
+  return { schema_version: 1, default_availability: "open", constraints: {}, ...overrides };
 }
 
 function makeDay(
@@ -130,7 +130,7 @@ describe("resolveDay", () => {
   });
 
   it("default open, no rules → 24h open with base config", () => {
-    const policy = makePolicy({ config: { duration: { min_ms: HOUR } } });
+    const policy = makePolicy({ constraints: { duration: { min_ms: HOUR } } });
     const result = resolveDay(policy, "2026-03-16", "monday");
 
     expect(result).not.toBeNull();
@@ -139,7 +139,11 @@ describe("resolveDay", () => {
   });
 
   it("default closed, no rules → null", () => {
-    const result = resolveDay(makePolicy({ default: "closed" }), "2026-03-16", "monday");
+    const result = resolveDay(
+      makePolicy({ default_availability: "closed" }),
+      "2026-03-16",
+      "monday",
+    );
     expect(result).toBeNull();
   });
 
@@ -159,13 +163,13 @@ describe("resolveDay", () => {
 
   it("matching weekly rule with windows → returns windows + merged config", () => {
     const policy = makePolicy({
-      default: "closed",
-      config: { grid: { interval_ms: 30 * MINUTE } },
+      default_availability: "closed",
+      constraints: { grid: { interval_ms: 30 * MINUTE } },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
           windows: [{ start: "09:00", end: "17:00" }],
-          config: { duration: { allowed_ms: [HOUR] } },
+          overrides: { duration: { allowed_ms: [HOUR] } },
         },
       ],
     });
@@ -178,7 +182,7 @@ describe("resolveDay", () => {
 
   it("matching rule without windows → 24h open", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [{ match: { type: "weekly", days: ["monday"] } }],
     });
     const result = resolveDay(policy, "2026-03-16", "monday")!;
@@ -187,7 +191,7 @@ describe("resolveDay", () => {
 
   it("first-match-wins: earlier rule takes precedence", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -205,7 +209,7 @@ describe("resolveDay", () => {
 
   it("closed rule is skipped in step 2 (rule resolution)", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         { match: { type: "date", date: "2026-03-17" }, closed: true },
         {
@@ -220,7 +224,7 @@ describe("resolveDay", () => {
 
   it("multiple windows on matched rule", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
@@ -240,14 +244,14 @@ describe("resolveDay", () => {
 
   it("rule config overrides base config at section level", () => {
     const policy = makePolicy({
-      config: {
+      constraints: {
         duration: { min_ms: 30 * MINUTE, max_ms: 2 * HOUR },
         buffers: { before_ms: 10 * MINUTE },
       },
       rules: [
         {
           match: { type: "weekly", days: ["monday"] },
-          config: { duration: { allowed_ms: [HOUR] } },
+          overrides: { duration: { allowed_ms: [HOUR] } },
         },
       ],
     });
@@ -261,8 +265,8 @@ describe("resolveDay", () => {
 
   it("unmatched day with default open → 24h + base config", () => {
     const policy = makePolicy({
-      default: "open",
-      config: { buffers: { after_ms: 5 * MINUTE } },
+      default_availability: "open",
+      constraints: { buffers: { after_ms: 5 * MINUTE } },
       rules: [
         {
           match: { type: "weekly", days: ["tuesday"] },
@@ -294,7 +298,7 @@ describe("resolveServiceDays", () => {
 
   it("multi-day range with mixed open/closed", () => {
     const policy = makePolicy({
-      default: "closed",
+      default_availability: "closed",
       rules: [
         {
           match: { type: "weekly", days: ["monday", "wednesday"] },

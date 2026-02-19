@@ -88,9 +88,9 @@ This:
 - Sets `status = confirmed`
 - Clears `expiresAt` on both the booking and its allocations
 
-Confirm is safe to retry — confirming an already confirmed booking returns the confirmed booking.
+Returns `409 Conflict` with code `booking.hold_expired` if the hold expired before confirmation, or `booking.invalid_transition` if the booking is not in `hold` state.
 
-Returns `409 Conflict` with code `hold_expired` if the hold expired before confirmation.
+Confirm is safe to retry with the same `Idempotency-Key` header.
 
 ## Cancel (release)
 
@@ -105,7 +105,9 @@ This:
 - Sets `status = canceled`
 - Deactivates allocations (`active = false`)
 
-Cancel works on both `hold` and `confirmed` bookings. It's safe to retry — canceling an already canceled booking returns the booking.
+Cancel works on both `hold` and `confirmed` bookings. Returns `409 Conflict` with code `booking.invalid_transition` if the booking is already `canceled` or `expired`.
+
+Cancel is safe to retry with the same `Idempotency-Key` header.
 
 ## Expiration
 

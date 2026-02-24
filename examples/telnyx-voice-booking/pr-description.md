@@ -42,8 +42,7 @@ examples/telnyx-voice-booking/
 ## Dependencies
 
 - `express` - Web server
-- `telnyx` - Official Telnyx Node SDK
-- `axios` - HTTP client for Floyd API
+- `axios` - HTTP client for Telnyx and Floyd APIs
 - `dotenv` - Environment management
 
 All are lightweight, well-maintained packages.

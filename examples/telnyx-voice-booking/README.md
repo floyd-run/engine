@@ -57,7 +57,7 @@ A production-ready example showing how to integrate Telnyx Voice and SMS with th
 ## Flow
 
 1. **Inbound Call**: Customer calls your Telnyx phone number
-2. **IVR Greeting**: Server greets caller and asks for preferred date
+2. **IVR Greeting**: Server answers and asks caller to choose date via DTMF
 3. **Availability Check**: Server queries Floyd API for available slots
 4. **Slot Presentation**: Caller hears available times and selects one
 5. **Hold Creation**: Server creates a hold in Floyd (blocks the slot)
@@ -97,6 +97,7 @@ Edit `.env` with your credentials:
 ```bash
 # Telnyx Configuration
 TELNYX_API_KEY=your_telnyx_api_key
+TELNYX_PUBLIC_KEY=your_telnyx_webhook_public_key
 TELNYX_PHONE_NUMBER=+15551234567
 
 # Floyd Configuration
@@ -121,7 +122,7 @@ In the [Telnyx Portal](https://portal.telnyx.com):
 
 1. Go to **Call Control** > **Applications**
 2. Create or edit an application
-3. Set the webhook URL to: `https://your-domain.com/webhook/inbound-call`
+3. Set the webhook URL to: `https://your-domain.com/webhook/inbound-call` (this receives all Call Control events)
 4. Go to **Messaging** > **Messaging Profiles**
 5. Create or edit a profile
 6. Set the inbound webhook URL to: `https://your-domain.com/webhook/sms-inbound`
@@ -149,9 +150,7 @@ Use the ngrok URL (e.g., `https://abc123.ngrok.io`) as your webhook base URL in 
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/webhook/inbound-call` | POST | Handle inbound voice calls |
-| `/webhook/gather-date` | POST | Process date selection |
-| `/webhook/gather-time` | POST | Process time selection |
+| `/webhook/inbound-call` | POST | Handle Call Control events (`call.initiated`, `call.dtmf.received`) |
 | `/webhook/sms-inbound` | POST | Handle SMS replies |
 | `/health` | GET | Health check |
 
@@ -160,6 +159,7 @@ Use the ngrok URL (e.g., `https://abc123.ngrok.io`) as your webhook base URL in 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TELNYX_API_KEY` | Yes | Your Telnyx API key |
+| `TELNYX_PUBLIC_KEY` | Production | Telnyx webhook signing public key (base64) |
 | `TELNYX_PHONE_NUMBER` | Yes | Your Telnyx phone number (E.164 format) |
 | `FLOYD_API_KEY` | Yes | Your Floyd API key |
 | `FLOYD_SERVICE_ID` | Yes | The Floyd service ID to book against |

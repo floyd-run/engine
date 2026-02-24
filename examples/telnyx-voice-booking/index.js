@@ -1,73 +1,163 @@
 /**
  * Telnyx Voice + SMS Booking Integration with Floyd
- * 
+ *
  * This server demonstrates a complete voice booking flow:
- * 1. Inbound voice call → IVR collects date/time preference
- * 2. Check Floyd availability → create hold
- * 3. Send SMS with confirmation link
- * 4. Handle SMS reply "yes" → confirm booking
- * 
+ * 1. Inbound voice call -> collect date preference via DTMF
+ * 2. Check Floyd availability -> create hold
+ * 3. Send SMS confirmation request
+ * 4. Handle inbound SMS reply -> confirm/cancel booking
+ *
  * Run: node index.js
  */
 
+const crypto = require('crypto');
 const express = require('express');
-const { Telnyx } = require('telnyx');
 const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
-const telnyx = new Telnyx(process.env.TELNYX_API_KEY);
 
 // Configuration
+const TELNYX_API_BASE = process.env.TELNYX_API_BASE || 'https://api.telnyx.com/v2';
+const TELNYX_API_KEY = process.env.TELNYX_API_KEY;
+const TELNYX_PUBLIC_KEY = process.env.TELNYX_PUBLIC_KEY;
+const TELNYX_PHONE_NUMBER = process.env.TELNYX_PHONE_NUMBER;
+
 const FLOYD_API_BASE = process.env.FLOYD_API_BASE || 'https://api.floyd.run';
 const FLOYD_API_KEY = process.env.FLOYD_API_KEY;
 const SERVICE_ID = process.env.FLOYD_SERVICE_ID;
-const CALL_TIMEOUT_MS = 30000;
+
+const HOLD_TTL_MS = 5 * 60 * 1000;
 
 // In-memory store for active booking sessions (use Redis in production)
 const bookingSessions = new Map();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Preserve raw body for webhook verification
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf.toString('utf8');
+    },
+  }),
+);
 
-// Telnyx webhook authentication
-const telnyxAuth = (req, res, next) => {
-  const signature = req.headers['telnyx-signature'];
-  if (!signature && process.env.NODE_ENV === 'production') {
-    return res.status(401).json({ error: 'Missing signature' });
+function decodeClientState(clientState) {
+  if (!clientState) return {};
+  try {
+    return JSON.parse(Buffer.from(clientState, 'base64').toString('utf8'));
+  } catch {
+    return {};
   }
-  next();
+}
+
+function encodeClientState(data) {
+  return Buffer.from(JSON.stringify(data), 'utf8').toString('base64');
+}
+
+function extractEvent(req) {
+  const event = req.body?.data || {};
+  return {
+    eventType: event.event_type,
+    id: event.id,
+    occurredAt: event.occurred_at,
+    payload: event.payload || {},
+  };
+}
+
+function normalizePhoneNumber(value) {
+  if (!value) return null;
+  if (typeof value === 'string') return value;
+  return value.phone_number || value.e164 || null;
+}
+
+function extractSmsPayload(req) {
+  const payload = req.body?.data?.payload || {};
+  const from = normalizePhoneNumber(payload.from) || payload.from?.phone_number || null;
+  const text = payload.text || payload.body || payload.message || '';
+  const messageId = payload.id || payload.message_id || req.body?.data?.id || null;
+  return { from, text, messageId };
+}
+
+function verifyTelnyxSignature(req) {
+  const signature = req.headers['telnyx-signature-ed25519'];
+  const timestamp = req.headers['telnyx-timestamp'];
+
+  if (!signature || !timestamp) return false;
+  if (!TELNYX_PUBLIC_KEY) return true;
+
+  try {
+    const message = `${timestamp}|${req.rawBody || ''}`;
+    const signatureBuffer = Buffer.from(signature, 'base64');
+    const publicKeyBuffer = Buffer.from(TELNYX_PUBLIC_KEY, 'base64');
+
+    return crypto.verify(
+      null,
+      Buffer.from(message),
+      { key: Buffer.concat([Buffer.from('302a300506032b6570032100', 'hex'), publicKeyBuffer]), format: 'der', type: 'spki' },
+      signatureBuffer,
+    );
+  } catch (error) {
+    console.error('Webhook signature verification failed:', error.message);
+    return false;
+  }
+}
+
+const telnyxAuth = (req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') {
+    return next();
+  }
+
+  if (!verifyTelnyxSignature(req)) {
+    return res.status(401).json({ error: 'Invalid webhook signature' });
+  }
+
+  return next();
 };
 
-/**
- * Call Floyd API with proper headers
- */
-async function floydRequest(method, endpoint, data = null) {
-  const url = `${FLOYD_API_BASE}${endpoint}`;
-  const config = {
+async function telnyxRequest(method, endpoint, data = null) {
+  const response = await axios({
     method,
-    url,
+    url: `${TELNYX_API_BASE}${endpoint}`,
     headers: {
-      'Authorization': `Bearer ${FLOYD_API_KEY}`,
+      Authorization: `Bearer ${TELNYX_API_KEY}`,
       'Content-Type': 'application/json',
     },
     data,
-  };
-  const response = await axios(config);
+  });
+
   return response.data;
 }
 
-/**
- * Generate a confirmation code for SMS
- */
+async function callControlAction(callControlId, action, payload = {}) {
+  return telnyxRequest('POST', `/calls/${callControlId}/actions/${action}`, payload);
+}
+
+async function sendSms(to, text) {
+  return telnyxRequest('POST', '/messages', {
+    from: TELNYX_PHONE_NUMBER,
+    to,
+    text,
+  });
+}
+
+async function floydRequest(method, endpoint, data = null) {
+  const response = await axios({
+    method,
+    url: `${FLOYD_API_BASE}${endpoint}`,
+    headers: {
+      Authorization: `Bearer ${FLOYD_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    data,
+  });
+
+  return response.data;
+}
+
 function generateConfirmationCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/**
- * Check availability for a given date
- */
 async function checkAvailability(dateStr) {
   try {
     const startDate = new Date(dateStr);
@@ -87,73 +177,24 @@ async function checkAvailability(dateStr) {
   }
 }
 
-/**
- * Create a hold on Floyd
- */
 async function createHold(slot) {
-  try {
-    const response = await floydRequest('POST', '/v1/bookings', {
-      serviceId: SERVICE_ID,
-      slotId: slot.id,
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Hold creation failed:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await floydRequest('POST', '/v1/bookings', {
+    serviceId: SERVICE_ID,
+    slotId: slot.id,
+  });
+  return response.data;
 }
 
-/**
- * Confirm a booking
- */
 async function confirmBooking(bookingId) {
-  try {
-    const response = await floydRequest('POST', `/v1/bookings/${bookingId}/confirm`, {});
-    return response.data;
-  } catch (error) {
-    console.error('Confirmation failed:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await floydRequest('POST', `/v1/bookings/${bookingId}/confirm`, {});
+  return response.data;
 }
 
-/**
- * Cancel a booking
- */
 async function cancelBooking(bookingId) {
-  try {
-    const response = await floydRequest('POST', `/v1/bookings/${bookingId}/cancel`, {});
-    return response.data;
-  } catch (error) {
-    console.error('Cancellation failed:', error.response?.data || error.message);
-    throw error;
-  }
+  const response = await floydRequest('POST', `/v1/bookings/${bookingId}/cancel`, {});
+  return response.data;
 }
 
-/**
- * Parse date from speech/input
- */
-function parseDateFromInput(input) {
-  const today = new Date();
-  const lower = input.toLowerCase();
-  
-  if (lower.includes('tomorrow')) {
-    today.setDate(today.getDate() + 1);
-  } else if (lower.includes('today')) {
-    // already today
-  } else {
-    // Try to parse specific date
-    const parsed = new Date(input);
-    if (!isNaN(parsed.getTime())) {
-      return parsed.toISOString().split('T')[0];
-    }
-  }
-  
-  return today.toISOString().split('T')[0];
-}
-
-/**
- * Format slot time for display
- */
 function formatSlotTime(slot) {
   const start = new Date(slot.startTime);
   return start.toLocaleString('en-US', {
@@ -165,256 +206,190 @@ function formatSlotTime(slot) {
   });
 }
 
-/**
- * Generate Telnyx IVR XML response
- */
-function generateIvrResponse(gatherResult = null) {
-  let response = '<?xml version="1.0" encoding="UTF-8"?><Response>';
-  
-  if (gatherResult) {
-    response += `<Say voice="female">Thank you. Let me check availability for ${gatherResult}. One moment please.</Say>`;
-  } else {
-    response += `<Say voice="female">Welcome to our booking service. What date would you like to book an appointment?</Say>`;
-    response += '<Gather numDigits="10" action="/webhook/gather-date" method="POST" timeout="10">';
-    response += '<Say voice="female">Please say or enter the date, for example, tomorrow, or January 15th.</Say>';
-    response += '</Gather>';
+function getDateFromDigit(digit) {
+  const date = new Date();
+  if (digit === '2') {
+    date.setDate(date.getDate() + 1);
   }
-  
-  response += '</Response>';
-  return response;
+  return date.toISOString().split('T')[0];
 }
 
-/**
- * Generate confirmation message with link
- */
-function generateConfirmationMessage(booking, slot) {
-  const formattedTime = formatSlotTime(slot);
-  return `Your appointment is ready for ${formattedTime}. 
-Reply YES to confirm, or NO to cancel.
-This hold expires in 5 minutes.`;
-}
-
-// ========== WEBHOOK HANDLERS ==========
-
-/**
- * Handle inbound call
- */
-app.post('/webhook/inbound-call', telnyxAuth, async (req, res) => {
-  const { call_id, from } = req.body;
-  
-  console.log(`Incoming call from ${from}, call_id: ${call_id}`);
-  
-  res.type('text/xml');
-  res.send(generateIvrResponse());
-});
-
-/**
- * Handle date gather
- */
-app.post('/webhook/gather-date', telnyxAuth, async (req, res) => {
-  const { call_id, from, digits, speech } = req.body;
-  const input = digits || speech?.results?.[0]?.transcript;
-  const dateStr = parseDateFromInput(input || '');
-  
-  console.log(`Call ${call_id}: User wants date ${dateStr}`);
-  
-  // Check availability
-  const slots = await checkAvailability(dateStr);
-  
-  if (slots.length === 0) {
-    res.type('text/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">Sorry, no slots available for that date. Please call back or try a different date.</Say>
-  <Hangup/>
-</Response>`);
-    return;
-  }
-  
-  // Store session
-  const sessionId = generateConfirmationCode();
-  bookingSessions.set(sessionId, {
-    callId: call_id,
-    phoneNumber: from,
-    date: dateStr,
-    slots,
-    currentSlotIndex: 0,
-    bookingId: null,
-    createdAt: Date.now(),
+async function promptForDate(callControlId) {
+  await callControlAction(callControlId, 'answer');
+  await callControlAction(callControlId, 'gather_using_speak', {
+    payload: 'Welcome to our booking service. Press 1 for today, or press 2 for tomorrow.',
+    valid_digits: '12',
+    max: 1,
+    timeout_millis: 10000,
+    voice: 'female',
+    client_state: encodeClientState({ stage: 'date' }),
   });
-  
-  // Present first available slot
-  const slot = slots[0];
-  const formattedTime = formatSlotTime(slot);
-  
-  res.type('text/xml');
-  res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">I found available times. Your first option is ${formattedTime}. Say yes to book this time, or say next for another option.</Say>
-  <Gather numDigits="1" action="/webhook/gather-time?session=${sessionId}" method="POST" timeout="5">
-    <Say voice="female">Press 1 to book this time, or press 2 for the next available time.</Say>
-  </Gather>
-</Response>`);
-});
+}
 
-/**
- * Handle time selection
- */
-app.post('/webhook/gather-time', telnyxAuth, async (req, res) => {
-  const { call_id, digits, session: sessionId } = req.body;
-  const session = bookingSessions.get(sessionId);
-  
-  if (!session) {
-    res.type('text/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">Sorry, your session has expired. Please call back.</Say>
-  <Hangup/>
-</Response>`);
-    return;
-  }
-  
-  const choice = parseInt(digits, 10);
-  
-  if (choice === 2 && session.currentSlotIndex < session.slots.length - 1) {
-    // Move to next slot
-    session.currentSlotIndex++;
-    const slot = session.slots[session.currentSlotIndex];
-    const formattedTime = formatSlotTime(slot);
-    
-    res.type('text/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">Your next option is ${formattedTime}. Press 1 to book this time, or press 2 for the next available time.</Say>
-  <Gather numDigits="1" action="/webhook/gather-time?session=${sessionId}" method="POST" timeout="5"/>
-</Response>`);
-    return;
-  }
-  
-  // Create hold on selected slot
-  const slot = session.slots[session.currentSlotIndex];
-  
+async function promptForSlot(callControlId, sessionId, slot, isNext = false) {
+  const intro = isNext ? 'Your next available option is' : 'I found availability.';
+  await callControlAction(callControlId, 'gather_using_speak', {
+    payload: `${intro} ${formatSlotTime(slot)}. Press 1 to book this time, or press 2 for the next available time.`,
+    valid_digits: '12',
+    max: 1,
+    timeout_millis: 10000,
+    voice: 'female',
+    client_state: encodeClientState({ stage: 'slot', sessionId }),
+  });
+}
+
+async function speakMessage(callControlId, message) {
+  await callControlAction(callControlId, 'speak', {
+    payload: message,
+    voice: 'female',
+  });
+}
+
+app.post('/webhook/inbound-call', telnyxAuth, async (req, res) => {
+  const event = extractEvent(req);
+  const payload = event.payload;
+
   try {
-    const hold = await createHold(slot);
-    session.bookingId = hold.id;
-    session.slot = slot;
-    
-    console.log(`Call ${call_id}: Created hold ${hold.id} for slot ${slot.id}`);
-    
-    // Send SMS with confirmation request
-    const message = generateConfirmationMessage(hold, slot);
-    
-    await telnyx.messages.create({
-      from: process.env.TELNYX_PHONE_NUMBER,
-      to: session.phoneNumber,
-      text: message,
-    });
-    
-    res.type('text/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">I've reserved your slot and sent a confirmation text to your phone. Reply yes to confirm, or no to cancel. Thank you for calling.</Say>
-  <Hangup/>
-</Response>`);
+    if (event.eventType === 'call.initiated') {
+      console.log(`Incoming call: ${payload.call_control_id}`);
+      await promptForDate(payload.call_control_id);
+    }
+
+    if (event.eventType === 'call.dtmf.received') {
+      const callControlId = payload.call_control_id;
+      const digit = payload.digits;
+      const state = decodeClientState(payload.client_state);
+
+      if (state.stage === 'date') {
+        const dateStr = getDateFromDigit(digit);
+        const slots = await checkAvailability(dateStr);
+
+        if (slots.length === 0) {
+          await speakMessage(callControlId, 'Sorry, no slots are available for that day. Please try again later.');
+          await callControlAction(callControlId, 'hangup');
+          return res.sendStatus(200);
+        }
+
+        const sessionId = generateConfirmationCode();
+        bookingSessions.set(sessionId, {
+          callControlId,
+          phoneNumber: normalizePhoneNumber(payload.from),
+          date: dateStr,
+          slots,
+          currentSlotIndex: 0,
+          bookingId: null,
+          createdAt: Date.now(),
+        });
+
+        await promptForSlot(callControlId, sessionId, slots[0]);
+      }
+
+      if (state.stage === 'slot') {
+        const session = bookingSessions.get(state.sessionId);
+
+        if (!session) {
+          await speakMessage(callControlId, 'Your session has expired. Please call back and try again.');
+          await callControlAction(callControlId, 'hangup');
+          return res.sendStatus(200);
+        }
+
+        if (digit === '2' && session.currentSlotIndex < session.slots.length - 1) {
+          session.currentSlotIndex += 1;
+          const slot = session.slots[session.currentSlotIndex];
+          await promptForSlot(callControlId, state.sessionId, slot, true);
+          return res.sendStatus(200);
+        }
+
+        const slot = session.slots[session.currentSlotIndex];
+        const hold = await createHold(slot);
+
+        session.bookingId = hold.id;
+        session.slot = slot;
+
+        if (!session.phoneNumber) {
+          await speakMessage(callControlId, 'I could not identify your phone number for SMS confirmation. Please call back.');
+          await callControlAction(callControlId, 'hangup');
+          return res.sendStatus(200);
+        }
+
+        await sendSms(
+          session.phoneNumber,
+          `Your appointment is ready for ${formatSlotTime(slot)}. Reply YES to confirm, or NO to cancel. This hold expires in 5 minutes.`,
+        );
+
+        await speakMessage(callControlId, 'I sent a confirmation text to your phone. Reply yes to confirm or no to cancel. Thank you for calling.');
+        await callControlAction(callControlId, 'hangup');
+      }
+    }
+
+    return res.sendStatus(200);
   } catch (error) {
-    console.error('Failed to create hold:', error);
-    res.type('text/xml');
-    res.send(`<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="female">Sorry, that slot is no longer available. Please call back to try again.</Say>
-  <Hangup/>
-</Response>`);
+    console.error('Call control webhook failed:', error.response?.data || error.message);
+    return res.sendStatus(200);
   }
 });
 
-/**
- * Handle SMS inbound (confirmation)
- */
 app.post('/webhook/sms-inbound', telnyxAuth, async (req, res) => {
-  const { from, text, message_id } = req.body;
-  const response = text?.trim().toLowerCase();
-  
-  console.log(`SMS from ${from}: ${text}`);
-  
-  // Find session by phone number
-  let session = null;
-  for (const [id, sess] of bookingSessions.entries()) {
-    if (sess.phoneNumber === from && sess.bookingId) {
-      session = sess;
-      session.sessionId = id;
-      break;
+  const eventType = req.body?.data?.event_type;
+  if (eventType !== 'message.received') {
+    return res.sendStatus(200);
+  }
+
+  const { from, text } = extractSmsPayload(req);
+  const response = text.trim().toLowerCase();
+
+  try {
+    let session = null;
+    let sessionId = null;
+
+    for (const [id, candidate] of bookingSessions.entries()) {
+      if (candidate.phoneNumber === from && candidate.bookingId) {
+        session = candidate;
+        sessionId = id;
+        break;
+      }
     }
-  }
-  
-  if (!session) {
-    console.log('No active session found for', from);
-    res.sendStatus(200);
-    return;
-  }
-  
-  // Check for expired sessions
-  if (Date.now() - session.createdAt > CALL_TIMEOUT_MS) {
-    bookingSessions.delete(session.sessionId);
-    await telnyx.messages.create({
-      from: process.env.TELNYX_PHONE_NUMBER,
-      to: from,
-      text: 'Your session has expired. Please call back to start a new booking.',
-    });
-    res.sendStatus(200);
-    return;
-  }
-  
-  if (response === 'yes' || response === 'confirm') {
-    try {
+
+    if (!session) {
+      return res.sendStatus(200);
+    }
+
+    if (Date.now() - session.createdAt > HOLD_TTL_MS) {
+      bookingSessions.delete(sessionId);
+      await sendSms(from, 'Your session has expired. Please call back to start a new booking.');
+      return res.sendStatus(200);
+    }
+
+    if (response === 'yes' || response === 'confirm') {
       await confirmBooking(session.bookingId);
-      
-      await telnyx.messages.create({
-        from: process.env.TELNYX_PHONE_NUMBER,
-        to: from,
-        text: `Your booking is confirmed! Appointment: ${formatSlotTime(session.slot)}. Thank you!`,
-      });
-      
-      console.log(`Booking ${session.bookingId} confirmed via SMS`);
-      bookingSessions.delete(session.sessionId);
-    } catch (error) {
-      console.error('Confirmation failed:', error);
-      await telnyx.messages.create({
-        from: process.env.TELNYX_PHONE_NUMBER,
-        to: from,
-        text: 'Confirmation failed. Please call back to try again.',
-      });
+      await sendSms(from, `Your booking is confirmed. Appointment: ${formatSlotTime(session.slot)}.`);
+      bookingSessions.delete(sessionId);
+      return res.sendStatus(200);
     }
-  } else if (response === 'no' || response === 'cancel') {
-    try {
+
+    if (response === 'no' || response === 'cancel') {
       await cancelBooking(session.bookingId);
-      
-      await telnyx.messages.create({
-        from: process.env.TELNYX_PHONE_NUMBER,
-        to: from,
-        text: 'Your booking has been cancelled. Thank you!',
-      });
-      
-      console.log(`Booking ${session.bookingId} cancelled via SMS`);
-      bookingSessions.delete(session.sessionId);
-    } catch (error) {
-      console.error('Cancellation failed:', error);
+      await sendSms(from, 'Your booking has been cancelled.');
+      bookingSessions.delete(sessionId);
+      return res.sendStatus(200);
     }
+
+    await sendSms(from, 'Reply YES to confirm your booking, or NO to cancel.');
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error('SMS webhook failed:', error.response?.data || error.message);
+    return res.sendStatus(200);
   }
-  
-  res.sendStatus(200);
 });
 
-/**
- * Health check
- */
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Telnyx Floyd Booking Server running on port ${PORT}`);
+  console.log(`Telnyx API: ${TELNYX_API_BASE}`);
   console.log(`Floyd API: ${FLOYD_API_BASE}`);
   console.log(`Service ID: ${SERVICE_ID}`);
 });

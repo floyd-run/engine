@@ -126,7 +126,7 @@ export default createOperation({
       // 10. Deactivate old allocations
       await trx
         .updateTable("allocations")
-        .set({ active: false, expiresAt: null, updatedAt: serverTime })
+        .set({ active: false, expiresAt: null })
         .where("bookingId", "=", existing.id)
         .where("active", "=", true)
         .execute();
@@ -151,7 +151,6 @@ export default createOperation({
         .set({
           policyVersionId: version.id,
           expiresAt,
-          updatedAt: serverTime,
         })
         .where("id", "=", existing.id)
         .returningAll()

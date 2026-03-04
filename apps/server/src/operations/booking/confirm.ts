@@ -57,7 +57,6 @@ export default createOperation({
         .set({
           status: "confirmed",
           expiresAt: null,
-          updatedAt: serverTime,
         })
         .where("id", "=", input.id)
         .returningAll()
@@ -66,7 +65,7 @@ export default createOperation({
       // 6. Update allocations
       await trx
         .updateTable("allocations")
-        .set({ expiresAt: null, updatedAt: serverTime })
+        .set({ expiresAt: null })
         .where("bookingId", "=", input.id)
         .execute();
 

@@ -10,7 +10,6 @@ export default createOperation({
       .updateTable("bookings")
       .set({
         metadata: input.metadata,
-        updatedAt: new Date(),
       })
       .where("id", "=", input.id)
       .where("ledgerId", "=", input.ledgerId)

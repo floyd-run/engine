@@ -35,3 +35,15 @@ export const cancel = z.object({
   id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
+
+export const reschedule = z
+  .object({
+    id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
+    ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+    startTime: z.coerce.date(),
+    endTime: z.coerce.date(),
+  })
+  .refine((data) => data.endTime > data.startTime, {
+    message: "endTime must be after startTime",
+    path: ["endTime"],
+  });

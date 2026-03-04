@@ -56,4 +56,20 @@ export const bookings = new Hono<{ Variables: IdempotencyVariables }>()
     const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
     await storeIdempotencyResponse(c, responseBody, 200);
     return c.json(responseBody);
-  });
+  })
+
+  .post(
+    "/:id/reschedule",
+    idempotent({ significantFields: ["startTime", "endTime"] }),
+    async (c) => {
+      const body = c.get("parsedBody") ?? (await c.req.json());
+      const { booking, allocations, serverTime } = await operations.booking.reschedule({
+        ...(body as object),
+        id: c.req.param("id"),
+        ledgerId: c.req.param("ledgerId"),
+      } as Parameters<typeof operations.booking.reschedule>[0]);
+      const responseBody = { data: serializeBooking(booking, allocations), meta: { serverTime } };
+      await storeIdempotencyResponse(c, responseBody, 200);
+      return c.json(responseBody);
+    },
+  );

@@ -9,7 +9,8 @@ export type InternalEventType =
   | "booking.created"
   | "booking.confirmed"
   | "booking.canceled"
-  | "booking.expired";
+  | "booking.expired"
+  | "booking.rescheduled";
 
 export interface InternalEvent {
   id: string;

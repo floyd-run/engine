@@ -36,6 +36,12 @@ export const cancel = z.object({
   ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
 });
 
+export const update = z.object({
+  id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),
+  ledgerId: z.string().refine((id) => isValidId(id, "ldg"), { message: "Invalid ledger ID" }),
+  metadata: z.record(z.string(), z.unknown()),
+});
+
 export const reschedule = z
   .object({
     id: z.string().refine((id) => isValidId(id, "bkg"), { message: "Invalid booking ID" }),

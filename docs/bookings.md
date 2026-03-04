@@ -77,6 +77,24 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
 
 This creates the booking without an expiration.
 
+## Update metadata
+
+Agents often learn new information mid-conversation — a customer mentions extra guests, dietary requirements, or a reason for cancellation. Use PATCH to attach this context to the booking:
+
+```bash
+curl -X PATCH "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "customerName": "Alice",
+      "partySize": 2,
+      "notes": "Needs wheelchair accessible room"
+    }
+  }'
+```
+
+This replaces the entire `metadata` object. Works on bookings in any status — you can add a cancellation reason to a canceled booking, or update notes on a confirmed one.
+
 ## Confirm (commit)
 
 When the user says "yes", confirm the hold:

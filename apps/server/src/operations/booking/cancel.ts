@@ -49,7 +49,6 @@ export default createOperation({
         .set({
           status: "canceled",
           expiresAt: null,
-          updatedAt: serverTime,
         })
         .where("id", "=", input.id)
         .returningAll()
@@ -58,7 +57,7 @@ export default createOperation({
       // 5. Deactivate allocations
       await trx
         .updateTable("allocations")
-        .set({ active: false, expiresAt: null, updatedAt: serverTime })
+        .set({ active: false, expiresAt: null })
         .where("bookingId", "=", input.id)
         .execute();
 

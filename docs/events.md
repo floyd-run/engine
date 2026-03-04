@@ -6,12 +6,13 @@ Floyd Engine emits events when state changes occur (bookings created, allocation
 
 ### Booking events
 
-| Event               | Description                  |
-| ------------------- | ---------------------------- |
-| `booking.created`   | A new booking was created    |
-| `booking.confirmed` | A hold booking was confirmed |
-| `booking.canceled`  | A booking was canceled       |
-| `booking.expired`   | A hold booking expired       |
+| Event                 | Description                       |
+| --------------------- | --------------------------------- |
+| `booking.created`     | A new booking was created         |
+| `booking.confirmed`   | A hold booking was confirmed      |
+| `booking.canceled`    | A booking was canceled            |
+| `booking.expired`     | A hold booking expired            |
+| `booking.rescheduled` | A booking was moved to a new time |
 
 ### Allocation events
 
@@ -107,6 +108,7 @@ interface Event {
   data: {
     booking?: Booking; // Present for booking events
     allocation?: Allocation; // Present for allocation events
+    previousAllocations?: Allocation[]; // Present for booking.rescheduled
   };
 }
 ```
@@ -140,6 +142,55 @@ interface Event {
   }
 }
 ```
+
+### Example: booking.rescheduled
+
+```json
+{
+  "id": "evt_01abc123...",
+  "type": "booking.rescheduled",
+  "ledgerId": "ldg_01xyz789...",
+  "timestamp": "2026-01-15T11:00:00Z",
+
+  "schemaVersion": 1,
+  "data": {
+    "booking": {
+      "id": "bkg_01def456...",
+      "serviceId": "svc_01ghi789...",
+      "status": "confirmed",
+      "expiresAt": null,
+      "allocations": [
+        {
+          "id": "alc_01old...",
+          "resourceId": "rsc_01mno345...",
+          "startTime": "2026-01-15T14:00:00Z",
+          "endTime": "2026-01-15T15:00:00Z",
+          "active": false
+        },
+        {
+          "id": "alc_01new...",
+          "resourceId": "rsc_01mno345...",
+          "startTime": "2026-01-15T16:00:00Z",
+          "endTime": "2026-01-15T17:00:00Z",
+          "active": true
+        }
+      ],
+      "createdAt": "2026-01-15T10:00:00Z"
+    },
+    "previousAllocations": [
+      {
+        "id": "alc_01old...",
+        "resourceId": "rsc_01mno345...",
+        "startTime": "2026-01-15T14:00:00Z",
+        "endTime": "2026-01-15T15:00:00Z",
+        "active": true
+      }
+    ]
+  }
+}
+```
+
+The `previousAllocations` array contains the allocations as they were before the reschedule (with `active: true`). The `booking.allocations` array shows the current state (old inactive, new active).
 
 ### Example: allocation.deleted
 

@@ -31,6 +31,8 @@ A booking moves through these states:
 | `hold`      | `canceled`  | `POST /bookings/:id/cancel`                 |
 | `hold`      | `expired`   | `expiresAt` elapsed (automatic)             |
 | `confirmed` | `canceled`  | `POST /bookings/:id/cancel`                 |
+| `hold`      | `hold`      | `POST /bookings/:id/reschedule`             |
+| `confirmed` | `confirmed` | `POST /bookings/:id/reschedule`             |
 
 ## Creating a booking
 
@@ -75,6 +77,24 @@ curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings" \
 
 This creates the booking without an expiration.
 
+## Update metadata
+
+Agents often learn new information mid-conversation — a customer mentions extra guests, dietary requirements, or a reason for cancellation. Use PATCH to attach this context to the booking:
+
+```bash
+curl -X PATCH "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "metadata": {
+      "customerName": "Alice",
+      "partySize": 2,
+      "notes": "Needs wheelchair accessible room"
+    }
+  }'
+```
+
+This replaces the entire `metadata` object. Works on bookings in any status — you can add a cancellation reason to a canceled booking, or update notes on a confirmed one.
+
 ## Confirm (commit)
 
 When the user says "yes", confirm the hold:
@@ -108,6 +128,38 @@ This:
 Cancel works on both `hold` and `confirmed` bookings. Returns `409 Conflict` with code `booking.invalid_transition` if the booking is already `canceled` or `expired`.
 
 Cancel is safe to retry with the same `Idempotency-Key` header.
+
+## Reschedule (change time)
+
+Move a booking to a new time without losing its identity:
+
+```bash
+curl -X POST "$FLOYD_BASE_URL/v1/ledgers/$LEDGER_ID/bookings/$BOOKING_ID/reschedule" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "startTime": "2026-03-01T14:00:00Z",
+    "endTime": "2026-03-01T15:00:00Z"
+  }'
+```
+
+This:
+
+- Re-evaluates the service's **current** policy version against the new time
+- Deactivates the old allocation and creates a new one atomically
+- Updates `policyVersionId` to the current version
+- For `hold` bookings: resets `expiresAt` (fresh hold timer)
+- For `confirmed` bookings: stays confirmed (no expiry)
+
+Returns `409 Conflict` with:
+
+- `policy.rejected` if the new time violates the policy
+- `allocation.overlap` if the new time conflicts with another booking
+- `booking.hold_expired` if the hold expired before rescheduling
+- `booking.invalid_transition` if the booking is `canceled` or `expired`
+
+After rescheduling, the response includes both the old (inactive) and new (active) allocations. The original time slot is freed for new bookings.
+
+Reschedule is safe to retry with the same `Idempotency-Key` header.
 
 ## Expiration
 
@@ -154,7 +206,7 @@ After expiration, the time slot is available for new bookings.
 }
 ```
 
-Mutating endpoints (`create`, `confirm`, `cancel`) return `meta.serverTime`.
+Mutating endpoints (`create`, `confirm`, `cancel`, `reschedule`) return `meta.serverTime`.
 
 ## Buffers
 

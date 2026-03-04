@@ -718,6 +718,50 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  method: "post",
+  path: "/v1/ledgers/{ledgerId}/bookings/{id}/reschedule",
+  tags: ["Bookings"],
+  summary: "Reschedule a booking",
+  description:
+    "Changes the time of an existing booking while preserving its identity. " +
+    "Re-evaluates the service's current policy version against the new time. " +
+    "The old allocation is deactivated and a new one is created atomically. " +
+    "Hold bookings get a fresh hold timer. Confirmed bookings stay confirmed. " +
+    "Supports idempotency via the Idempotency-Key header.",
+  request: {
+    params: z.object({ ledgerId: z.string(), id: z.string() }),
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            startTime: z.iso.datetime().openapi({ example: "2026-01-15T14:00:00Z" }),
+            endTime: z.iso.datetime().openapi({ example: "2026-01-15T15:00:00Z" }),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Booking rescheduled",
+      content: { "application/json": { schema: booking.get } },
+    },
+    404: {
+      description: "Booking not found",
+      content: { "application/json": { schema: error.schema } },
+    },
+    409: {
+      description: "Conflict (overlap, policy rejected, expired hold, or invalid state)",
+      content: { "application/json": { schema: error.schema } },
+    },
+    422: {
+      description: "Invalid input",
+      content: { "application/json": { schema: error.schema } },
+    },
+  },
+});
+
 // Policy routes
 registry.registerPath({
   method: "get",
